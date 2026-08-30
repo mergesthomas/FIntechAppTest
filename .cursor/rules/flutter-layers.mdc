@@ -8,7 +8,7 @@ alwaysApply: true
 
 **Domain:** Entities are pure Dart (no Flutter, no JSON). Use Cases are small with one `call()`. Repository interfaces live here.
 
-**Data:** Models/DTOs (freezed + json_serializable) are not entities; map in the repository. Split remote vs local data sources. Repositories handle mapping and exception → `Failure`. Support REST and WebSocket when needed. Handle offline and real-time data correctly.
+**Data:** Models/DTOs (freezed + json_serializable) are not entities; map in the repository. Split remote vs local data sources. **Now:** local / fixture sources only (emulated ledger). **Later:** add remote for crypto prices (and only then for trading). Repositories handle mapping and exception → `Failure`. Handle offline and real-time data correctly.
 
 **Presentation:** Widgets stay dumb. Talk only to Blocs/Cubits. Never call repositories or use cases from UI. No business logic in widgets.
 
