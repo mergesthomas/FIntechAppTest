@@ -100,12 +100,6 @@ class _Body extends StatelessWidget {
         RestoreRail.funding => AppRoute.funding,
         RestoreRail.swap => AppRoute.swap,
       };
-      if (route == AppRoute.swap) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('/swap — next feature')),
-        );
-        return;
-      }
       context.push(route.path);
     });
   }

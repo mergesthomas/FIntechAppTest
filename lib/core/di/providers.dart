@@ -44,6 +44,11 @@ import '../../features/card/data/repositories/card_repository_impl.dart';
 import '../../features/card/domain/repositories/card_repository.dart';
 import '../../features/card/domain/usecases/card_usecases.dart';
 import '../../features/card/presentation/cubit/card_cubit.dart';
+import '../../features/swap/data/datasources/swap_local_datasource.dart';
+import '../../features/swap/data/repositories/swap_repository_impl.dart';
+import '../../features/swap/domain/repositories/swap_repository.dart';
+import '../../features/swap/domain/usecases/swap_usecases.dart';
+import '../../features/swap/presentation/cubit/swap_cubit.dart';
 import '../../features/earn/presentation/cubit/earn_cubit.dart';
 import '../../features/funding/presentation/cubit/funding_cubit.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
@@ -356,6 +361,25 @@ final cardCubitProvider = Provider<CardCubit>((ref) {
     getStatus: GetCardStatus(session, card),
     restore: RestoreCardBalance(session),
     unfreeze: UnfreezeCard(session, card),
+  );
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final swapRepositoryProvider = Provider<SwapRepository>((ref) {
+  return SwapRepositoryImpl(SwapLocalDataSource());
+});
+
+final swapCubitProvider = Provider<SwapCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final swap = ref.watch(swapRepositoryProvider);
+  final session = RequireSession(auth);
+  final eligibility = GetEligibility(auth);
+  final cubit = SwapCubit(
+    getWallets: GetSwapWallets(session, swap),
+    searchAssets: SearchSwapAssets(session, swap),
+    getQuote: GetSwapQuote(session, eligibility, swap),
+    submit: SubmitSwap(session, eligibility, swap),
   );
   ref.onDispose(cubit.close);
   return cubit;
