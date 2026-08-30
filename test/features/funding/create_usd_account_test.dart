@@ -7,6 +7,8 @@ import 'package:fintech_app_test/features/funding/data/datasources/funding_local
 import 'package:fintech_app_test/features/funding/data/repositories/funding_repository_impl.dart';
 import 'package:fintech_app_test/features/funding/domain/usecases/funding_usecases.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/paper_harness.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -19,7 +21,12 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    repo = FundingRepositoryImpl(FundingLocalDataSource());
+    final paper = PaperHarness();
+    repo = FundingRepositoryImpl(
+      FundingLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     create = CreatePersonalUsdAccount(
       RequireSession(auth),
       GetEligibility(auth),

@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/money/money.dart';
 
-enum OrderTab { trigger, limit }
+enum OrderTab { trigger, limit, market }
 
 enum OrderSide { sell, buy }
 

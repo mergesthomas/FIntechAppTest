@@ -10,4 +10,14 @@ void main() {
     expect(money.amount, Decimal.parse('35862.41'));
     expect(formatMoney(money), r'$35,862.41');
   });
+
+  test('adds subtracts and converts without double', () {
+    final ten = Money.parse('10', Currency.nexo);
+    expect((ten + Money.parse('2', Currency.nexo)).amount, Decimal.parse('12'));
+    expect((ten - Money.parse('2', Currency.nexo)).amount, Decimal.parse('8'));
+    expect(
+      ten.convert(Decimal.parse('0.5'), Currency.eurx).amount,
+      Decimal.parse('5'),
+    );
+  });
 }

@@ -35,6 +35,16 @@ final class SwapQuote extends Equatable {
   final SwapWallet wallet;
   final QuoteFreshness freshness;
 
+  SwapQuote copyWith({QuoteFreshness? freshness}) {
+    return SwapQuote(
+      quoteId: quoteId,
+      from: from,
+      to: to,
+      wallet: wallet,
+      freshness: freshness ?? this.freshness,
+    );
+  }
+
   @override
   List<Object?> get props => [quoteId, from, to, wallet, freshness];
 }

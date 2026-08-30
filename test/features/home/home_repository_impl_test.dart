@@ -4,10 +4,15 @@ import 'package:fintech_app_test/features/home/data/datasources/home_local_datas
 import 'package:fintech_app_test/features/home/data/repositories/home_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/paper_harness.dart';
+
 void main() {
   test('fixture portfolio is stale, never live', () async {
+    final paper = PaperHarness();
     final repo = HomeRepositoryImpl(
       HomeLocalDataSource(InMemorySecureStore()),
+      feed: paper.feed,
+      ledger: paper.ledger,
     );
 
     final overview = await repo.getOverview(initials: '78');

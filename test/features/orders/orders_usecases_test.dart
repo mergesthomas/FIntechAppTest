@@ -3,6 +3,7 @@ import 'package:fintech_app_test/core/settlement/settlement_status.dart';
 import 'package:fintech_app_test/features/auth/domain/entities/session.dart';
 import 'package:fintech_app_test/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fintech_app_test/features/auth/domain/usecases/session_usecases.dart';
+import 'package:fintech_app_test/core/ledger/paper_order.dart';
 import 'package:fintech_app_test/features/orders/data/datasources/orders_local_datasource.dart';
 import 'package:fintech_app_test/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:fintech_app_test/features/orders/domain/entities/order.dart';
@@ -19,7 +20,9 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    repo = OrdersRepositoryImpl(OrdersLocalDataSource());
+    repo = OrdersRepositoryImpl(
+      OrdersLocalDataSource(store: PaperOrderStore()),
+    );
     when(() => auth.restoreSession()).thenAnswer(
       (_) async => Either.right(
         const Session(token: 't', phone: '6912345678', biometricEnabled: false),

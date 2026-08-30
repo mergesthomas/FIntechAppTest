@@ -26,17 +26,22 @@ class _OrdersPageState extends State<OrdersPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Order History'),
           bottom: TabBar(
             onTap: (index) => context.read<OrdersCubit>().load(
-                  index == 0 ? OrderTab.trigger : OrderTab.limit,
+                  switch (index) {
+                    0 => OrderTab.trigger,
+                    1 => OrderTab.limit,
+                    _ => OrderTab.market,
+                  },
                 ),
             tabs: const [
               Tab(text: 'Trigger Orders'),
               Tab(text: 'Limit Orders'),
+              Tab(text: 'Market'),
             ],
           ),
         ),

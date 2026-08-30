@@ -117,6 +117,16 @@ final class FuturesQuote extends Equatable {
   final String leverageTeaser;
   final QuoteFreshness freshness;
 
+  FuturesQuote copyWith({QuoteFreshness? freshness}) {
+    return FuturesQuote(
+      quoteId: quoteId,
+      side: side,
+      size: size,
+      leverageTeaser: leverageTeaser,
+      freshness: freshness ?? this.freshness,
+    );
+  }
+
   @override
   List<Object?> get props => [quoteId, side, size, leverageTeaser, freshness];
 }

@@ -7,6 +7,8 @@ import 'package:fintech_app_test/features/futures/data/repositories/futures_repo
 import 'package:fintech_app_test/features/futures/domain/usecases/futures_usecases.dart';
 import 'package:fintech_app_test/features/futures/presentation/cubit/futures_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/paper_harness.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -18,7 +20,12 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    final repo = FuturesRepositoryImpl(FuturesLocalDataSource());
+    final paper = PaperHarness();
+    final repo = FuturesRepositoryImpl(
+      FuturesLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     final session = RequireSession(auth);
     final eligibility = GetEligibility(auth);
     final getQuote = GetFuturesQuote(session, eligibility, repo);

@@ -6,9 +6,16 @@ import 'package:fintech_app_test/features/swap/data/repositories/swap_repository
 import 'package:fintech_app_test/features/swap/domain/entities/swap.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/paper_harness.dart';
+
 void main() {
   test('swap quotes are stale fixtures', () async {
-    final repo = SwapRepositoryImpl(SwapLocalDataSource());
+    final paper = PaperHarness();
+    final repo = SwapRepositoryImpl(
+      SwapLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     final quote = await repo.getQuote(
       from: Currency.nexo,
       to: Currency.eurx,

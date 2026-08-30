@@ -4,9 +4,15 @@ import 'package:fintech_app_test/features/explore/data/repositories/explore_repo
 import 'package:fintech_app_test/features/explore/domain/entities/explore_asset.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/paper_harness.dart';
+
 void main() {
   test('fixture explore prices are stale, never live', () async {
-    final repo = ExploreRepositoryImpl(const ExploreLocalDataSource());
+    final paper = PaperHarness();
+    final repo = ExploreRepositoryImpl(
+      const ExploreLocalDataSource(),
+      feed: paper.feed,
+    );
     final feed = await repo.getFeed();
     final assets = await repo.getAssets(ExploreAssetFilter.all);
     expect(
