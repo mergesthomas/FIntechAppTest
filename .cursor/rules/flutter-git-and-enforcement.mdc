@@ -5,6 +5,10 @@ alwaysApply: true
 
 # Git + enforcement (mandatory)
 
-**Git:** New work on `feature/feature-name` only. Never develop on `main` or `develop`. Commit only after unit tests pass. Then commit → push → merge only after review or explicit approval. Still only commit/push/merge when the user asks.
+**Git:** New work on `feature/feature-name` only. Never develop on `main` or `develop`. Commit only after unit tests pass.
+
+**Done means merged:** When a feature is complete and required tests pass, push the feature branch and merge it into `main`. Do not leave a finished feature only on the feature branch. Use a PR when `gh` is available; otherwise `git checkout main && git merge --no-ff feature/... && git push origin main`. Never merge if tests fail. After the merge, start the next `feature/...` — do not continue work on `main`.
+
+**During work:** mid-feature commit/push only when the user asks. Completing a feature includes push + merge to `main` — do not wait for a second reminder.
 
 **Enforcement:** If a request violates these rules (architecture, tests, branching, money/`double`, auth/KYC, stale quotes, PII in logs, or screenshot-before-approval), refuse to generate the violating code, state which rule is broken, and propose the compliant approach.
