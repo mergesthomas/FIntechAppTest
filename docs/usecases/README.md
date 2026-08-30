@@ -1,115 +1,28 @@
-# Domain Use Cases
+# Use Cases
 
 Branch: `feature/use-cases`  
-Scope: Domain only. No Bloc, pages, or data sources in this slice.
+This feature is the **catalog**, not an implementation.
 
-Use Cases are grouped by feature, then by category. Each has one `call()` and returns `Either<Failure, T>`.
+Full contract: [`docs/design/use-cases.md`](../design/use-cases.md)
 
-Legal, fee, APY, cashback, and LTV **copy** is a server key / placeholder. Do not invent user-facing strings.
+No Bloc, UI, or `lib/features/` until you approve **one** feature from the index.
 
----
+## Categories
 
-## Core (shared)
-
-| Type | Path |
+| Area | Features |
 |---|---|
-| `Money` / `Currency` | `lib/core/money/` |
-| `Failure` | `lib/core/error/failure.dart` |
-| `AuthPort` + `AccessGuards` | `lib/core/auth/` |
-| `QuoteFreshness` | `lib/core/market/quote_freshness.dart` |
-| `SettlementStatus` | `lib/core/settlement/settlement_status.dart` |
+| Access | `auth` |
+| Shell | `home`, `explore`, `products` |
+| Account | `profile`, `security_settings`, `inbox`, `news` |
+| Funding | `funding` |
+| Credit | `borrow` |
+| Earn | `earn` |
+| Spend | `card` |
+| Trade | `swap`, `orders`, `futures` |
+| Blocked | `wallet` (no screens) |
 
-Gates: session, KYC (`unknown` / `approved` / `denied`), step-up, live quote. Submits use `requestId` and return `inFlight` / `unknown` / `confirmed` / `failed`.
+## Approval
 
----
+Reply `Approve <feature> Use Cases` (Domain + tests) or `Approve <feature> including UI`.
 
-## `add_funds`
-
-Design: `docs/design/add-funds.md`
-
-### Shared
-- `RequireFundingSession`
-- `GetFundingEligibility`
-
-### Hub
-- `GetAddFundsMethods` — bank / add crypto / buy crypto
-
-### Bank
-- `GetFiatxAssets`
-- `GetBankRails`
-- `GetFiatAccountStatus`
-- `GetFiatReceiveDetails`
-- `GetBankTransferFeeSchedule`
-- `AcceptFiatAccountTerms`
-- `CreatePersonalUsdAccount`
-
-### Receive crypto
-- `GetReceivableAssets`
-- `SearchReceivableAssets`
-- `GetReceiveAddress`
-- `GetAssetFundingTeasers`
-
-### Buy crypto
-- `GetPurchasableAssets`
-- `SearchPurchasableAssets`
-- `GetBuyQuote`
-- `GetPaymentMethods`
-- `GetPurchaseFrequencies`
-- `GetEmptyBalances`
-- `StartLinkCard`
-- `SubmitBuyCrypto` — live quote + step-up + KYC; settlement, not HTTP 200
-
----
-
-## `all_loans`
-
-Design: `docs/design/all-loans.md`
-
-### Shared
-- `RequireBorrowSession`
-- `GetBorrowEligibility`
-
-### Hub
-- `GetAllLoansOverview`
-- `GetLoanProducts`
-
-### Collateral
-- `GetCollateralAssets`
-- `GetCollateralFilter`
-- `GetAssetLtvSchedule`
-
-### Settings
-- `GetCreditLineOptimization`
-- `UpdateCreditLineOptimization` — dependent flags require automatic collateral transfer
-
-### Borrow / repay
-- `GetBorrowQuote`
-- `SubmitBorrow`
-- `SubmitRepay`
-
----
-
-## Later features (catalog only — not generated yet)
-
-| Feature | Planned Use Cases |
-|---|---|
-| `auth` | `SignUp`, `LogIn`, `VerifySms`, `CreatePin`, `ConfirmPin`, `EnableBiometric`, `LockSession` |
-| `kyc` | `GetKycStatus`, `StartKyc`, `SubmitKyc` |
-| `dashboard` | `GetPortfolioSummary`, `GetWatchlist`, `GetInboxPreview` |
-| `savings` | `GetSavingsHub`, `GetEarnProducts` |
-| `swap` | `GetSwapQuote`, `SubmitSwap` |
-| `futures` | `GetFuturesTicket`, `SubmitFuturesOrder`, `GetPositions`, `ClosePosition` |
-| `card` | `GetCardStatus`, `UnfreezeCard`, `GetCardTransactions` |
-| `wallet` | `GetAssetDetail`, `SendCrypto` |
-| `explore` | `GetMarkets`, `GetNews` |
-| `profile` | `GetProfile`, `GetSecuritySettings`, `GetDocuments` |
-
----
-
-## Tests
-
-- `test/core/money_test.dart`
-- `test/features/add_funds/submit_buy_crypto_test.dart`
-- `test/features/add_funds/create_usd_account_test.dart`
-- `test/features/all_loans/credit_line_optimization_test.dart`
-- `test/features/all_loans/submit_borrow_test.dart`
+Approving one does not approve the others.
