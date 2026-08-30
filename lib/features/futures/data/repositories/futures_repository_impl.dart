@@ -28,16 +28,14 @@ final class FuturesRepositoryImpl implements FuturesRepository {
   Future<Either<Failure, FuturesInstrument>> getInstrument() async {
     final fixture = _local.instrument();
     final tick = _feed.quoteFor(Currency.btc);
-    if (tick == null) {
-      return Either.right(fixture);
-    }
     return Either.right(
       FuturesInstrument(
         pair: fixture.pair,
-        bid: tick.price,
-        ask: tick.price,
+        bid: tick?.price ?? fixture.bid,
+        ask: tick?.price ?? fixture.ask,
         leverageTeasers: fixture.leverageTeasers,
-        freshness: tick.freshness,
+        freshness: tick?.freshness ?? fixture.freshness,
+        chart: _feed.seriesFor(Currency.btc).closes,
       ),
     );
   }

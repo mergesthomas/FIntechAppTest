@@ -83,9 +83,14 @@ final class HomeCubit extends Cubit<HomeState> {
   final GetDashboardPromos _getPromos;
   final GetNewsPreview _getNews;
 
-  Future<void> load() async {
+  DashboardPeriod _period = DashboardPeriod.oneWeek;
+
+  Future<void> load({DashboardPeriod? period}) async {
+    if (period != null) {
+      _period = period;
+    }
     emit(const HomeLoading());
-    final overview = await _getOverview(const NoParams());
+    final overview = await _getOverview(_period);
     await overview.fold((failure) async => emit(HomeFailure(failure)), (o) async {
       final credit = await _getCredit(const NoParams());
       final savings = await _getSavings(const NoParams());
@@ -111,6 +116,8 @@ final class HomeCubit extends Cubit<HomeState> {
       );
     });
   }
+
+  Future<void> selectPeriod(DashboardPeriod period) => load(period: period);
 
   Future<void> dismiss(String id) async {
     final result = await _dismissAlert(id);

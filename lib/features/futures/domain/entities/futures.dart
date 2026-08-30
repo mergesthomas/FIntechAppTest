@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/market/quote_freshness.dart';
@@ -13,6 +14,7 @@ final class FuturesInstrument extends Equatable {
     required this.ask,
     required this.leverageTeasers,
     required this.freshness,
+    this.chart = const [],
   });
 
   final String pair;
@@ -20,9 +22,11 @@ final class FuturesInstrument extends Equatable {
   final Money ask;
   final List<String> leverageTeasers;
   final QuoteFreshness freshness;
+  final List<Decimal> chart;
 
   @override
-  List<Object?> get props => [pair, bid, ask, leverageTeasers, freshness];
+  List<Object?> get props =>
+      [pair, bid, ask, leverageTeasers, freshness, chart];
 }
 
 final class FuturesAccount extends Equatable {

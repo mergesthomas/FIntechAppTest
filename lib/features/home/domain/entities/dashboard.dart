@@ -1,11 +1,21 @@
 import 'package:decimal/decimal.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/market/price_series.dart';
 import '../../../../core/market/quote_freshness.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 
-enum DashboardPeriod { oneWeek }
+enum DashboardPeriod { oneDay, oneWeek, oneMonth, oneYear }
+
+ChartPeriod chartPeriodOf(DashboardPeriod period) {
+  return switch (period) {
+    DashboardPeriod.oneDay => ChartPeriod.oneDay,
+    DashboardPeriod.oneWeek => ChartPeriod.oneWeek,
+    DashboardPeriod.oneMonth => ChartPeriod.oneMonth,
+    DashboardPeriod.oneYear => ChartPeriod.oneYear,
+  };
+}
 
 final class DashboardOverview extends Equatable {
   const DashboardOverview({

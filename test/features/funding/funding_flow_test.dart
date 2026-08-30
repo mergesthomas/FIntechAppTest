@@ -25,10 +25,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('add_funds')),
-      400,
-    );
     await tester.tap(find.byKey(const Key('add_funds')));
     await tester.pumpAndSettle();
 

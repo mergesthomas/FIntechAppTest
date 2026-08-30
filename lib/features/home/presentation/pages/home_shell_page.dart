@@ -81,7 +81,7 @@ class _HomeTabsState extends State<_HomeTabs> {
             label: 'Explore',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart),
+            icon: Icon(Icons.show_chart, key: Key('nav_futures')),
             label: 'Futures',
           ),
           BottomNavigationBarItem(
@@ -89,7 +89,7 @@ class _HomeTabsState extends State<_HomeTabs> {
             label: 'Card',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
+            icon: Icon(Icons.swap_horiz, key: Key('nav_exchange')),
             label: 'Exchange',
           ),
         ],

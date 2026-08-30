@@ -22,6 +22,7 @@ import '../../features/news/presentation/pages/news_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/security_settings/presentation/pages/security_page.dart';
+import '../../features/market/presentation/pages/market_page.dart';
 import 'app_route.dart';
 
 class SessionRouterRefresh extends ChangeNotifier {
@@ -147,6 +148,12 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       GoRoute(
         path: AppRoute.futures.path,
         builder: (context, state) => const FuturesPage(),
+      ),
+      GoRoute(
+        path: '${AppRoute.market.path}/:code',
+        builder: (context, state) => MarketPage(
+          code: state.pathParameters['code'] ?? '',
+        ),
       ),
     ],
   );

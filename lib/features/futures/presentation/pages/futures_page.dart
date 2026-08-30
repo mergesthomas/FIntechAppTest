@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/money/money_format.dart';
+import '../../../../core/router/app_route.dart';
 import '../../../../core/settlement/settlement_status.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/freshness_chip.dart';
+import '../../../../core/widgets/price_chart.dart';
 import '../../../auth/presentation/widgets/step_up_pin_dialog.dart';
 import '../../domain/entities/futures.dart';
 import '../cubit/futures_cubit.dart';
@@ -30,7 +35,16 @@ class _FuturesPageState extends State<FuturesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Futures')),
+      appBar: AppBar(
+        title: const Text('Futures'),
+        actions: [
+          IconButton(
+            tooltip: 'Orders',
+            onPressed: () => context.push(AppRoute.orders.path),
+            icon: const Icon(Icons.receipt_long_outlined),
+          ),
+        ],
+      ),
       body: BlocBuilder<FuturesCubit, FuturesState>(
         builder: (context, state) {
           return switch (state) {
@@ -61,35 +75,79 @@ class _Ticket extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text(instrument.pair, style: AppTextStyles.headline),
-        Text(
-          'Bid ${formatMoney(instrument.bid, withCode: true)} · Ask ${formatMoney(instrument.ask, withCode: true)} · ${instrument.freshness.name}',
+        Row(
+          children: [
+            Expanded(
+              child: Text(instrument.pair, style: AppTextStyles.headline),
+            ),
+            FreshnessChip(freshness: instrument.freshness),
+          ],
         ),
-        Text(instrument.leverageTeasers.join(' · ')),
+        const SizedBox(height: 4),
+        Text(
+          'Bid ${formatMoney(instrument.bid, withCode: true)} · Ask ${formatMoney(instrument.ask, withCode: true)}',
+          style: AppTextStyles.secondary,
+        ),
+        const SizedBox(height: 12),
+        PriceChart(points: instrument.chart, height: 160),
+        const SizedBox(height: 8),
+        Text(instrument.leverageTeasers.join(' · '), style: AppTextStyles.secondary),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                key: const Key('futures_preview'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.onAccent,
+                ),
+                onPressed: () => context.read<FuturesCubit>().preview(
+                      side: FuturesSide.long,
+                    ),
+                child: const Text('Long'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                key: const Key('futures_short'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                  foregroundColor: AppColors.textPrimary,
+                ),
+                onPressed: () => context.read<FuturesCubit>().preview(
+                      side: FuturesSide.short,
+                    ),
+                child: const Text('Short'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         Text(
           'Available ${formatMoney(state.account.availableMargin, withCode: true)}',
+          style: AppTextStyles.body,
         ),
         Text(state.account.riskTeaser, style: AppTextStyles.secondary),
         Text(state.account.bonusTeaser, style: AppTextStyles.secondary),
-        ElevatedButton(
-          key: const Key('futures_preview'),
-          onPressed: () => context.read<FuturesCubit>().preview(),
-          child: const Text('Preview position'),
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Text('Open positions', style: AppTextStyles.headline),
         for (final position in state.positions)
           ListTile(
             key: Key('position_${position.id}'),
+            contentPadding: EdgeInsets.zero,
             title: Text('${position.pair} ${position.side.name.toUpperCase()}'),
             subtitle: Text(
               '${position.leverageTeaser} · ${formatMoney(position.size, withCode: true)}',
             ),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => context.read<FuturesCubit>().openPosition(position.id),
           ),
         Text('Last trades', style: AppTextStyles.headline),
         for (final trade in state.trades)
           ListTile(
+            contentPadding: EdgeInsets.zero,
             title: Text(trade.side.name.toUpperCase()),
             subtitle: Text(
               '${formatMoney(trade.price, withCode: true)} · ${formatMoney(trade.size, withCode: true)}',
@@ -111,9 +169,13 @@ class _Preview extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text('${quote.side.name} ${formatMoney(quote.size, withCode: true)}'),
+        Text(
+          '${quote.side.name.toUpperCase()} ${formatMoney(quote.size, withCode: true)}',
+          style: AppTextStyles.headline,
+        ),
         Text(quote.leverageTeaser),
         Text('Freshness ${quote.freshness.name}'),
+        const SizedBox(height: 16),
         ElevatedButton(
           key: const Key('futures_confirm'),
           onPressed: () async {

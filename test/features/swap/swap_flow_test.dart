@@ -23,7 +23,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Exchange'));
+    await tester.tap(find.byKey(const Key('nav_exchange')));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('swap_amount')), '10');

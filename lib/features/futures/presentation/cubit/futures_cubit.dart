@@ -150,13 +150,13 @@ class FuturesCubit extends Cubit<FuturesState> {
     });
   }
 
-  Future<void> preview() async {
+  Future<void> preview({FuturesSide side = FuturesSide.long}) async {
     final current = _ready;
     if (current == null) {
       return;
     }
     final quote = await _previewPosition((
-      side: FuturesSide.long,
+      side: side,
       size: Money.parse('0.01', Currency.btc),
     ));
     quote.fold(

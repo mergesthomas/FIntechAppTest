@@ -8,6 +8,7 @@ import '../money/money.dart';
 import 'market_feed.dart';
 import 'market_quote.dart';
 import 'market_symbols.dart';
+import 'price_series.dart';
 import 'quote_freshness.dart';
 
 final class InMemoryMarketFeed implements MarketFeed {
@@ -81,6 +82,27 @@ final class InMemoryMarketFeed implements MarketFeed {
       return null;
     }
     return _quotes[symbol];
+  }
+
+  @override
+  PriceSeries seriesFor(
+    Currency currency, [
+    ChartPeriod period = ChartPeriod.oneDay,
+  ]) {
+    final last = usdPrice(currency)?.amount ?? Decimal.one;
+    return PriceSeries(
+      period: period,
+      closes: syntheticCloses(last: last, period: period),
+      freshness: _connection,
+    );
+  }
+
+  @override
+  Future<PriceSeries> refreshSeries(
+    Currency currency,
+    ChartPeriod period,
+  ) async {
+    return seriesFor(currency, period);
   }
 
   @override

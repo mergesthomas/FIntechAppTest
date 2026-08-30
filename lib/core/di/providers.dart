@@ -63,6 +63,11 @@ import '../../features/futures/data/repositories/futures_repository_impl.dart';
 import '../../features/futures/domain/repositories/futures_repository.dart';
 import '../../features/futures/domain/usecases/futures_usecases.dart';
 import '../../features/futures/presentation/cubit/futures_cubit.dart';
+import '../../features/market/data/datasources/market_local_datasource.dart';
+import '../../features/market/data/repositories/market_repository_impl.dart';
+import '../../features/market/domain/repositories/market_repository.dart';
+import '../../features/market/domain/usecases/market_usecases.dart';
+import '../../features/market/presentation/cubit/market_cubit.dart';
 import '../../features/swap/presentation/cubit/swap_cubit.dart';
 import '../../features/earn/presentation/cubit/earn_cubit.dart';
 import '../../features/funding/presentation/cubit/funding_cubit.dart';
@@ -475,6 +480,27 @@ final futuresCubitProvider = Provider<FuturesCubit>((ref) {
     submit: SubmitFuturesOrder(session, eligibility, futures),
     setTpsl: SetTakeProfitStopLoss(session, eligibility, futures),
     close: ClosePosition(session, eligibility, futures),
+  );
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final marketRepositoryProvider = Provider<MarketRepository>((ref) {
+  return MarketRepositoryImpl(
+    const MarketLocalDataSource(),
+    feed: ref.watch(marketFeedProvider),
+  );
+});
+
+final marketCubitProvider =
+    Provider.autoDispose.family<MarketCubit, String>((ref, code) {
+  final auth = ref.watch(authRepositoryProvider);
+  final market = ref.watch(marketRepositoryProvider);
+  final session = RequireSession(auth);
+  final cubit = MarketCubit(
+    getAsset: GetMarketAsset(session, market),
+    getChart: GetPriceChart(session, market),
+    code: code,
   );
   ref.onDispose(cubit.close);
   return cubit;
