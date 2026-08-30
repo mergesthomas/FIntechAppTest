@@ -6,6 +6,7 @@ import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../cubit/home_cubit.dart';
 import '../../../card/presentation/pages/card_page.dart';
 import '../../../explore/presentation/pages/explore_page.dart';
+import '../../../swap/presentation/pages/swap_page.dart';
 import 'dashboard_page.dart';
 import 'tab_placeholder_page.dart';
 
@@ -54,7 +55,7 @@ class _HomeTabsState extends State<_HomeTabs> {
       const ExplorePage(),
       const TabPlaceholderPage(title: 'Futures'),
       const CardPage(),
-      const TabPlaceholderPage(title: 'Exchange'),
+      const SwapPage(),
     ];
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),

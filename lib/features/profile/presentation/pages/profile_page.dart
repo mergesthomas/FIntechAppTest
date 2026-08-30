@@ -98,7 +98,8 @@ class _ProfileBody extends StatelessWidget {
         route == AppRoute.borrow ||
         route == AppRoute.funding ||
         route == AppRoute.earn ||
-        route == AppRoute.card) {
+        route == AppRoute.card ||
+        route == AppRoute.swap) {
       context.push(route.path);
       return;
     }
