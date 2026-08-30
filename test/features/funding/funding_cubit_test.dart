@@ -7,6 +7,8 @@ import 'package:fintech_app_test/features/funding/data/repositories/funding_repo
 import 'package:fintech_app_test/features/funding/domain/usecases/funding_usecases.dart';
 import 'package:fintech_app_test/features/funding/presentation/cubit/funding_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/paper_harness.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -39,7 +41,15 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    cubit = _cubit(auth, FundingRepositoryImpl(FundingLocalDataSource()));
+    final paper = PaperHarness();
+    cubit = _cubit(
+      auth,
+      FundingRepositoryImpl(
+        FundingLocalDataSource(),
+        feed: paper.feed,
+        ledger: paper.ledger,
+      ),
+    );
     when(() => auth.restoreSession()).thenAnswer(
       (_) async => Either.right(
         const Session(token: 't', phone: '6912345678', biometricEnabled: false),

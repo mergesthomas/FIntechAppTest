@@ -2,6 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../clock/app_clock.dart';
 import '../config/flavor_config.dart';
+import '../ledger/paper_ledger.dart';
+import '../ledger/paper_order.dart';
+import '../ledger/paper_settler.dart';
+import '../market/in_memory_market_feed.dart';
+import '../market/market_feed.dart';
 import '../secure/secure_store.dart';
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/auth/data/datasources/onboarding_local_datasource.dart';
@@ -92,6 +97,25 @@ final flavorConfigProvider = Provider<FlavorConfig>((ref) => FlavorConfig.dev);
 
 final appClockProvider = Provider<AppClock>((ref) => const SystemClock());
 
+final marketFeedProvider = Provider<MarketFeed>((ref) {
+  return InMemoryMarketFeed(clock: ref.watch(appClockProvider));
+});
+
+final paperOrderStoreProvider = Provider<PaperOrderStore>((ref) {
+  return PaperOrderStore();
+});
+
+final paperSettlerProvider = Provider<PaperSettler>((ref) {
+  return const ImmediatePaperSettler();
+});
+
+final paperLedgerProvider = Provider<PaperLedger>((ref) {
+  return PaperLedger(
+    orders: ref.watch(paperOrderStoreProvider),
+    settler: ref.watch(paperSettlerProvider),
+  );
+});
+
 final secureStoreProvider = Provider<SecureStore>((ref) {
   throw UnimplementedError('Override secureStoreProvider in main');
 });
@@ -175,6 +199,8 @@ final biometricCubitProvider = Provider<BiometricCubit>((ref) {
 final homeRepositoryProvider = Provider<HomeRepository>((ref) {
   return HomeRepositoryImpl(
     HomeLocalDataSource(ref.watch(secureStoreProvider)),
+    feed: ref.watch(marketFeedProvider),
+    ledger: ref.watch(paperLedgerProvider),
   );
 });
 
@@ -276,7 +302,10 @@ final newsCubitProvider = Provider<NewsCubit>((ref) {
 });
 
 final exploreRepositoryProvider = Provider<ExploreRepository>((ref) {
-  return ExploreRepositoryImpl(const ExploreLocalDataSource());
+  return ExploreRepositoryImpl(
+    const ExploreLocalDataSource(),
+    feed: ref.watch(marketFeedProvider),
+  );
 });
 
 final exploreCubitProvider = Provider<ExploreCubit>((ref) {
@@ -293,7 +322,11 @@ final exploreCubitProvider = Provider<ExploreCubit>((ref) {
 });
 
 final fundingRepositoryProvider = Provider<FundingRepository>((ref) {
-  return FundingRepositoryImpl(FundingLocalDataSource());
+  return FundingRepositoryImpl(
+    FundingLocalDataSource(),
+    feed: ref.watch(marketFeedProvider),
+    ledger: ref.watch(paperLedgerProvider),
+  );
 });
 
 final fundingCubitProvider = Provider<FundingCubit>((ref) {
@@ -382,7 +415,11 @@ final cardCubitProvider = Provider<CardCubit>((ref) {
 });
 
 final swapRepositoryProvider = Provider<SwapRepository>((ref) {
-  return SwapRepositoryImpl(SwapLocalDataSource());
+  return SwapRepositoryImpl(
+    SwapLocalDataSource(),
+    feed: ref.watch(marketFeedProvider),
+    ledger: ref.watch(paperLedgerProvider),
+  );
 });
 
 final swapCubitProvider = Provider<SwapCubit>((ref) {
@@ -401,7 +438,9 @@ final swapCubitProvider = Provider<SwapCubit>((ref) {
 });
 
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
-  return OrdersRepositoryImpl(OrdersLocalDataSource());
+  return OrdersRepositoryImpl(
+    OrdersLocalDataSource(store: ref.watch(paperOrderStoreProvider)),
+  );
 });
 
 final ordersCubitProvider = Provider<OrdersCubit>((ref) {
@@ -413,7 +452,11 @@ final ordersCubitProvider = Provider<OrdersCubit>((ref) {
 });
 
 final futuresRepositoryProvider = Provider<FuturesRepository>((ref) {
-  return FuturesRepositoryImpl(FuturesLocalDataSource());
+  return FuturesRepositoryImpl(
+    FuturesLocalDataSource(),
+    feed: ref.watch(marketFeedProvider),
+    ledger: ref.watch(paperLedgerProvider),
+  );
 });
 
 final futuresCubitProvider = Provider<FuturesCubit>((ref) {

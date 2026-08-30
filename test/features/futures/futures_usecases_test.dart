@@ -13,6 +13,8 @@ import 'package:fintech_app_test/features/futures/domain/entities/futures.dart';
 import 'package:fintech_app_test/features/futures/domain/repositories/futures_repository.dart';
 import 'package:fintech_app_test/features/futures/domain/usecases/futures_usecases.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/paper_harness.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -30,7 +32,12 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    repo = FuturesRepositoryImpl(FuturesLocalDataSource());
+    final paper = PaperHarness();
+    repo = FuturesRepositoryImpl(
+      FuturesLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     when(() => auth.restoreSession()).thenAnswer(
       (_) async => Either.right(
         const Session(token: 't', phone: '6912345678', biometricEnabled: false),
@@ -48,7 +55,7 @@ void main() {
     expect(result.getLeft().toNullable(), isA<SessionFailure>());
   });
 
-  test('close is inFlight and idempotent', () async {
+  test('close is confirmed and idempotent', () async {
     final close = ClosePosition(RequireSession(auth), GetEligibility(auth), repo);
     final first = await close((
       requestId: 'close-1',
@@ -60,8 +67,8 @@ void main() {
       positionId: 'pos-pepe',
       stepUp: true,
     ));
-    expect(first.getRight().toNullable(), SettlementStatus.inFlight);
-    expect(retry.getRight().toNullable(), SettlementStatus.inFlight);
+    expect(first.getRight().toNullable(), SettlementStatus.confirmed);
+    expect(retry.getRight().toNullable(), SettlementStatus.confirmed);
   });
 
   test('set TP/SL refuses a stale mark', () async {

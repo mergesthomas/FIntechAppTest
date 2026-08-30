@@ -16,8 +16,29 @@ final class Money extends Equatable {
 
   factory Money.zero(Currency currency) => Money._(Decimal.zero, currency);
 
+  factory Money.fromDecimal(Decimal amount, Currency currency) {
+    return Money._(amount, currency);
+  }
+
   final Decimal amount;
   final Currency currency;
+
+  Money operator +(Money other) {
+    if (currency != other.currency) {
+      throw ArgumentError('currency mismatch');
+    }
+    return Money._(amount + other.amount, currency);
+  }
+
+  Money operator -(Money other) {
+    if (currency != other.currency) {
+      throw ArgumentError('currency mismatch');
+    }
+    return Money._(amount - other.amount, currency);
+  }
+
+  /// [rate] is units of [to] per one unit of this currency.
+  Money convert(Decimal rate, Currency to) => Money._(amount * rate, to);
 
   bool get isNegative => amount < Decimal.zero;
 

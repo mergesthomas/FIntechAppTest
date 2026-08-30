@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/money/money_format.dart';
+import '../../../../core/router/app_route.dart';
+import '../../../../core/settlement/settlement_status.dart';
 import '../../../auth/presentation/widgets/step_up_pin_dialog.dart';
 import '../../domain/entities/swap.dart';
 import '../cubit/swap_cubit.dart';
@@ -130,6 +133,21 @@ class _Result extends StatelessWidget {
       Failure() => '$result',
       _ => 'Unknown result',
     };
-    return Center(child: Text(label, key: const Key('swap_result')));
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, key: const Key('swap_result')),
+          if (result is SwapSubmit &&
+              (result.settlement == SettlementStatus.confirmed ||
+                  result.settlement == SettlementStatus.inFlight))
+            TextButton(
+              key: const Key('view_orders'),
+              onPressed: () => context.push(AppRoute.orders.path),
+              child: const Text('View orders'),
+            ),
+        ],
+      ),
+    );
   }
 }

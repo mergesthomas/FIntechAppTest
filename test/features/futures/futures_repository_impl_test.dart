@@ -6,9 +6,16 @@ import 'package:fintech_app_test/features/futures/data/repositories/futures_repo
 import 'package:fintech_app_test/features/futures/domain/entities/futures.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/paper_harness.dart';
+
 void main() {
   test('quotes and marks are stale fixtures', () async {
-    final repo = FuturesRepositoryImpl(FuturesLocalDataSource());
+    final paper = PaperHarness();
+    final repo = FuturesRepositoryImpl(
+      FuturesLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     final instrument = await repo.getInstrument();
     final quote = await repo.getQuote(
       side: FuturesSide.long,
@@ -24,7 +31,12 @@ void main() {
   });
 
   test('account margin is the screenshot fixture', () async {
-    final repo = FuturesRepositoryImpl(FuturesLocalDataSource());
+    final paper = PaperHarness();
+    final repo = FuturesRepositoryImpl(
+      FuturesLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     final account = (await repo.getAccount()).getRight().toNullable();
     expect(account?.availableMargin, Money.parse('186.25', Currency.usdt));
   });

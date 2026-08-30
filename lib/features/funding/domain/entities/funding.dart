@@ -133,6 +133,19 @@ final class BuyQuote extends Equatable {
   final String cashbackTeaser;
   final QuoteFreshness freshness;
 
+  BuyQuote copyWith({
+    Money? receive,
+    QuoteFreshness? freshness,
+  }) {
+    return BuyQuote(
+      quoteId: quoteId,
+      spend: spend,
+      receive: receive ?? this.receive,
+      cashbackTeaser: cashbackTeaser,
+      freshness: freshness ?? this.freshness,
+    );
+  }
+
   @override
   List<Object?> get props => [quoteId, spend, receive, cashbackTeaser, freshness];
 }

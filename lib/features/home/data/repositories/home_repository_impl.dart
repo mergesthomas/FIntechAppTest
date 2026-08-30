@@ -1,20 +1,74 @@
+import 'package:decimal/decimal.dart';
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/ledger/paper_ledger.dart';
+import '../../../../core/market/market_feed.dart';
+import '../../../../core/money/currency.dart';
+import '../../../../core/money/money.dart';
 import '../../domain/entities/dashboard.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../datasources/home_local_datasource.dart';
 
 final class HomeRepositoryImpl implements HomeRepository {
-  HomeRepositoryImpl(this._local);
+  HomeRepositoryImpl(
+    this._local, {
+    required MarketFeed feed,
+    required PaperLedger ledger,
+  })  : _feed = feed,
+        _ledger = ledger;
 
   final HomeLocalDataSource _local;
+  final MarketFeed _feed;
+  final PaperLedger _ledger;
 
   @override
   Future<Either<Failure, DashboardOverview>> getOverview({
     required String initials,
   }) async {
-    return Either.right(_local.overview(initials: initials));
+    final fixture = _local.overview(initials: initials);
+    return Either.right(
+      DashboardOverview(
+        netWorth: _netWorth() ?? fixture.netWorth,
+        periodChangeRatio: fixture.periodChangeRatio,
+        period: fixture.period,
+        chart: fixture.chart,
+        freshness: _feed.connection,
+        initials: initials,
+      ),
+    );
+  }
+
+  Money? _netWorth() {
+    var total = Decimal.zero;
+    var priced = false;
+    const books = LedgerBook.values;
+    const currencies = [
+      Currency.btc,
+      Currency.nexo,
+      Currency.eurx,
+      Currency.usd,
+      Currency.usdt,
+      Currency.eth,
+    ];
+    for (final book in books) {
+      for (final currency in currencies) {
+        final held = _ledger.balance(book, currency);
+        if (held.amount == Decimal.zero) {
+          continue;
+        }
+        final price = _feed.usdPrice(currency);
+        if (price == null) {
+          continue;
+        }
+        total += held.amount * price.amount;
+        priced = true;
+      }
+    }
+    if (!priced) {
+      return null;
+    }
+    return Money.fromDecimal(total, Currency.usd);
   }
 
   @override
@@ -29,7 +83,18 @@ final class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<Either<Failure, List<WatchlistItem>>> getWatchlist() async {
-    return Either.right(_local.watchlist());
+    return Either.right([
+      for (final item in _local.watchlist())
+        WatchlistItem(
+          currency: item.currency,
+          displayName: item.displayName,
+          price: _feed.usdPrice(item.currency) ?? item.price,
+          change24hRatio:
+              _feed.quoteFor(item.currency)?.change24h ?? item.change24hRatio,
+          sparkline: item.sparkline,
+          freshness: _feed.quoteFor(item.currency)?.freshness ?? item.freshness,
+        ),
+    ]);
   }
 
   @override

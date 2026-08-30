@@ -7,6 +7,8 @@ import 'package:fintech_app_test/features/swap/data/repositories/swap_repository
 import 'package:fintech_app_test/features/swap/domain/usecases/swap_usecases.dart';
 import 'package:fintech_app_test/features/swap/presentation/cubit/swap_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/paper_harness.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -18,7 +20,12 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    final repo = SwapRepositoryImpl(SwapLocalDataSource());
+    final paper = PaperHarness();
+    final repo = SwapRepositoryImpl(
+      SwapLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
     final session = RequireSession(auth);
     final eligibility = GetEligibility(auth);
     cubit = SwapCubit(

@@ -1,6 +1,10 @@
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/ledger/paper_ledger.dart';
+import '../../../../core/ledger/paper_order.dart';
+import '../../../../core/market/market_feed.dart';
+import '../../../../core/market/quote_math.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 import '../../../../core/settlement/settlement_status.dart';
@@ -9,9 +13,16 @@ import '../../domain/repositories/funding_repository.dart';
 import '../datasources/funding_local_datasource.dart';
 
 final class FundingRepositoryImpl implements FundingRepository {
-  FundingRepositoryImpl(this._local);
+  FundingRepositoryImpl(
+    this._local, {
+    required MarketFeed feed,
+    required PaperLedger ledger,
+  })  : _feed = feed,
+        _ledger = ledger;
 
   final FundingLocalDataSource _local;
+  final MarketFeed _feed;
+  final PaperLedger _ledger;
 
   @override
   Future<Either<Failure, List<FundingMethod>>> getMethods() async {
@@ -82,7 +93,16 @@ final class FundingRepositoryImpl implements FundingRepository {
   Future<Either<Failure, List<PurchasableAsset>>> getPurchasableAssets(
     String query,
   ) async {
-    return Either.right(_local.purchasable(query));
+    final listed = _local.purchasable(query);
+    return Either.right([
+      for (final asset in listed)
+        PurchasableAsset(
+          currency: asset.currency,
+          displayName: asset.displayName,
+          price: _feed.usdPrice(asset.currency) ?? asset.price,
+          freshness: _feed.quoteFor(asset.currency)?.freshness ?? asset.freshness,
+        ),
+    ]);
   }
 
   @override
@@ -90,7 +110,18 @@ final class FundingRepositoryImpl implements FundingRepository {
     required Currency asset,
     required Money spend,
   }) async {
-    return Either.right(_local.buyQuote(asset: asset, spend: spend));
+    final converted = buyWithUsd(feed: _feed, asset: asset, spend: spend);
+    return converted.map((value) {
+      final quote = BuyQuote(
+        quoteId: 'quote-${asset.code}-${spend.amount}',
+        spend: spend,
+        receive: value.receive,
+        cashbackTeaser: 'Cashback teaser — placeholder',
+        freshness: value.freshness,
+      );
+      _local.quotes[quote.quoteId] = quote;
+      return quote;
+    });
   }
 
   @override
@@ -99,7 +130,12 @@ final class FundingRepositoryImpl implements FundingRepository {
     if (quote == null) {
       return Either.left(const ValidationFailure('quote_not_found'));
     }
-    return Either.right(quote);
+    final converted = buyWithUsd(
+      feed: _feed,
+      asset: quote.receive.currency,
+      spend: quote.spend,
+    );
+    return converted.map((value) => quote.copyWith(freshness: value.freshness));
   }
 
   @override
@@ -120,14 +156,32 @@ final class FundingRepositoryImpl implements FundingRepository {
     required Money amount,
     required String frequency,
   }) async {
-    return Either.right(
-      _local.submitBuy(
+    final quote = _local.quotes[quoteId];
+    if (quote == null) {
+      return Either.left(const ValidationFailure('quote_not_found'));
+    }
+    final posted = await _ledger.post(
+      requestId: requestId,
+      lines: [
+        LedgerLine(
+          book: LedgerBook.savings,
+          delta: Money.zero(quote.spend.currency) - quote.spend,
+        ),
+        LedgerLine(book: LedgerBook.savings, delta: quote.receive),
+      ],
+      order: PaperOrder(
+        id: 'ord-$requestId',
         requestId: requestId,
-        quoteId: quoteId,
-        paymentMethodId: paymentMethodId,
-        amount: amount,
-        frequency: frequency,
+        pair: '${quote.receive.currency.code}/USD',
+        side: PaperSide.buy,
+        status: PaperOrderStatus.open,
+        amount: quote.receive,
+        wallet: paymentMethodId,
+        venue: PaperVenue.market,
       ),
+    );
+    return posted.map(
+      (status) => BuySubmit(requestId: requestId, settlement: status),
     );
   }
 }

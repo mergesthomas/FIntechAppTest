@@ -9,6 +9,8 @@ import 'package:fintech_app_test/features/explore/domain/entities/explore_asset.
 import 'package:fintech_app_test/features/explore/domain/usecases/explore_usecases.dart';
 import 'package:fintech_app_test/features/explore/presentation/cubit/explore_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/paper_harness.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -20,7 +22,11 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
-    final repo = ExploreRepositoryImpl(const ExploreLocalDataSource());
+    final paper = PaperHarness();
+    final repo = ExploreRepositoryImpl(
+      const ExploreLocalDataSource(),
+      feed: paper.feed,
+    );
     final session = RequireSession(auth);
     cubit = ExploreCubit(
       getFeed: GetExploreFeed(session, repo),
