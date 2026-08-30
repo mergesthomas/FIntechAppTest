@@ -35,6 +35,11 @@ import '../../features/borrow/data/repositories/borrow_repository_impl.dart';
 import '../../features/borrow/domain/repositories/borrow_repository.dart';
 import '../../features/borrow/domain/usecases/borrow_usecases.dart';
 import '../../features/borrow/presentation/cubit/borrow_cubit.dart';
+import '../../features/earn/data/datasources/earn_local_datasource.dart';
+import '../../features/earn/data/repositories/earn_repository_impl.dart';
+import '../../features/earn/domain/repositories/earn_repository.dart';
+import '../../features/earn/domain/usecases/earn_usecases.dart';
+import '../../features/earn/presentation/cubit/earn_cubit.dart';
 import '../../features/funding/presentation/cubit/funding_cubit.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
 import '../../features/inbox/data/datasources/inbox_local_datasource.dart';
@@ -309,6 +314,26 @@ final borrowCubitProvider = Provider<BorrowCubit>((ref) {
     getQuote: GetBorrowQuote(session, eligibility, borrow),
     submitBorrow: SubmitBorrow(session, eligibility, borrow),
     submitRepay: SubmitRepay(session, eligibility, borrow),
+  );
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final earnRepositoryProvider = Provider<EarnRepository>((ref) {
+  return EarnRepositoryImpl(EarnLocalDataSource());
+});
+
+final earnCubitProvider = Provider<EarnCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final earn = ref.watch(earnRepositoryProvider);
+  final session = RequireSession(auth);
+  final eligibility = GetEligibility(auth);
+  final cubit = EarnCubit(
+    getOverview: GetSavingsHubOverview(session, earn),
+    getProducts: GetEarnProducts(session, earn),
+    getPreference: GetEarnInNexoPreference(session, earn),
+    setEarnInNexo: SetEarnInNexo(session, eligibility, earn),
+    stopEarning: StopEarning(session, eligibility, earn),
   );
   ref.onDispose(cubit.close);
   return cubit;
