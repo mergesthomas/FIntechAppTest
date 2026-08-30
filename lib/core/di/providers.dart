@@ -48,6 +48,11 @@ import '../../features/swap/data/datasources/swap_local_datasource.dart';
 import '../../features/swap/data/repositories/swap_repository_impl.dart';
 import '../../features/swap/domain/repositories/swap_repository.dart';
 import '../../features/swap/domain/usecases/swap_usecases.dart';
+import '../../features/orders/data/datasources/orders_local_datasource.dart';
+import '../../features/orders/data/repositories/orders_repository_impl.dart';
+import '../../features/orders/domain/repositories/orders_repository.dart';
+import '../../features/orders/domain/usecases/orders_usecases.dart';
+import '../../features/orders/presentation/cubit/orders_cubit.dart';
 import '../../features/swap/presentation/cubit/swap_cubit.dart';
 import '../../features/earn/presentation/cubit/earn_cubit.dart';
 import '../../features/funding/presentation/cubit/funding_cubit.dart';
@@ -381,6 +386,18 @@ final swapCubitProvider = Provider<SwapCubit>((ref) {
     getQuote: GetSwapQuote(session, eligibility, swap),
     submit: SubmitSwap(session, eligibility, swap),
   );
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
+  return OrdersRepositoryImpl(OrdersLocalDataSource());
+});
+
+final ordersCubitProvider = Provider<OrdersCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final orders = ref.watch(ordersRepositoryProvider);
+  final cubit = OrdersCubit(GetOrderHistory(RequireSession(auth), orders));
   ref.onDispose(cubit.close);
   return cubit;
 });
