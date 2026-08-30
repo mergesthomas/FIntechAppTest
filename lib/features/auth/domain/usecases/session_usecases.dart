@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 
+import '../../../../core/auth/eligibility_status.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/usecase/use_case.dart';
 import '../entities/session.dart';
@@ -46,6 +47,22 @@ final class RequireSession implements UseCase<Session, NoParams> {
   @override
   Future<Either<Failure, Session>> call(NoParams params) {
     return _auth.restoreSession();
+  }
+}
+
+/// Local emulator: a live session means KYC is approved.
+final class GetEligibility implements UseCase<EligibilityStatus, NoParams> {
+  GetEligibility(this._auth);
+
+  final AuthRepository _auth;
+
+  @override
+  Future<Either<Failure, EligibilityStatus>> call(NoParams params) async {
+    final session = await _auth.restoreSession();
+    return session.fold(
+      Either.left,
+      (_) => Either.right(EligibilityStatus.approved),
+    );
   }
 }
 

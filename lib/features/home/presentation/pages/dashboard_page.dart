@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
@@ -49,9 +50,12 @@ class _DashboardBody extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              backgroundColor: AppColors.surfaceMuted,
-              child: Text(overview.initials, style: AppTextStyles.body),
+            GestureDetector(
+              onTap: () => context.push(AppRoute.profile.path),
+              child: CircleAvatar(
+                backgroundColor: AppColors.surfaceMuted,
+                child: Text(overview.initials, style: AppTextStyles.body),
+              ),
             ),
             const Spacer(),
             Text('Nexo', style: AppTextStyles.headline),
@@ -159,7 +163,18 @@ class _DashboardBody extends StatelessWidget {
   }
 
   void _go(BuildContext context, AppRoute route) {
-    // Navigation is wired in the shell / router as features land.
+    const ready = {
+      AppRoute.profile,
+      AppRoute.products,
+      AppRoute.security,
+      AppRoute.inbox,
+      AppRoute.news,
+      AppRoute.explore,
+    };
+    if (ready.contains(route)) {
+      context.push(route.path);
+      return;
+    }
     _soon(context, route.path);
   }
 

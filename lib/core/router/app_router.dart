@@ -8,7 +8,13 @@ import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/phone_auth_page.dart';
 import '../../features/auth/presentation/pages/pin_page.dart';
 import '../../features/auth/presentation/pages/sms_page.dart';
+import '../../features/explore/presentation/pages/explore_page.dart';
 import '../../features/home/presentation/pages/home_shell_page.dart';
+import '../../features/inbox/presentation/pages/inbox_page.dart';
+import '../../features/news/presentation/pages/news_page.dart';
+import '../../features/products/presentation/pages/products_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/security_settings/presentation/pages/security_page.dart';
 import 'app_route.dart';
 
 class SessionRouterRefresh extends ChangeNotifier {
@@ -82,6 +88,30 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       GoRoute(
         path: AppRoute.home.path,
         builder: (context, state) => const HomeShellPage(),
+      ),
+      GoRoute(
+        path: AppRoute.profile.path,
+        builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: AppRoute.products.path,
+        builder: (context, state) => const ProductsPage(),
+      ),
+      GoRoute(
+        path: AppRoute.security.path,
+        builder: (context, state) => const SecurityPage(),
+      ),
+      GoRoute(
+        path: AppRoute.inbox.path,
+        builder: (context, state) => const InboxPage(),
+      ),
+      GoRoute(
+        path: AppRoute.news.path,
+        builder: (context, state) => const NewsPage(),
+      ),
+      GoRoute(
+        path: AppRoute.explore.path,
+        builder: (context, state) => const ExplorePage(),
       ),
     ],
   );
