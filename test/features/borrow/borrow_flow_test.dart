@@ -23,7 +23,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Credit Hub'));
+    await tester.tap(find.byKey(const Key('credit_hub')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('loan_classic')));

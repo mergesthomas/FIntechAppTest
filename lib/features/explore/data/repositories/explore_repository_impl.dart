@@ -26,7 +26,7 @@ final class ExploreRepositoryImpl implements ExploreRepository {
       change24h: tick?.change24h ?? asset.change24h,
       freshness: tick?.freshness ?? asset.freshness,
       isNew: asset.isNew,
-      sparkline: asset.sparkline,
+      sparkline: _feed.seriesFor(asset.currency).closes,
     );
   }
 

@@ -23,7 +23,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Savings Hub'));
+    await tester.tap(find.byKey(const Key('savings_hub')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('stop_earning')));

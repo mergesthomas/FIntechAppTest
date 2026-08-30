@@ -23,7 +23,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Futures'));
+    await tester.tap(find.byKey(const Key('nav_futures')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('futures_preview')));

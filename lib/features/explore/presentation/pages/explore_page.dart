@@ -217,6 +217,7 @@ class _Feed extends StatelessWidget {
         const SizedBox(height: 8),
         for (final asset in state.assets)
           ListTile(
+            key: Key('explore_asset_${asset.currency.code}'),
             contentPadding: EdgeInsets.zero,
             title: Text(asset.currency.code),
             subtitle: Text('${asset.name} · ${asset.freshness.name}'),
@@ -241,9 +242,8 @@ class _Feed extends StatelessWidget {
                 ),
               ],
             ),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Wallet / asset detail — blocked')),
-            ),
+            onTap: () =>
+                context.push('${AppRoute.market.path}/${asset.currency.code}'),
           ),
       ],
     );
@@ -288,7 +288,13 @@ class _Promo extends StatelessWidget {
           const SizedBox(height: 8),
           Text(promo.body, style: AppTextStyles.body),
           const SizedBox(height: 12),
-          Text(promo.ctaLabel, style: const TextStyle(color: AppColors.accent)),
+          TextButton(
+            onPressed: () => context.push(AppRoute.earn.path),
+            child: Text(
+              promo.ctaLabel,
+              style: const TextStyle(color: AppColors.accent),
+            ),
+          ),
         ],
       ),
     );
@@ -316,16 +322,21 @@ class _CategoryCard extends StatelessWidget {
           Text(title, style: AppTextStyles.body),
           const SizedBox(height: 8),
           for (final asset in assets.take(4))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Expanded(child: Text(asset.currency.code)),
-                  Text(
-                    _pct(asset.change24h),
-                    style: TextStyle(color: _changeColor(asset.change24h)),
-                  ),
-                ],
+            InkWell(
+              onTap: () => context.push(
+                '${AppRoute.market.path}/${asset.currency.code}',
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(asset.currency.code)),
+                    Text(
+                      _pct(asset.change24h),
+                      style: TextStyle(color: _changeColor(asset.change24h)),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -341,7 +352,9 @@ class _EarningCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return InkWell(
+      onTap: () => context.push(AppRoute.earn.path),
+      child: Container(
       width: 140,
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.all(12),
@@ -373,6 +386,7 @@ class _EarningCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

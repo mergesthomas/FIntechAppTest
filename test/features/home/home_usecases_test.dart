@@ -3,7 +3,6 @@ import 'package:fintech_app_test/core/error/failure.dart';
 import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
 import 'package:fintech_app_test/core/money/money.dart';
-import 'package:fintech_app_test/core/usecase/use_case.dart';
 import 'package:fintech_app_test/features/auth/domain/entities/session.dart';
 import 'package:fintech_app_test/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fintech_app_test/features/auth/domain/usecases/session_usecases.dart';
@@ -25,6 +24,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue('');
+    registerFallbackValue(DashboardPeriod.oneWeek);
   });
 
   setUp(() {
@@ -38,10 +38,15 @@ void main() {
       (_) async => Either.left(const SessionFailure()),
     );
 
-    final result = await getOverview(const NoParams());
+    final result = await getOverview(DashboardPeriod.oneWeek);
 
     expect(result.getLeft().toNullable(), isA<SessionFailure>());
-    verifyNever(() => home.getOverview(initials: any(named: 'initials')));
+    verifyNever(
+      () => home.getOverview(
+        initials: any(named: 'initials'),
+        period: any(named: 'period'),
+      ),
+    );
   });
 
   test('loads overview when session exists', () async {
@@ -50,7 +55,12 @@ void main() {
         const Session(token: 't', phone: '6912345678', biometricEnabled: false),
       ),
     );
-    when(() => home.getOverview(initials: '78')).thenAnswer(
+    when(
+      () => home.getOverview(
+        initials: '78',
+        period: DashboardPeriod.oneWeek,
+      ),
+    ).thenAnswer(
       (_) async => Either.right(
         DashboardOverview(
           netWorth: Money.parse('35862.41', Currency.usd),
@@ -63,7 +73,7 @@ void main() {
       ),
     );
 
-    final result = await getOverview(const NoParams());
+    final result = await getOverview(DashboardPeriod.oneWeek);
 
     expect(result.getRight().toNullable()?.initials, '78');
     expect(result.getRight().toNullable()?.freshness, QuoteFreshness.stale);

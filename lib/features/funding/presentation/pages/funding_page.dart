@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/money/currency.dart';
 import '../../../../core/money/money_format.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../auth/presentation/widgets/pin_keypad.dart';
 import '../../domain/entities/funding.dart';
@@ -19,10 +22,24 @@ class _FundingPageState extends State<FundingPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<FundingCubit>().load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
       }
+      await context.read<FundingCubit>().load();
+      if (!mounted) {
+        return;
+      }
+      final params = GoRouterState.of(context).uri.queryParameters;
+      if (params['action'] != 'buy') {
+        return;
+      }
+      final currency = Currency.tryParse(params['asset']);
+      if (currency != null) {
+        await context.read<FundingCubit>().openBuyAsset(currency);
+        return;
+      }
+      await context.read<FundingCubit>().openBuy();
     });
   }
 
@@ -88,18 +105,28 @@ class _Hub extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
         for (final method in state.methods)
-          ListTile(
-            key: Key('funding_${method.rail.name}'),
-            title: Text(method.label),
-            subtitle: Text(method.subtitle),
-            onTap: () => switch (method.rail) {
-              FundingRail.bank => context.read<FundingCubit>().openBank(),
-              FundingRail.receiveCrypto =>
-                context.read<FundingCubit>().openReceiveCrypto(),
-              FundingRail.buyCrypto => context.read<FundingCubit>().openBuy(),
-            },
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              child: ListTile(
+                key: Key('funding_${method.rail.name}'),
+                title: Text(method.label),
+                subtitle: Text(method.subtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => switch (method.rail) {
+                  FundingRail.bank => context.read<FundingCubit>().openBank(),
+                  FundingRail.receiveCrypto =>
+                    context.read<FundingCubit>().openReceiveCrypto(),
+                  FundingRail.buyCrypto =>
+                    context.read<FundingCubit>().openBuy(),
+                },
+              ),
+            ),
           ),
       ],
     );

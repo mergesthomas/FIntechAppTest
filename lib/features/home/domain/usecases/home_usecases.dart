@@ -16,18 +16,23 @@ String _initialsFor(Session session) {
 }
 
 final class GetDashboardOverview
-    implements UseCase<DashboardOverview, NoParams> {
+    implements UseCase<DashboardOverview, DashboardPeriod> {
   GetDashboardOverview(this._requireSession, this._home);
 
   final RequireSession _requireSession;
   final HomeRepository _home;
 
   @override
-  Future<Either<Failure, DashboardOverview>> call(NoParams params) async {
-    final session = await _requireSession(params);
+  Future<Either<Failure, DashboardOverview>> call(
+    DashboardPeriod period,
+  ) async {
+    final session = await _requireSession(const NoParams());
     return session.fold(
       Either.left,
-      (value) => _home.getOverview(initials: _initialsFor(value)),
+      (value) => _home.getOverview(
+        initials: _initialsFor(value),
+        period: period,
+      ),
     );
   }
 }

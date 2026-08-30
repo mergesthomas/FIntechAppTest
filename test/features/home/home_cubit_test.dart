@@ -42,7 +42,12 @@ void main() {
         const Session(token: 't', phone: '6912345678', biometricEnabled: false),
       ),
     );
-    when(() => home.getOverview(initials: '78')).thenAnswer(
+    when(
+      () => home.getOverview(
+        initials: '78',
+        period: DashboardPeriod.oneWeek,
+      ),
+    ).thenAnswer(
       (_) async => Either.right(
         DashboardOverview(
           netWorth: Money.parse('35862.41', Currency.usd),

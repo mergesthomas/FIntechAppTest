@@ -133,6 +133,20 @@ class SwapCubit extends Cubit<SwapState> {
     emit(current.copyWith(amountInput: value));
   }
 
+  void flip() {
+    final current = _ready;
+    if (current == null) {
+      return;
+    }
+    emit(
+      current.copyWith(
+        from: current.to,
+        to: current.from,
+        amountInput: '',
+      ),
+    );
+  }
+
   void selectWallet(SwapWallet wallet) {
     final current = _ready;
     if (current == null) {

@@ -13,23 +13,52 @@ final class HomeLocalDataSource {
   static const _dismissedKey = 'home.alerts.dismissed';
 
   /// Screenshot fixture. Prices are cached → [QuoteFreshness.stale].
-  DashboardOverview overview({required String initials}) {
+  DashboardOverview overview({
+    required String initials,
+    DashboardPeriod period = DashboardPeriod.oneWeek,
+  }) {
     return DashboardOverview(
       netWorth: Money.parse('35862.41', Currency.usd),
       periodChangeRatio: Decimal.parse('-0.0492'),
-      period: DashboardPeriod.oneWeek,
-      chart: [
-        Decimal.parse('1.00'),
-        Decimal.parse('0.96'),
-        Decimal.parse('0.97'),
-        Decimal.parse('0.94'),
-        Decimal.parse('0.95'),
-        Decimal.parse('0.93'),
-        Decimal.parse('0.951'),
-      ],
+      period: period,
+      chart: chartFor(period),
       freshness: QuoteFreshness.stale,
       initials: initials,
     );
+  }
+
+  List<Decimal> chartFor(DashboardPeriod period) {
+    return switch (period) {
+      DashboardPeriod.oneDay => [
+          Decimal.parse('0.98'),
+          Decimal.parse('0.99'),
+          Decimal.parse('1.00'),
+          Decimal.parse('0.97'),
+          Decimal.parse('0.96'),
+        ],
+      DashboardPeriod.oneWeek => [
+          Decimal.parse('1.00'),
+          Decimal.parse('0.96'),
+          Decimal.parse('0.97'),
+          Decimal.parse('0.94'),
+          Decimal.parse('0.95'),
+          Decimal.parse('0.93'),
+          Decimal.parse('0.951'),
+        ],
+      DashboardPeriod.oneMonth => [
+          Decimal.parse('1.04'),
+          Decimal.parse('1.01'),
+          Decimal.parse('0.99'),
+          Decimal.parse('0.96'),
+          Decimal.parse('0.95'),
+        ],
+      DashboardPeriod.oneYear => [
+          Decimal.parse('0.80'),
+          Decimal.parse('0.88'),
+          Decimal.parse('0.92'),
+          Decimal.parse('0.95'),
+        ],
+    };
   }
 
   CreditHubTeaser creditHub() {

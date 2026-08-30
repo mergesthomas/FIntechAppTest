@@ -25,5 +25,7 @@ void main() {
 
     expect(find.byKey(const Key('net_worth')), findsOneWidget);
     expect(find.textContaining('stale'), findsWidgets);
+    expect(find.byKey(const Key('trade_buy')), findsOneWidget);
+    expect(find.byKey(const Key('add_funds')), findsOneWidget);
   });
 }

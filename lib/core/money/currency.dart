@@ -22,6 +22,27 @@ final class Currency extends Equatable {
   static const bonk = Currency(code: 'BONK', scale: 8);
   static const nexo = Currency(code: 'NEXO', scale: 8);
 
+  static Currency? tryParse(String? code) {
+    return switch (code) {
+      'USD' => usd,
+      'USDx' => usdx,
+      'EURx' => eurx,
+      'GBPx' => gbpx,
+      'USDC' => usdc,
+      'USDT' => usdt,
+      'ETH' => eth,
+      'SOL' => sol,
+      'XRP' => xrp,
+      'xUSD' => xusd,
+      'BTC' => btc,
+      'DOGE' => doge,
+      'PEPE' => pepe,
+      'BONK' => bonk,
+      'NEXO' => nexo,
+      _ => null,
+    };
+  }
+
   @override
   List<Object?> get props => [code, scale];
 }

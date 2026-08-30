@@ -4,6 +4,7 @@ import 'package:fpdart/fpdart.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/ledger/paper_ledger.dart';
 import '../../../../core/market/market_feed.dart';
+import '../../../../core/market/price_series.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 import '../../domain/entities/dashboard.dart';
@@ -25,14 +26,19 @@ final class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<Either<Failure, DashboardOverview>> getOverview({
     required String initials,
+    DashboardPeriod period = DashboardPeriod.oneWeek,
   }) async {
-    final fixture = _local.overview(initials: initials);
+    final fixture = _local.overview(initials: initials, period: period);
+    final series = _feed.seriesFor(Currency.btc, chartPeriodOf(period));
+    final chart = series.closes.length >= 2 ? series.closes : fixture.chart;
     return Either.right(
       DashboardOverview(
         netWorth: _netWorth() ?? fixture.netWorth,
-        periodChangeRatio: fixture.periodChangeRatio,
-        period: fixture.period,
-        chart: fixture.chart,
+        periodChangeRatio: series.closes.length >= 2
+            ? seriesChangeRatio(series.closes)
+            : fixture.periodChangeRatio,
+        period: period,
+        chart: chart,
         freshness: _feed.connection,
         initials: initials,
       ),
@@ -91,7 +97,7 @@ final class HomeRepositoryImpl implements HomeRepository {
           price: _feed.usdPrice(item.currency) ?? item.price,
           change24hRatio:
               _feed.quoteFor(item.currency)?.change24h ?? item.change24hRatio,
-          sparkline: item.sparkline,
+          sparkline: _feed.seriesFor(item.currency).closes,
           freshness: _feed.quoteFor(item.currency)?.freshness ?? item.freshness,
         ),
     ]);

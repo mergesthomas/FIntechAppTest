@@ -323,6 +323,20 @@ class FundingCubit extends Cubit<FundingState> {
     );
   }
 
+  Future<void> openBuyAsset(Currency currency) async {
+    await openBuy();
+    final current = _ready;
+    if (current == null) {
+      return;
+    }
+    for (final asset in current.purchasable) {
+      if (asset.currency == currency) {
+        selectBuyAsset(asset);
+        return;
+      }
+    }
+  }
+
   Future<void> openBuy({String query = ''}) async {
     final current = _ready;
     if (current == null) {

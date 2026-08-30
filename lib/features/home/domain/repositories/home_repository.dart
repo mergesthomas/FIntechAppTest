@@ -6,6 +6,7 @@ import '../entities/dashboard.dart';
 abstract class HomeRepository {
   Future<Either<Failure, DashboardOverview>> getOverview({
     required String initials,
+    DashboardPeriod period = DashboardPeriod.oneWeek,
   });
 
   Future<Either<Failure, CreditHubTeaser>> getCreditHub();
