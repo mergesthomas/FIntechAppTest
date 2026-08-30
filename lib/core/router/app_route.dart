@@ -6,7 +6,20 @@ enum AppRoute {
   createPin('/create-pin'),
   confirmPin('/confirm-pin'),
   enableBiometric('/enable-biometric'),
-  home('/home');
+  home('/home'),
+  profile('/profile'),
+  products('/products'),
+  security('/security'),
+  inbox('/inbox'),
+  news('/news'),
+  explore('/explore'),
+  funding('/funding'),
+  borrow('/borrow'),
+  earn('/earn'),
+  card('/card'),
+  swap('/swap'),
+  orders('/orders'),
+  futures('/futures');
 
   const AppRoute(this.path);
 

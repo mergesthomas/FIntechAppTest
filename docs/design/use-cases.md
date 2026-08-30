@@ -141,6 +141,8 @@ Session tokens in secure storage only. PIN and biometric secrets never in widget
 
 ## 2. `home`
 
+Status: **implemented** (local fixtures, freshness `stale`).
+
 Dashboard is the authenticated landing tab. Not a money submit.
 
 ### Screens
