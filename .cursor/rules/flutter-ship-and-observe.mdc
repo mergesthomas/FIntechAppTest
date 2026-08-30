@@ -10,5 +10,5 @@ alwaysApply: true
 - Before any money-moving feature: a short design doc (settlement, idempotency, failure, eligibility). Wait for approval if the path is regulated.
 - Legal, fee, APY, and risk copy is not invented by the agent. Use placeholders and flag for human/compliance review.
 - Structured logging + crash reporting. Breadcrumbs on money-moving submits. Never log balances, tokens, seeds, or PII.
-- CI must run unit (and money-flow widget) tests on the feature branch. Do not commit if CI/tests fail.
+- CI must run unit (and money-flow widget) tests on the feature branch. Do not commit if CI/tests fail. When the feature is complete and tests pass, push and merge to `main` (see Git + enforcement).
 - Say “I don’t know” or “I was wrong” and correct course when needed.
