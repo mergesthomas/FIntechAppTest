@@ -129,7 +129,7 @@ class _DashboardBody extends StatelessWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _go(context, AppRoute.funding),
-                child: const Text('Add funds'),
+                child: const Text('Add funds', key: Key('add_funds')),
               ),
             ),
           ],
@@ -170,6 +170,7 @@ class _DashboardBody extends StatelessWidget {
       AppRoute.inbox,
       AppRoute.news,
       AppRoute.explore,
+      AppRoute.funding,
     };
     if (ready.contains(route)) {
       context.push(route.path);
