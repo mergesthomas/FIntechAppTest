@@ -25,6 +25,7 @@ These are not a feature. They apply wherever a submit moves money or changes cre
 | Idempotency | Every submit carries client `requestId`. Retries reuse the same id. |
 | Settlement | After submit: `inFlight` → `confirmed` / `failed` / `unknown`. HTTP 200 is not settled. |
 | Quotes | Trade / buy / borrow-size quotes must be `live`. `stale` or `disconnected` → Use Case rejects submit. |
+| Local-first | No backend. Emulate features on a local ledger. Fixture prices are not `live`. Trading waits for a remote price feed. |
 | Logging | Breadcrumb `requestId` + settlement only. Never log balances, tokens, addresses, PANs, IBANs, PII. |
 
 Shared Use Cases (implemented in `lib/core/` only after the first approved feature needs them):

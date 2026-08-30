@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Market data (mandatory)
 
-- Live prices, order books, and charts come from a remote data source (WebSocket when required) plus a local cache.
+- Until a remote feed is wired, prices are local fixtures and must be `stale` or `disconnected` (see Local-first emulation). After that, live prices, order books, and charts come from a remote data source (WebSocket when required) plus a local cache.
 - Always expose connection and freshness: `live` | `stale` | `disconnected`. Show that in UI via Cubit state.
 - Never submit a trade, swap, or order on a stale or disconnected quote. The Use Case must reject it.
 - Do not block the UI on each tick. Throttle / sample high-frequency updates. Use `BlocSelector` or equivalent to limit rebuilds.
