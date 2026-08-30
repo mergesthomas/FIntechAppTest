@@ -26,6 +26,11 @@ import '../../features/explore/data/repositories/explore_repository_impl.dart';
 import '../../features/explore/domain/repositories/explore_repository.dart';
 import '../../features/explore/domain/usecases/get_explore_feed.dart';
 import '../../features/explore/presentation/cubit/explore_cubit.dart';
+import '../../features/funding/data/datasources/funding_local_datasource.dart';
+import '../../features/funding/data/repositories/funding_repository_impl.dart';
+import '../../features/funding/domain/repositories/funding_repository.dart';
+import '../../features/funding/domain/usecases/funding_usecases.dart';
+import '../../features/funding/presentation/cubit/funding_cubit.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
 import '../../features/inbox/data/datasources/inbox_local_datasource.dart';
 import '../../features/inbox/data/repositories/inbox_repository_impl.dart';
@@ -248,6 +253,35 @@ final exploreCubitProvider = Provider<ExploreCubit>((ref) {
   final auth = ref.watch(authRepositoryProvider);
   final explore = ref.watch(exploreRepositoryProvider);
   final cubit = ExploreCubit(GetExploreFeed(RequireSession(auth), explore));
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final fundingRepositoryProvider = Provider<FundingRepository>((ref) {
+  return FundingRepositoryImpl(FundingLocalDataSource());
+});
+
+final fundingCubitProvider = Provider<FundingCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final funding = ref.watch(fundingRepositoryProvider);
+  final session = RequireSession(auth);
+  final eligibility = GetEligibility(auth);
+  final cubit = FundingCubit(
+    getMethods: GetFundingMethods(session, funding),
+    getFiatx: GetFiatxAssets(session, funding),
+    getRails: GetBankRails(session, funding),
+    getAccountStatus: GetFiatAccountStatus(session, funding),
+    acceptTerms: AcceptFiatAccountTerms(session, funding),
+    createUsd: CreatePersonalUsdAccount(session, eligibility, funding),
+    getReceiveDetails: GetFiatReceiveDetails(session, funding),
+    getFees: GetBankTransferFeeSchedule(session, funding),
+    getReceivable: GetReceivableAssets(session, funding),
+    getReceiveAddress: GetReceiveAddress(session, funding),
+    getPurchasable: GetPurchasableAssets(session, funding),
+    getBuyQuote: GetBuyQuote(session, eligibility, funding),
+    getPaymentMethods: GetPaymentMethods(session, funding),
+    submitBuy: SubmitBuyCrypto(session, eligibility, funding),
+  );
   ref.onDispose(cubit.close);
   return cubit;
 });

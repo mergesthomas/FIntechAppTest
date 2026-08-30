@@ -21,6 +21,8 @@ final class Money extends Equatable {
 
   bool get isNegative => amount < Decimal.zero;
 
+  bool get isPositive => amount > Decimal.zero;
+
   @override
   List<Object?> get props => [amount, currency];
 
