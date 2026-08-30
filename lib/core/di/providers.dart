@@ -39,6 +39,11 @@ import '../../features/earn/data/datasources/earn_local_datasource.dart';
 import '../../features/earn/data/repositories/earn_repository_impl.dart';
 import '../../features/earn/domain/repositories/earn_repository.dart';
 import '../../features/earn/domain/usecases/earn_usecases.dart';
+import '../../features/card/data/datasources/card_local_datasource.dart';
+import '../../features/card/data/repositories/card_repository_impl.dart';
+import '../../features/card/domain/repositories/card_repository.dart';
+import '../../features/card/domain/usecases/card_usecases.dart';
+import '../../features/card/presentation/cubit/card_cubit.dart';
 import '../../features/earn/presentation/cubit/earn_cubit.dart';
 import '../../features/funding/presentation/cubit/funding_cubit.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
@@ -334,6 +339,23 @@ final earnCubitProvider = Provider<EarnCubit>((ref) {
     getPreference: GetEarnInNexoPreference(session, earn),
     setEarnInNexo: SetEarnInNexo(session, eligibility, earn),
     stopEarning: StopEarning(session, eligibility, earn),
+  );
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final cardRepositoryProvider = Provider<CardRepository>((ref) {
+  return CardRepositoryImpl(CardLocalDataSource());
+});
+
+final cardCubitProvider = Provider<CardCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final card = ref.watch(cardRepositoryProvider);
+  final session = RequireSession(auth);
+  final cubit = CardCubit(
+    getStatus: GetCardStatus(session, card),
+    restore: RestoreCardBalance(session),
+    unfreeze: UnfreezeCard(session, card),
   );
   ref.onDispose(cubit.close);
   return cubit;

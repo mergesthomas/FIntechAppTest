@@ -173,6 +173,7 @@ class _DashboardBody extends StatelessWidget {
       AppRoute.funding,
       AppRoute.borrow,
       AppRoute.earn,
+      AppRoute.card,
     };
     if (ready.contains(route)) {
       context.push(route.path);

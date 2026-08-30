@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../cubit/home_cubit.dart';
+import '../../../card/presentation/pages/card_page.dart';
 import '../../../explore/presentation/pages/explore_page.dart';
 import 'dashboard_page.dart';
 import 'tab_placeholder_page.dart';
@@ -52,7 +53,7 @@ class _HomeTabsState extends State<_HomeTabs> {
       const DashboardPage(),
       const ExplorePage(),
       const TabPlaceholderPage(title: 'Futures'),
-      const TabPlaceholderPage(title: 'Card'),
+      const CardPage(),
       const TabPlaceholderPage(title: 'Exchange'),
     ];
     return Scaffold(
