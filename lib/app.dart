@@ -1,0 +1,40 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'core/di/providers.dart';
+import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
+
+class FintechApp extends ConsumerStatefulWidget {
+  const FintechApp({super.key});
+
+  @override
+  ConsumerState<FintechApp> createState() => _FintechAppState();
+}
+
+class _FintechAppState extends ConsumerState<FintechApp> {
+  GoRouter? _router;
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionCubit = ref.watch(sessionCubitProvider);
+    _router ??= createRouter(sessionCubit);
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: sessionCubit),
+        BlocProvider.value(value: ref.watch(onboardingCubitProvider)),
+        BlocProvider.value(value: ref.watch(phoneAuthCubitProvider)),
+        BlocProvider.value(value: ref.watch(smsCubitProvider)),
+        BlocProvider.value(value: ref.watch(pinCubitProvider)),
+        BlocProvider.value(value: ref.watch(biometricCubitProvider)),
+      ],
+      child: MaterialApp.router(
+        title: 'Nexo',
+        theme: AppTheme.dark(),
+        routerConfig: _router,
+      ),
+    );
+  }
+}

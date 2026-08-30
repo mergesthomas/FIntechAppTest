@@ -85,6 +85,8 @@ Approve **one** row. Approving one does not approve the others.
 
 ## 1. `auth`
 
+Status: **implemented** on `feature/auth` (local emulator). Login/signup are phone-only. SMS code `123456` (dev flavor).
+
 ### Screens
 
 | Screen | Folder | Have |

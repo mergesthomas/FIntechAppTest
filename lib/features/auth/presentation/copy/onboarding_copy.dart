@@ -1,0 +1,24 @@
+/// Screenshot marketing text. COMPLIANCE: do not ship as legal APY/fee copy.
+abstract final class OnboardingCopy {
+  static const titles = {
+    'onboarding.grow.title': 'Grow and preserve your wealth',
+    'onboarding.earn.title': 'Reach goals with compound interest',
+    'onboarding.exchange.title': 'Exchange over 100 digital assets',
+    'onboarding.credit.title': 'Open a Credit Line',
+    'onboarding.card.title': 'Spend with the Nexo Card',
+  };
+
+  static const bodies = {
+    'onboarding.grow.body': 'Join clients who use Nexo.',
+    'onboarding.earn.body':
+        '[placeholder] Up to 15% p.a. · \$5,000 minimum — compliance review',
+    'onboarding.exchange.body': 'Swap assets in the app.',
+    'onboarding.credit.body':
+        '[placeholder] From 1.9% p.a. — compliance review',
+    'onboarding.card.body': 'Credit vs Debit mode.',
+  };
+
+  static String title(String key) => titles[key] ?? key;
+
+  static String body(String key) => bodies[key] ?? key;
+}
