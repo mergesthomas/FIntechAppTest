@@ -1,0 +1,21 @@
+---
+description: Bloc/Cubit state management and Riverpod-only DI
+globs: "**/*.dart"
+alwaysApply: true
+---
+
+# State + DI (mandatory)
+
+- State: Bloc/Cubit only. Cubit for simple cases, Bloc when events are needed.
+- Every feature with business logic has its own Bloc/Cubit.
+- Blocs/Cubits depend only on Use Cases.
+- States are immutable (freezed or equatable). Always include loading, success, failure, empty.
+- DI: Riverpod providers only. Never instantiate dependencies in widgets or Blocs.
+- Create Blocs/Cubits via Riverpod + `BlocProvider`. Never use Riverpod as state management.
+
+```dart
+// ❌ BAD
+final cubit = TransferCubit(SendMoney(TransferRepositoryImpl()));
+
+// ✅ GOOD — Riverpod provides the use case; BlocProvider provides the cubit
+```

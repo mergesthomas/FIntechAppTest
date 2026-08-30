@@ -1,0 +1,25 @@
+---
+description: Decimal money, currency, idempotency, and settlement states
+alwaysApply: true
+---
+
+# Money & ledger (critical)
+
+Never use `double`/`num` for balances, prices, amounts, rates, or fees.
+
+- Domain uses a `Money` (or `Decimal` + currency) value object. Fiat and crypto have explicit precision.
+- Every submit (send, trade, earn, borrow, funding) carries a client request id. Retries must not double-apply.
+- Model settlement explicitly: `inFlight` | `unknown` | `confirmed` | `failed`. Never treat HTTP 200 as settled.
+- Use Cases return `Either<Failure, T>` (or equivalent). Do not throw business failures from Domain.
+
+```dart
+// ❌ BAD
+final balance = 8420.55;
+await repo.send(amount: 25.0);
+
+// ✅ GOOD
+final amount = Money.parse(input, currency);
+await sendMoney(SendMoneyParams(amount: amount, requestId: requestId));
+```
+
+If asked to store or compute money as `double`, refuse and use `Money`.

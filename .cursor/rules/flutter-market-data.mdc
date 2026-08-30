@@ -1,0 +1,17 @@
+---
+description: WebSocket market data, stale quotes, and high-frequency UI rules
+alwaysApply: true
+---
+
+# Market data (mandatory)
+
+- Live prices, order books, and charts come from a remote data source (WebSocket when required) plus a local cache.
+- Always expose connection and freshness: `live` | `stale` | `disconnected`. Show that in UI via Cubit state.
+- Never submit a trade, swap, or order on a stale or disconnected quote. The Use Case must reject it.
+- Do not block the UI on each tick. Throttle / sample high-frequency updates. Use `BlocSelector` or equivalent to limit rebuilds.
+- Offline: show last cached values as stale, not as live.
+
+```text
+❌ BAD — Cubit treats last tick as current; widget rebuilds the whole page per tick
+✅ GOOD — quote.freshness == live required to submit; only the price widget rebuilds
+```

@@ -1,0 +1,19 @@
+---
+description: Mandatory unit tests for use cases, blocs, and repositories
+alwaysApply: true
+---
+
+# Testing (mandatory)
+
+Every feature must have unit tests, written together with the feature.
+
+Minimum per feature:
+- Use Cases
+- Blocs/Cubits
+- Repository implementations (mocked data sources)
+
+Money-moving features also need a widget/flow test: submit → review → confirm → success / failure / unknown.
+
+All tests must pass before any commit. Never commit or merge failing or untested feature code.
+
+If asked to add a feature without these tests, refuse and propose writing tests together with the feature.

@@ -1,0 +1,10 @@
+---
+description: Git branching and refuse-if-noncompliant enforcement
+alwaysApply: true
+---
+
+# Git + enforcement (mandatory)
+
+**Git:** New work on `feature/feature-name` only. Never develop on `main` or `develop`. Commit only after unit tests pass. Then commit → push → merge only after review or explicit approval. Still only commit/push/merge when the user asks.
+
+**Enforcement:** If a request violates these rules (architecture, tests, branching, money/`double`, auth/KYC, stale quotes, PII in logs, or screenshot-before-approval), refuse to generate the violating code, state which rule is broken, and propose the compliant approach.

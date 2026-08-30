@@ -1,0 +1,15 @@
+---
+description: Domain, data, presentation layers and Failure handling
+globs: "**/*.dart"
+alwaysApply: true
+---
+
+# Layers + errors (mandatory)
+
+**Domain:** Entities are pure Dart (no Flutter, no JSON). Use Cases are small with one `call()`. Repository interfaces live here.
+
+**Data:** Models/DTOs (freezed + json_serializable) are not entities; map in the repository. Split remote vs local data sources. Repositories handle mapping and exception → `Failure`. Support REST and WebSocket when needed. Handle offline and real-time data correctly.
+
+**Presentation:** Widgets stay dumb. Talk only to Blocs/Cubits. Never call repositories or use cases from UI. No business logic in widgets.
+
+**Errors:** Shared sealed/freezed `Failure` in `lib/core/error/`. Use Cases return `Either<Failure, T>` (or equivalent). Data converts exceptions → Failures. Blocs convert Failures → UI states.

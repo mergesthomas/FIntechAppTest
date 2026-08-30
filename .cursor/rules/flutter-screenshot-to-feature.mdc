@@ -1,0 +1,22 @@
+---
+description: Screenshot-to-feature gate for the Nexo clone — analyze first, wait for approval
+alwaysApply: true
+---
+
+# Screenshot-to-feature (mandatory)
+
+When screenshots are provided, NEVER start writing UI or implementation code.
+
+Mandatory order:
+1. Deep analysis of all screenshots
+2. Extract screens, user flows, visible data, states, and actions
+3. Group into clear features
+4. Propose Domain Use Cases for each feature
+5. Present features + Use Cases and WAIT for explicit approval
+
+Only after approval: create `feature/<name>` and implement (Clean Architecture + tests).
+
+```text
+❌ BAD — build pages from a screenshot immediately
+✅ GOOD — analyze → features + use cases → wait → then implement on a feature branch
+```

@@ -1,0 +1,19 @@
+---
+description: Flutter code standards, performance, security, and prohibitions
+globs: "**/*.dart"
+alwaysApply: true
+---
+
+# Code standards (mandatory)
+
+- Prefer `const` constructors. Meaningful names. Small, focused classes.
+- Performant: memory, rebuilds, high-frequency updates.
+- Secure storage for sensitive data. Observable, debuggable code.
+- Support iOS and Android (platform channels when needed).
+- No hard-coded secrets, routes, colors, or text styles.
+- No business logic in widgets. No API calls from UI or Blocs.
+- No Flutter in Domain. No Riverpod as state. No god classes.
+- No implementing from screenshots before Use Cases are approved.
+- Prefer proven patterns over demos. Make reusable patterns explicit.
+- Keep humans in the loop for regulated / money-moving decisions.
+- Non-trivial or money-moving design: write a short design doc first. Say “I don’t know” or “I was wrong” and correct course.

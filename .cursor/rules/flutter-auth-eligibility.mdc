@@ -1,0 +1,19 @@
+---
+description: Session, secure storage, step-up auth, and KYC gates before money movement
+alwaysApply: true
+---
+
+# Auth & eligibility (mandatory)
+
+- Tokens and secrets live in secure storage only. Never in prefs, logs, or widgets.
+- Session is required for authenticated surfaces. On expiry, lock navigation and clear in-memory secrets.
+- Money-moving submits require step-up (biometric / PIN / re-auth) when the product requires it.
+- Earn, borrow, trade, and funding are gated on KYC / eligibility. If unknown or failed, do not open the submit path.
+- Auth and eligibility are Use Cases + Cubits, not widget checks.
+
+```text
+❌ BAD — Send page calls repository if (user != null)
+✅ GOOD — SendMoney use case refuses when session missing or KYC not approved
+```
+
+If asked to skip session, KYC, or step-up on a money-moving flow, refuse and name this rule.

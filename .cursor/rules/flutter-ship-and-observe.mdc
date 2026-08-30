@@ -1,0 +1,14 @@
+---
+description: Flavors, navigation, CI, logging, and design docs for money-moving work
+alwaysApply: true
+---
+
+# Ship & observe (mandatory)
+
+- Flavors: `dev` / `staging` / `prod`. Base URLs and keys come from flavor config, never hard-coded in features.
+- Navigation: typed routes (e.g. `go_router`). No raw route strings in widgets.
+- Before any money-moving feature: a short design doc (settlement, idempotency, failure, eligibility). Wait for approval if the path is regulated.
+- Legal, fee, APY, and risk copy is not invented by the agent. Use placeholders and flag for human/compliance review.
+- Structured logging + crash reporting. Breadcrumbs on money-moving submits. Never log balances, tokens, seeds, or PII.
+- CI must run unit (and money-flow widget) tests on the feature branch. Do not commit if CI/tests fail.
+- Say “I don’t know” or “I was wrong” and correct course when needed.
