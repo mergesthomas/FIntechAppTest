@@ -17,6 +17,11 @@ import '../../features/auth/presentation/cubit/phone_auth_cubit.dart';
 import '../../features/auth/presentation/cubit/pin_cubit.dart';
 import '../../features/auth/presentation/cubit/session_cubit.dart';
 import '../../features/auth/presentation/cubit/sms_cubit.dart';
+import '../../features/home/data/datasources/home_local_datasource.dart';
+import '../../features/home/data/repositories/home_repository_impl.dart';
+import '../../features/home/domain/repositories/home_repository.dart';
+import '../../features/home/domain/usecases/home_usecases.dart';
+import '../../features/home/presentation/cubit/home_cubit.dart';
 
 final flavorConfigProvider = Provider<FlavorConfig>((ref) => FlavorConfig.dev);
 
@@ -97,6 +102,30 @@ final biometricCubitProvider = Provider<BiometricCubit>((ref) {
   final cubit = BiometricCubit(
     enableBiometric: EnableBiometric(repo),
     skipBiometric: SkipBiometric(repo),
+  );
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final homeRepositoryProvider = Provider<HomeRepository>((ref) {
+  return HomeRepositoryImpl(
+    HomeLocalDataSource(ref.watch(secureStoreProvider)),
+  );
+});
+
+final homeCubitProvider = Provider<HomeCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final home = ref.watch(homeRepositoryProvider);
+  final requireSession = RequireSession(auth);
+  final cubit = HomeCubit(
+    getOverview: GetDashboardOverview(requireSession, home),
+    getCredit: GetCreditHubTeaser(requireSession, home),
+    getSavings: GetSavingsHubTeaser(requireSession, home),
+    getWatchlist: GetWatchlist(requireSession, home),
+    getAlerts: GetDashboardAlerts(requireSession, home),
+    dismissAlert: DismissDashboardAlert(requireSession, home),
+    getPromos: GetDashboardPromos(requireSession, home),
+    getNews: GetNewsPreview(requireSession, home),
   );
   ref.onDispose(cubit.close);
   return cubit;

@@ -49,6 +49,6 @@ void main() {
     await tester.tap(find.byKey(const Key('skip_biometric')));
     await tester.pumpAndSettle();
 
-    expect(find.text('You are signed in.'), findsOneWidget);
+    expect(find.byKey(const Key('net_worth')), findsOneWidget);
   });
 }

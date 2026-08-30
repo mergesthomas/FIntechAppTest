@@ -1,0 +1,110 @@
+import 'package:decimal/decimal.dart';
+
+import '../../../../core/market/quote_freshness.dart';
+import '../../../../core/money/currency.dart';
+import '../../../../core/money/money.dart';
+import '../../../../core/secure/secure_store.dart';
+import '../../domain/entities/dashboard.dart';
+
+final class HomeLocalDataSource {
+  HomeLocalDataSource(this._store);
+
+  final SecureStore _store;
+  static const _dismissedKey = 'home.alerts.dismissed';
+
+  /// Screenshot fixture. Prices are cached → [QuoteFreshness.stale].
+  DashboardOverview overview({required String initials}) {
+    return DashboardOverview(
+      netWorth: Money.parse('35862.41', Currency.usd),
+      periodChangeRatio: Decimal.parse('-0.0492'),
+      period: DashboardPeriod.oneWeek,
+      chart: [
+        Decimal.parse('1.00'),
+        Decimal.parse('0.96'),
+        Decimal.parse('0.97'),
+        Decimal.parse('0.94'),
+        Decimal.parse('0.95'),
+        Decimal.parse('0.93'),
+        Decimal.parse('0.951'),
+      ],
+      freshness: QuoteFreshness.stale,
+      initials: initials,
+    );
+  }
+
+  CreditHubTeaser creditHub() {
+    return CreditHubTeaser(availableToBorrow: Money.zero(Currency.usd));
+  }
+
+  SavingsHubTeaser savingsHub() {
+    return SavingsHubTeaser(
+      interestEarned: Money.parse('2479.74', Currency.usd),
+    );
+  }
+
+  List<WatchlistItem> watchlist() {
+    WatchlistItem item({
+      required Currency currency,
+      required String name,
+      required String price,
+      required String change,
+    }) {
+      return WatchlistItem(
+        currency: currency,
+        displayName: name,
+        price: Money.parse(price, Currency.usd),
+        change24hRatio: Decimal.parse(change),
+        sparkline: const [],
+        freshness: QuoteFreshness.stale,
+      );
+    }
+
+    return [
+      item(currency: Currency.btc, name: 'Bitcoin', price: '78899.13', change: '0.0154'),
+      item(currency: Currency.doge, name: 'Dogecoin', price: '0.18', change: '-0.0120'),
+      item(currency: Currency.pepe, name: 'Pepe', price: '0.00001', change: '0.0320'),
+      item(currency: Currency.bonk, name: 'Bonk', price: '0.00002', change: '-0.0080'),
+      item(currency: Currency.nexo, name: 'NEXO', price: '0.8639', change: '0.0499'),
+    ];
+  }
+
+  Future<List<DashboardAlert>> alerts() async {
+    final dismissed = await _dismissedIds();
+    return [
+      DashboardAlert(
+        id: 'eurx_below_zero',
+        copyKey: 'home.alert.eurx_below_zero',
+        dismissed: dismissed.contains('eurx_below_zero'),
+      ),
+    ];
+  }
+
+  Future<void> dismissAlert(String id) async {
+    final ids = await _dismissedIds()..add(id);
+    await _store.write(_dismissedKey, ids.join(','));
+  }
+
+  List<DashboardPromo> promos() {
+    return const [
+      DashboardPromo(
+        id: 'zero_interest',
+        titleKey: 'home.promo.zero_interest.title',
+        bodyKey: 'home.promo.zero_interest.body',
+      ),
+    ];
+  }
+
+  List<NewsPreview> news() {
+    return const [
+      NewsPreview(id: 'news_1', titleKey: 'home.news.placeholder'),
+    ];
+  }
+
+  Future<Set<String>> _dismissedIds() async {
+    final raw = await _store.read(_dismissedKey);
+    if (raw == null || raw.isEmpty) {
+      return {};
+    }
+    return raw.split(',').where((id) => id.isNotEmpty).toSet();
+  }
+}

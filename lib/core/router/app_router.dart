@@ -7,8 +7,8 @@ import '../../features/auth/presentation/pages/biometric_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/phone_auth_page.dart';
 import '../../features/auth/presentation/pages/pin_page.dart';
-import '../../features/auth/presentation/pages/signed_in_page.dart';
 import '../../features/auth/presentation/pages/sms_page.dart';
+import '../../features/home/presentation/pages/home_shell_page.dart';
 import 'app_route.dart';
 
 class SessionRouterRefresh extends ChangeNotifier {
@@ -25,14 +25,23 @@ GoRouter createRouter(SessionCubit sessionCubit) {
     refreshListenable: SessionRouterRefresh(sessionCubit),
     redirect: (context, state) {
       final session = sessionCubit.state;
-      final loggingIn = state.uri.path != AppRoute.home.path;
+      final path = state.uri.path;
+      const authPaths = {
+        '/onboarding',
+        '/login',
+        '/signup',
+        '/verify-sms',
+        '/create-pin',
+        '/confirm-pin',
+        '/enable-biometric',
+      };
       if (session is SessionLoading) {
         return null;
       }
-      if (session is SessionSuccess && loggingIn) {
+      if (session is SessionSuccess && authPaths.contains(path)) {
         return AppRoute.home.path;
       }
-      if (session is SessionEmpty && state.uri.path == AppRoute.home.path) {
+      if (session is SessionEmpty && !authPaths.contains(path)) {
         return AppRoute.onboarding.path;
       }
       return null;
@@ -72,7 +81,7 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       ),
       GoRoute(
         path: AppRoute.home.path,
-        builder: (context, state) => const SignedInPage(),
+        builder: (context, state) => const HomeShellPage(),
       ),
     ],
   );
