@@ -65,7 +65,10 @@ class _ProductsPageState extends State<ProductsPage> {
     if (route == null) {
       return;
     }
-    if (route == AppRoute.explore || route == AppRoute.news) {
+    if (route == AppRoute.explore ||
+        route == AppRoute.news ||
+        route == AppRoute.borrow ||
+        route == AppRoute.funding) {
       context.push(route.path);
       return;
     }
