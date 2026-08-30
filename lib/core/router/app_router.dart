@@ -9,6 +9,7 @@ import '../../features/auth/presentation/pages/phone_auth_page.dart';
 import '../../features/auth/presentation/pages/pin_page.dart';
 import '../../features/auth/presentation/pages/sms_page.dart';
 import '../../features/explore/presentation/pages/explore_page.dart';
+import '../../features/borrow/presentation/pages/borrow_page.dart';
 import '../../features/funding/presentation/pages/funding_page.dart';
 import '../../features/home/presentation/pages/home_shell_page.dart';
 import '../../features/inbox/presentation/pages/inbox_page.dart';
@@ -117,6 +118,10 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       GoRoute(
         path: AppRoute.funding.path,
         builder: (context, state) => const FundingPage(),
+      ),
+      GoRoute(
+        path: AppRoute.borrow.path,
+        builder: (context, state) => const BorrowPage(),
       ),
     ],
   );

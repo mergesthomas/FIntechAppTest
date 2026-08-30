@@ -13,6 +13,9 @@ final class Currency extends Equatable {
   static const usdc = Currency(code: 'USDC', scale: 6);
   static const usdt = Currency(code: 'USDT', scale: 6);
   static const eth = Currency(code: 'ETH', scale: 8);
+  static const sol = Currency(code: 'SOL', scale: 8);
+  static const xrp = Currency(code: 'XRP', scale: 6);
+  static const xusd = Currency(code: 'xUSD', scale: 2);
   static const btc = Currency(code: 'BTC', scale: 8);
   static const doge = Currency(code: 'DOGE', scale: 8);
   static const pepe = Currency(code: 'PEPE', scale: 8);
