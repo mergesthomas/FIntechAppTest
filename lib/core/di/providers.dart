@@ -24,7 +24,7 @@ import '../../features/home/domain/usecases/home_usecases.dart';
 import '../../features/explore/data/datasources/explore_local_datasource.dart';
 import '../../features/explore/data/repositories/explore_repository_impl.dart';
 import '../../features/explore/domain/repositories/explore_repository.dart';
-import '../../features/explore/domain/usecases/get_explore_feed.dart';
+import '../../features/explore/domain/usecases/explore_usecases.dart';
 import '../../features/explore/presentation/cubit/explore_cubit.dart';
 import '../../features/funding/data/datasources/funding_local_datasource.dart';
 import '../../features/funding/data/repositories/funding_repository_impl.dart';
@@ -282,7 +282,12 @@ final exploreRepositoryProvider = Provider<ExploreRepository>((ref) {
 final exploreCubitProvider = Provider<ExploreCubit>((ref) {
   final auth = ref.watch(authRepositoryProvider);
   final explore = ref.watch(exploreRepositoryProvider);
-  final cubit = ExploreCubit(GetExploreFeed(RequireSession(auth), explore));
+  final session = RequireSession(auth);
+  final cubit = ExploreCubit(
+    getFeed: GetExploreFeed(session, explore),
+    getAssets: GetMarketAssets(session, explore),
+    searchAssets: SearchExploreAssets(session, explore),
+  );
   ref.onDispose(cubit.close);
   return cubit;
 });
