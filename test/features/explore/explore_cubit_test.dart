@@ -5,7 +5,8 @@ import 'package:fintech_app_test/features/auth/domain/repositories/auth_reposito
 import 'package:fintech_app_test/features/auth/domain/usecases/session_usecases.dart';
 import 'package:fintech_app_test/features/explore/data/datasources/explore_local_datasource.dart';
 import 'package:fintech_app_test/features/explore/data/repositories/explore_repository_impl.dart';
-import 'package:fintech_app_test/features/explore/domain/usecases/get_explore_feed.dart';
+import 'package:fintech_app_test/features/explore/domain/entities/explore_asset.dart';
+import 'package:fintech_app_test/features/explore/domain/usecases/explore_usecases.dart';
 import 'package:fintech_app_test/features/explore/presentation/cubit/explore_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -19,11 +20,12 @@ void main() {
 
   setUp(() {
     auth = MockAuthRepository();
+    final repo = ExploreRepositoryImpl(const ExploreLocalDataSource());
+    final session = RequireSession(auth);
     cubit = ExploreCubit(
-      GetExploreFeed(
-        RequireSession(auth),
-        ExploreRepositoryImpl(const ExploreLocalDataSource()),
-      ),
+      getFeed: GetExploreFeed(session, repo),
+      getAssets: GetMarketAssets(session, repo),
+      searchAssets: SearchExploreAssets(session, repo),
     );
     when(() => auth.restoreSession()).thenAnswer(
       (_) async => Either.right(
@@ -51,5 +53,18 @@ void main() {
     );
     await cubit.load();
     expect(cubit.state, isA<ExploreFailure>());
+  });
+
+  test('filter and search update the visible assets', () async {
+    await cubit.load();
+    await cubit.applyFilter(ExploreAssetFilter.losers);
+    expect((cubit.state as ExploreSuccess).filter, ExploreAssetFilter.losers);
+    await cubit.search('btc');
+    expect(
+      (cubit.state as ExploreSuccess).assets.every(
+        (a) => a.currency.code.toLowerCase().contains('btc'),
+      ),
+      isTrue,
+    );
   });
 }

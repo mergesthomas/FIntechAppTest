@@ -11,7 +11,19 @@ final class ExploreRepositoryImpl implements ExploreRepository {
   final ExploreLocalDataSource _local;
 
   @override
-  Future<Either<Failure, List<ExploreAsset>>> getAssets() async {
-    return Either.right(_local.assets());
+  Future<Either<Failure, ExploreFeed>> getFeed() async {
+    return Either.right(_local.feed());
+  }
+
+  @override
+  Future<Either<Failure, List<ExploreAsset>>> getAssets(
+    ExploreAssetFilter filter,
+  ) async {
+    return Either.right(_local.assetsFor(filter));
+  }
+
+  @override
+  Future<Either<Failure, List<ExploreAsset>>> searchAssets(String query) async {
+    return Either.right(_local.search(query));
   }
 }
