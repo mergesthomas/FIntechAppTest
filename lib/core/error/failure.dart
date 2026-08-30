@@ -37,3 +37,15 @@ final class ServerFailure extends Failure {
   @override
   List<Object?> get props => [reason];
 }
+
+final class EligibilityFailure extends Failure {
+  const EligibilityFailure();
+}
+
+final class StaleQuoteFailure extends Failure {
+  const StaleQuoteFailure();
+}
+
+final class StepUpFailure extends Failure {
+  const StepUpFailure();
+}
