@@ -11,6 +11,7 @@ import '../../features/auth/presentation/pages/sms_page.dart';
 import '../../features/explore/presentation/pages/explore_page.dart';
 import '../../features/card/presentation/pages/card_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
+import '../../features/futures/presentation/pages/futures_page.dart';
 import '../../features/swap/presentation/pages/swap_page.dart';
 import '../../features/borrow/presentation/pages/borrow_page.dart';
 import '../../features/earn/presentation/pages/earn_page.dart';
@@ -142,6 +143,10 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       GoRoute(
         path: AppRoute.orders.path,
         builder: (context, state) => const OrdersPage(),
+      ),
+      GoRoute(
+        path: AppRoute.futures.path,
+        builder: (context, state) => const FuturesPage(),
       ),
     ],
   );

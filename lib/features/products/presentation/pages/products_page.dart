@@ -71,7 +71,8 @@ class _ProductsPageState extends State<ProductsPage> {
         route == AppRoute.funding ||
         route == AppRoute.earn ||
         route == AppRoute.card ||
-        route == AppRoute.swap) {
+        route == AppRoute.swap ||
+        route == AppRoute.futures) {
       context.push(route.path);
       return;
     }

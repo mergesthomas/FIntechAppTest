@@ -1,8 +1,10 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/money/money_format.dart';
+import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../cubit/explore_cubit.dart';
 
@@ -38,6 +40,12 @@ class _ExplorePageState extends State<ExplorePage> {
                 children: [
                   const ListTile(
                     title: Text('All assets · fixture prices are stale'),
+                  ),
+                  ListTile(
+                    key: const Key('explore_perpetuals'),
+                    title: const Text('Perpetuals'),
+                    subtitle: const Text('Open futures ticket'),
+                    onTap: () => context.push(AppRoute.futures.path),
                   ),
                   for (final asset in assets)
                     ListTile(

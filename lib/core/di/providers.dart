@@ -53,6 +53,11 @@ import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
 import '../../features/orders/domain/usecases/orders_usecases.dart';
 import '../../features/orders/presentation/cubit/orders_cubit.dart';
+import '../../features/futures/data/datasources/futures_local_datasource.dart';
+import '../../features/futures/data/repositories/futures_repository_impl.dart';
+import '../../features/futures/domain/repositories/futures_repository.dart';
+import '../../features/futures/domain/usecases/futures_usecases.dart';
+import '../../features/futures/presentation/cubit/futures_cubit.dart';
 import '../../features/swap/presentation/cubit/swap_cubit.dart';
 import '../../features/earn/presentation/cubit/earn_cubit.dart';
 import '../../features/funding/presentation/cubit/funding_cubit.dart';
@@ -398,6 +403,31 @@ final ordersCubitProvider = Provider<OrdersCubit>((ref) {
   final auth = ref.watch(authRepositoryProvider);
   final orders = ref.watch(ordersRepositoryProvider);
   final cubit = OrdersCubit(GetOrderHistory(RequireSession(auth), orders));
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final futuresRepositoryProvider = Provider<FuturesRepository>((ref) {
+  return FuturesRepositoryImpl(FuturesLocalDataSource());
+});
+
+final futuresCubitProvider = Provider<FuturesCubit>((ref) {
+  final auth = ref.watch(authRepositoryProvider);
+  final futures = ref.watch(futuresRepositoryProvider);
+  final session = RequireSession(auth);
+  final eligibility = GetEligibility(auth);
+  final getQuote = GetFuturesQuote(session, eligibility, futures);
+  final cubit = FuturesCubit(
+    getInstrument: GetFuturesInstrument(session, futures),
+    getAccount: GetFuturesAccount(session, futures),
+    getPositions: GetOpenPositions(session, futures),
+    getTrades: GetLastTrades(session, futures),
+    getDetails: GetPositionDetails(session, futures),
+    previewPosition: PreviewFuturesPosition(getQuote),
+    submit: SubmitFuturesOrder(session, eligibility, futures),
+    setTpsl: SetTakeProfitStopLoss(session, eligibility, futures),
+    close: ClosePosition(session, eligibility, futures),
+  );
   ref.onDispose(cubit.close);
   return cubit;
 });
