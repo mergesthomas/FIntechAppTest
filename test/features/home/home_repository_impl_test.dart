@@ -6,6 +6,7 @@ import 'package:fintech_app_test/core/fixtures/news_feed_fixture.dart';
 import 'package:fintech_app_test/core/fixtures/watchlist_catalog_fixture.dart';
 import 'package:fintech_app_test/core/market/candle_interval.dart';
 import 'package:fintech_app_test/core/market/candle_series.dart';
+import 'package:fintech_app_test/core/market/depth_book.dart';
 import 'package:fintech_app_test/core/market/market_feed.dart';
 import 'package:fintech_app_test/core/market/market_quote.dart';
 import 'package:fintech_app_test/core/market/price_series.dart';
@@ -356,6 +357,15 @@ final class _RefreshFeed implements MarketFeed {
   ) async {
     return candlesFor(currency, interval);
   }
+
+  @override
+  DepthBook? depthFor(Currency currency) => null;
+
+  @override
+  Stream<DepthBook> get depths => const Stream.empty();
+
+  @override
+  Future<DepthBook?> refreshDepth(Currency currency) async => null;
 
   @override
   void dispose() {}

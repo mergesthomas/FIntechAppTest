@@ -24,7 +24,7 @@ Buy / Exchange / Add funds only **route** to funding and swap. Session, KYC, PIN
 
 ## Order book
 
-Display-only L2 on `MarketPage`, isolated via `BlocSelector`. Specified in [`order-book.md`](order-book.md). Fixture books stay `stale`. Tap seeds existing Swap Limit (`to` + `limitPrice`); it does not submit. Disconnected levels have `onTap: null`.
+Display-only L2 on `MarketPage`, isolated via `BlocSelector`. Specified in [`order-book.md`](order-book.md). Running app uses Binance partial depth (`live` while events arrive). Fixture / in-memory feeds stay `stale`. Tap seeds existing Swap Limit (`to` + `limitPrice`); it does not submit. Disconnected levels have `onTap: null`.
 
 ## Out of scope
 

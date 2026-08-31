@@ -3,7 +3,7 @@
 Not a matching engine. Not a new submit path. Public depth (or a stale fixture) on the existing market page. A tap builds a **Limit** draft for the existing swap ticket. `SubmitSwap` gates stay unchanged.
 
 Branch: `feature/order-book`  
-Status: **Phase 1 UI approved** on `feature/order-book` (Domain + fixture Data + Cubit + market book + Swap Limit seed). Live depth and reconnect remain Phases 2–3.
+Status: **Phases 0–3.** UI on `feature/order-book`. Live depth + reconnect on `feature/market-live-feed`. Fixture / in-memory feeds stay `stale`.
 
 ## Why
 
@@ -79,7 +79,7 @@ Do these in order. Do not skip to UI or a live depth socket.
 5. Swap: accept optional Limit seed from the route. Still `GetSwapQuote` → preview → step-up → `SubmitSwap`. Do not treat the draft as a quote.
 6. Tests: Cubit (load / tick / select / disconnected); widget/flow: tap level → swap Limit field; tap does not submit; disconnected tap does not navigate.
 
-### Phase 2 — live public depth (Data only)
+### Phase 2 — live public depth (Data only, **done**)
 
 1. Extend `MarketFeed` with snapshot + stream of books. In-memory / test feed stays `stale`.
 2. Binance: REST depth snapshot, then depth WebSocket (or `@depth` diff applied locally). Payload **strings** → `Money`. Flavor URLs only.
@@ -87,7 +87,7 @@ Do these in order. Do not skip to UI or a live depth socket.
 4. Repository prefers the feed; falls back to last cache; fixture only when the feed has never seen that pair.
 5. Tests: parser (strings, reject junk), freshness decay, no `double`.
 
-### Phase 3 — reconnect (Data only, shared with tickers)
+### Phase 3 — reconnect (Data only, shared with tickers, **done**)
 
 1. On `onDone` / `onError`, do **not** leave the app hung on `disconnected` forever.
 2. Backoff reconnect of the **existing** ticker (and depth) sockets. Last quotes/books stay `stale` until a new event. Never mark reconnect-as-success `live` without a payload.

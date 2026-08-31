@@ -4,6 +4,7 @@ import 'package:fpdart/fpdart.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/market/candle_interval.dart';
 import '../../../../core/market/candle_series.dart';
+import '../../../../core/market/depth_book.dart';
 import '../../../../core/market/market_feed.dart';
 import '../../../../core/market/market_symbols.dart';
 import '../../../../core/market/price_series.dart';
@@ -90,6 +91,11 @@ final class MarketRepositoryImpl implements MarketRepository {
     Currency currency, {
     int depth = orderBookDefaultDepth,
   }) async {
+    final remote = await _feed.refreshDepth(currency);
+    final mapped = _mapDepth(remote, currency, depth);
+    if (mapped != null) {
+      return Either.right(mapped);
+    }
     final book = _local.bookFor(currency, depth: depth);
     if (book == null) {
       return Either.left(const ValidationFailure('order_book_unavailable'));
@@ -102,10 +108,56 @@ final class MarketRepositoryImpl implements MarketRepository {
     Currency currency, {
     int depth = orderBookDefaultDepth,
   }) {
-    final book = _local.bookFor(currency, depth: depth);
-    if (book == null) {
+    final symbol = binanceSymbolFor(currency);
+    if (symbol == null) {
       return const Stream.empty();
     }
-    return Stream<OrderBook>.value(book);
+    final remote = _mapDepth(_feed.depthFor(currency), currency, depth);
+    final fixture =
+        remote == null ? _local.bookFor(currency, depth: depth) : null;
+    final first = remote ?? fixture;
+    return () async* {
+      if (first != null) {
+        yield first;
+      }
+      await for (final book in _feed.depths) {
+        if (book.symbol != symbol) {
+          continue;
+        }
+        final mapped = _mapDepth(book, currency, depth);
+        if (mapped != null) {
+          yield mapped;
+        }
+      }
+    }();
+  }
+
+  OrderBook? _mapDepth(DepthBook? book, Currency currency, int depth) {
+    if (book == null) {
+      return null;
+    }
+    return OrderBook.normalized(
+      currency: currency,
+      quote: Currency.usdt,
+      bids: [
+        for (final level in book.bids)
+          OrderBookLevel(
+            side: OrderBookSide.bid,
+            price: level.price,
+            size: Money.fromDecimal(level.quantity, currency),
+          ),
+      ],
+      asks: [
+        for (final level in book.asks)
+          OrderBookLevel(
+            side: OrderBookSide.ask,
+            price: level.price,
+            size: Money.fromDecimal(level.quantity, currency),
+          ),
+      ],
+      freshness: book.freshness,
+      updatedAt: book.updatedAt,
+      depth: depth,
+    );
   }
 }

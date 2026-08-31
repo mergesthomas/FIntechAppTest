@@ -4,9 +4,10 @@ Not a broker. No real money leaves the device. Public market data only.
 
 ## Market data
 
-- Remote: Binance public REST snapshot + WebSocket tickers (flavor URLs).
-- Ticks are parsed as **strings** → `Money` / `Decimal`. Never `double`.
-- Freshness: `live` while ticks arrive; `stale` after 15s silence; `disconnected` on socket/HTTP failure.
+- Remote: Binance public REST snapshot + WebSocket tickers and partial depth (flavor URLs).
+- Ticks and depth are parsed as **strings** → `Money` / `Decimal`. Never `double`.
+- Freshness: `live` while ticks or depth arrive; `stale` after 15s silence; `disconnected` on socket/HTTP failure with no cache.
+- Socket drop: last quotes/books stay `stale`; backoff reconnect. Never mark `live` until a payload arrives.
 - Fixture / test feed stays `stale` so CI never depends on the network.
 - `dev` `main.dart` overrides the feed with the remote client.
 - EURx uses EURUSDT as a stand-in. USD/USDT/USDx peg at 1 for paper. COMPLIANCE: not a NAV or redemption rate.
