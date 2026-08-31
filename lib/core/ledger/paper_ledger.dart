@@ -1,11 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:fpdart/fpdart.dart';
 
+import '../clock/app_clock.dart';
 import '../error/failure.dart';
 import '../money/currency.dart';
 import '../money/money.dart';
 import '../observe/settlement_breadcrumb.dart';
 import '../settlement/settlement_status.dart';
+import 'ledger_lot.dart';
 import 'paper_order.dart';
 import 'paper_settler.dart';
 
@@ -32,24 +34,60 @@ final class PaperLedger {
   PaperLedger({
     required PaperOrderStore orders,
     required PaperSettler settler,
-  })  : _orders = orders,
-        _settler = settler {
+    AppClock clock = const SystemClock(),
+  }) : _orders = orders,
+       _settler = settler,
+       _clock = clock {
     seed();
   }
 
   final PaperOrderStore _orders;
   final PaperSettler _settler;
+  final AppClock _clock;
   final Map<String, Decimal> _balances = {};
   final Map<String, SettlementStatus> _posts = {};
   final Map<String, _Hold> _holds = {};
+  final List<LedgerLot> _lots = [];
 
   PaperOrderStore get orders => _orders;
 
+  List<LedgerLot> get lots => List.unmodifiable(_lots);
+
   void seed() {
-    _set(LedgerBook.savings, Money.parse('120.00', Currency.usdc));
-    _set(LedgerBook.savings, Money.parse('0.15', Currency.btc));
+    final now = _clock.now().toUtc();
+    _seedBuy(
+      id: 'usdc',
+      receive: Money.parse('10000.00', Currency.usdc),
+      at: now.subtract(const Duration(days: 548)),
+    );
+    _seedBuy(
+      id: 'btc',
+      receive: Money.parse('0.15', Currency.btc),
+      at: now.subtract(const Duration(days: 487)),
+    );
+    _seedBuy(
+      id: 'doge',
+      receive: Money.parse('10000', Currency.doge),
+      at: now.subtract(const Duration(days: 243)),
+    );
+    _seedBuy(
+      id: 'pepe',
+      receive: Money.parse('80000000', Currency.pepe),
+      at: now.subtract(const Duration(days: 77)),
+    );
     _set(LedgerBook.savings, Money.parse('-1.16', Currency.eurx));
-    _set(LedgerBook.savings, Money.parse('10000.00', Currency.usd));
+  }
+
+  List<Money> balances(LedgerBook book) {
+    final prefix = '${book.name}:';
+    return [
+      for (final entry in _balances.entries)
+        if (entry.key.startsWith(prefix) && entry.value != Decimal.zero)
+          Money.fromDecimal(
+            entry.value,
+            _currencyOf(entry.key.substring(prefix.length)),
+          ),
+    ];
   }
 
   Money balance(LedgerBook book, Currency currency) {
@@ -86,11 +124,17 @@ final class PaperLedger {
       status: SettlementStatus.inFlight,
     );
     await _settler.schedule(requestId, () {
+      final filledAt = _clock.now().toUtc();
       for (final line in lines) {
         _set(line.book, balance(line.book, line.delta.currency) + line.delta);
+        _recordLot(line.delta, filledAt);
       }
       _posts[requestId] = SettlementStatus.confirmed;
-      _orders.setStatus(order.id, PaperOrderStatus.filled);
+      _orders.setStatus(
+        order.id,
+        PaperOrderStatus.filled,
+        filledAt: filledAt,
+      );
       logSettlementBreadcrumb(
         requestId: requestId,
         status: SettlementStatus.confirmed,
@@ -214,5 +258,46 @@ final class PaperLedger {
 
   void _set(LedgerBook book, Money money) {
     _balances[_key(book, money.currency)] = money.amount;
+  }
+
+  void _recordLot(Money delta, DateTime at) {
+    if (delta.amount == Decimal.zero) {
+      return;
+    }
+    _lots.add(
+      LedgerLot(currency: delta.currency, quantity: delta.amount, at: at),
+    );
+  }
+
+  void _seedBuy({
+    required String id,
+    required Money receive,
+    required DateTime at,
+  }) {
+    final requestId = 'seed-buy-$id';
+    _set(
+      LedgerBook.savings,
+      balance(LedgerBook.savings, receive.currency) + receive,
+    );
+    _recordLot(receive, at);
+    _posts[requestId] = SettlementStatus.confirmed;
+    _orders.add(
+      PaperOrder(
+        id: 'ord-$requestId',
+        requestId: requestId,
+        pair: '${receive.currency.code}/USD',
+        side: PaperSide.buy,
+        status: PaperOrderStatus.filled,
+        amount: receive,
+        wallet: 'card',
+        venue: PaperVenue.market,
+        receive: receive.currency,
+        filledAt: at,
+      ),
+    );
+  }
+
+  Currency _currencyOf(String code) {
+    return Currency.tryParse(code) ?? Currency(code: code, scale: 8);
   }
 }

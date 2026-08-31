@@ -17,6 +17,9 @@ class AssetListRow extends StatelessWidget {
     this.onTap,
   });
 
+  static const sparklineWidth = 64.0;
+  static const quoteWidth = 112.0;
+
   final String symbol;
   final String subtitle;
   final String priceLabel;
@@ -47,24 +50,39 @@ class AssetListRow extends StatelessWidget {
                     style: AppTextStyles.meta.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
             if (leadingTrail != null) ...[
-              leadingTrail!,
+              SizedBox(
+                width: sparklineWidth,
+                height: 24,
+                child: ClipRect(child: Center(child: leadingTrail)),
+              ),
               const SizedBox(width: AppSpacing.sm),
             ],
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(priceLabel, style: AppTextStyles.numeric),
-                const SizedBox(height: 2),
-                Text(
-                  changeLabel,
-                  style: AppTextStyles.meta.copyWith(color: changeColor),
-                ),
-              ],
+            SizedBox(
+              width: quoteWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(priceLabel, style: AppTextStyles.numeric),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    changeLabel,
+                    style: AppTextStyles.meta.copyWith(color: changeColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -17,8 +17,8 @@ final class InMemoryMarketFeed implements MarketFeed {
   InMemoryMarketFeed({
     AppClock clock = const SystemClock(),
     QuoteFreshness connection = QuoteFreshness.stale,
-  })  : _clock = clock,
-        _connection = connection {
+  }) : _clock = clock,
+       _connection = connection {
     _seed();
   }
 
@@ -93,7 +93,12 @@ final class InMemoryMarketFeed implements MarketFeed {
     final last = usdPrice(currency)?.amount ?? Decimal.one;
     return PriceSeries(
       period: period,
-      closes: syntheticCloses(last: last, period: period),
+      closes: syntheticCloses(
+        last: last,
+        period: period,
+        seedKey: currency.code,
+        changeRatio: quoteFor(currency)?.change24h,
+      ),
       freshness: _connection,
     );
   }

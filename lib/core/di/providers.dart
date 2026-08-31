@@ -104,6 +104,7 @@ final paperLedgerProvider = Provider<PaperLedger>((ref) {
   return PaperLedger(
     orders: ref.watch(paperOrderStoreProvider),
     settler: ref.watch(paperSettlerProvider),
+    clock: ref.watch(appClockProvider),
   );
 });
 
@@ -201,6 +202,7 @@ final homeRepositoryProvider = Provider<HomeRepository>((ref) {
     HomeLocalDataSource(ref.watch(secureStoreProvider)),
     feed: ref.watch(marketFeedProvider),
     ledger: ref.watch(paperLedgerProvider),
+    clock: ref.watch(appClockProvider),
   );
 });
 
@@ -210,7 +212,11 @@ final homeCubitProvider = Provider<HomeCubit>((ref) {
   final requireSession = RequireSession(auth);
   final cubit = HomeCubit(
     getOverview: GetDashboardOverview(requireSession, home),
+    getHoldings: GetHoldings(requireSession, home),
     getWatchlist: GetWatchlist(requireSession, home),
+    getWatchlistCandidates: GetWatchlistCandidates(requireSession, home),
+    searchWatchlistCandidates: SearchWatchlistCandidates(requireSession, home),
+    addWatchlistItem: AddWatchlistItem(requireSession, home),
     getAlerts: GetDashboardAlerts(requireSession, home),
     dismissAlert: DismissDashboardAlert(requireSession, home),
     getPromos: GetDashboardPromos(requireSession, home),
@@ -416,8 +422,10 @@ final marketRepositoryProvider = Provider<MarketRepository>((ref) {
   );
 });
 
-final marketCubitProvider =
-    Provider.autoDispose.family<MarketCubit, String>((ref, code) {
+final marketCubitProvider = Provider.autoDispose.family<MarketCubit, String>((
+  ref,
+  code,
+) {
   final auth = ref.watch(authRepositoryProvider);
   final market = ref.watch(marketRepositoryProvider);
   final session = RequireSession(auth);

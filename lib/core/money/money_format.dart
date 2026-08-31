@@ -2,6 +2,18 @@ import 'package:decimal/decimal.dart';
 
 import 'money.dart';
 
+/// Quantity with grouping, natural scale, and currency code.
+String formatQuantity(Money money) {
+  final raw = money.amount.toString();
+  final parts = raw.split('.');
+  final whole = _commas(
+    parts.first.startsWith('-') ? parts.first.substring(1) : parts.first,
+  );
+  final sign = raw.startsWith('-') ? '-' : '';
+  final fraction = parts.length > 1 ? '.${parts[1]}' : '';
+  return '$sign$whole$fraction ${money.currency.code}';
+}
+
 /// Formats [Money] without converting to [double].
 String formatMoney(Money money, {bool withCode = false}) {
   final raw = money.amount.toString();

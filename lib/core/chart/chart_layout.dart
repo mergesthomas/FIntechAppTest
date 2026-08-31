@@ -25,3 +25,20 @@ List<double> chartUnitYs(List<Decimal> points) {
   final span = max - min;
   return [for (final value in values) (value - min) / span];
 }
+
+/// Nearest sample index for a pointer x in [0, width]. Pixel math only.
+int chartIndexAt({
+  required int count,
+  required double width,
+  required double dx,
+}) {
+  if (count <= 1 || width <= 0) {
+    return 0;
+  }
+  final x = dx < 0
+      ? 0.0
+      : dx > width
+      ? width
+      : dx;
+  return ((x / width) * (count - 1)).round();
+}

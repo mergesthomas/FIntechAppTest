@@ -10,6 +10,10 @@ class FreshnessChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final label = freshness.statusLabel;
+    if (label == null) {
+      return const SizedBox.shrink();
+    }
     final scheme = Theme.of(context).colorScheme;
     final color = switch (freshness) {
       QuoteFreshness.live => scheme.tertiary,
@@ -17,7 +21,7 @@ class FreshnessChip extends StatelessWidget {
       QuoteFreshness.disconnected => scheme.error,
     };
     return Text(
-      freshness.name,
+      label,
       style: AppTextStyles.meta.copyWith(color: color),
     );
   }

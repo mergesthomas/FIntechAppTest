@@ -10,6 +10,7 @@ abstract final class ChartPeriodLabel {
       ChartPeriod.oneWeek => '1W',
       ChartPeriod.oneMonth => '1M',
       ChartPeriod.oneYear => '1Y',
+      ChartPeriod.all => 'ALL',
     };
   }
 }

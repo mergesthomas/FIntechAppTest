@@ -33,6 +33,18 @@ void main() {
     );
   });
 
+  test('formats holding quantities with grouping and the asset code', () {
+    expect(
+      formatQuantity(Money.parse('80000000', Currency.pepe)),
+      '80,000,000 PEPE',
+    );
+    expect(formatQuantity(Money.parse('0.15', Currency.btc)), '0.15 BTC');
+    expect(
+      formatQuantity(Money.parse('10000.00', Currency.usdc)),
+      '10,000 USDC',
+    );
+  });
+
   test('NEXO is not a listed currency', () {
     expect(Currency.tryParse('NEXO'), isNull);
   });
