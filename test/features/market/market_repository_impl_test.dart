@@ -10,7 +10,6 @@ import 'package:fintech_app_test/features/market/data/datasources/market_local_d
 import 'package:fintech_app_test/features/market/data/repositories/market_repository_impl.dart';
 import 'package:fintech_app_test/features/market/domain/entities/order_book.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
 
 import '../../helpers/paper_harness.dart';
 
