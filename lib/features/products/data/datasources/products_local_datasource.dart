@@ -8,21 +8,9 @@ final class ProductsLocalDataSource {
     final moneyMovingEnabled = eligibility == EligibilityStatus.approved;
     return [
       ProductTile(
-        id: 'savings',
-        label: 'Savings Hub',
-        group: 'Earn',
-        enabled: moneyMovingEnabled,
-      ),
-      ProductTile(
-        id: 'credit',
-        label: 'Credit Hub',
-        group: 'Borrow & spend',
-        enabled: moneyMovingEnabled,
-      ),
-      ProductTile(
         id: 'card',
         label: 'Card',
-        group: 'Borrow & spend',
+        group: 'Spend',
         enabled: moneyMovingEnabled,
       ),
       ProductTile(

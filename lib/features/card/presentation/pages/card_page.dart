@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../domain/entities/card.dart';
 import '../cubit/card_cubit.dart';
 
@@ -34,9 +36,10 @@ class _CardPageState extends State<CardPage> {
         builder: (context, state) {
           return switch (state) {
             CardLoading() => const Center(child: CircularProgressIndicator()),
-            CardEmpty() => const Center(child: Text('No card')),
-            CardFailure(:final failure) => Center(
-                child: Text('$failure', key: const Key('card_failure')),
+            CardEmpty() => const AppEmptyState(message: 'No card'),
+            CardFailure(:final failure) => AppEmptyState(
+                message: '$failure',
+                key: const Key('card_failure'),
               ),
             CardSuccess(:final snapshot) => _Body(snapshot: snapshot),
           };
@@ -54,33 +57,55 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final frozen = snapshot.status == CardStatus.frozen;
+    final scheme = Theme.of(context).colorScheme;
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         Text(
           frozen ? 'Card frozen' : 'Card ${snapshot.status.name}',
           key: const Key('card_status'),
-          style: AppTextStyles.title,
+          style: AppTextStyles.secondary.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
+        const SizedBox(height: AppSpacing.xs),
         Text(
-          '${formatMoney(snapshot.balances.eurx, withCode: true)} ≈ ${formatMoney(snapshot.balances.usdApprox)}',
+          formatMoney(snapshot.balances.eurx, withCode: true),
+          style: AppTextStyles.balance,
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          '≈ ${formatMoney(snapshot.balances.usdApprox)}',
+          style: AppTextStyles.secondary.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
         if (frozen) ...[
-          const SizedBox(height: 12),
-          const Text(
+          const SizedBox(height: AppSpacing.lg),
+          Text(
             'Add funds, transfer, or swap to restore. Frozen is a first-class state.',
-            style: AppTextStyles.secondary,
+            style: AppTextStyles.secondary.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
+          const SizedBox(height: AppSpacing.lg),
           ElevatedButton(
             key: const Key('restore_funding'),
             onPressed: () => _restore(context, RestoreRail.funding),
             child: const Text('Restore balance'),
           ),
-          TextButton(
+          const SizedBox(height: AppSpacing.xs),
+          OutlinedButton(
             onPressed: () => _restore(context, RestoreRail.swap),
             child: const Text('Swap'),
           ),
         ],
+        const SizedBox(height: AppSpacing.md),
         TextButton(
           key: const Key('unfreeze_card'),
           onPressed: () => context.read<CardCubit>().unfreeze(),

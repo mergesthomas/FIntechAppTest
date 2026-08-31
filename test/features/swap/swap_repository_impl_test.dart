@@ -17,11 +17,27 @@ void main() {
       ledger: paper.ledger,
     );
     final quote = await repo.getQuote(
-      from: Currency.nexo,
-      to: Currency.eurx,
-      amount: Money.parse('10', Currency.nexo),
-      wallet: SwapWallet.savings,
+      SwapQuoteRequest(
+        from: Currency.nexo,
+        to: Currency.eurx,
+        amount: Money.parse('10', Currency.nexo),
+        type: SwapOrderType.instant,
+      ),
     );
     expect(quote.getRight().toNullable()?.freshness, QuoteFreshness.stale);
+  });
+
+  test('search includes DOGE', () async {
+    final paper = PaperHarness();
+    final repo = SwapRepositoryImpl(
+      SwapLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
+    final assets = await repo.searchAssets('');
+    expect(
+      assets.getRight().toNullable()?.any((a) => a.currency == Currency.doge),
+      isTrue,
+    );
   });
 }

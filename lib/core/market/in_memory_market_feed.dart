@@ -60,7 +60,7 @@ final class InMemoryMarketFeed implements MarketFeed {
     add('DOGEUSDT', '0.18', '-0.0120');
     add('SOLUSDT', '148.20', '0.0210');
     add('XRPUSDT', '1.39', '0.0096');
-    add('1000PEPEUSDT', '0.01', '0.0320');
+    add('PEPEUSDT', '0.00001', '0.0320');
     add('BONKUSDT', '0.00002', '-0.0080');
     add('USDCUSDT', '1.00', '0.0000');
     add('EURUSDT', '1.08', '0.0010');
@@ -111,13 +111,7 @@ final class InMemoryMarketFeed implements MarketFeed {
     if (quote == null) {
       return null;
     }
-    var amount = quote.price.amount;
-    if (currency.code == 'PEPE') {
-      amount = (amount / Decimal.fromInt(1000)).toDecimal(
-        scaleOnInfinitePrecision: 18,
-      );
-    }
-    return Money.fromDecimal(amount, Currency.usd);
+    return Money.fromDecimal(quote.price.amount, Currency.usd);
   }
 
   @override

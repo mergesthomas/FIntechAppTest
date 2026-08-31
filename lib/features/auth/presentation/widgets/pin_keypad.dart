@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 class PinKeypad extends StatelessWidget {
@@ -54,10 +54,11 @@ class _Key extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (label.isEmpty) {
-      return const SizedBox(width: 72, height: 72);
+      return const SizedBox(width: 72, height: 64);
     }
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(AppSpacing.xs),
       child: InkWell(
         onTap: () {
           if (label == 'back') {
@@ -67,16 +68,12 @@ class _Key extends StatelessWidget {
           }
         },
         customBorder: const CircleBorder(),
-        child: Ink(
+        child: SizedBox(
           width: 72,
-          height: 72,
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            shape: BoxShape.circle,
-          ),
+          height: 64,
           child: Center(
             child: label == 'back'
-                ? const Icon(Icons.backspace_outlined, color: AppColors.textPrimary)
+                ? Icon(Icons.backspace_outlined, color: scheme.onSurface)
                 : Text(label, style: AppTextStyles.headline),
           ),
         ),

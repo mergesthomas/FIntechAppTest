@@ -36,12 +36,14 @@ void main() {
       RequireSession(auth),
       GetEligibility(auth),
       repo,
-    )((
-      from: Currency.nexo,
-      to: Currency.eurx,
-      amount: Money.parse('10', Currency.nexo),
-      wallet: SwapWallet.savings,
-    ));
+    )(
+      SwapQuoteRequest(
+        from: Currency.nexo,
+        to: Currency.eurx,
+        amount: Money.parse('10', Currency.nexo),
+        type: SwapOrderType.instant,
+      ),
+    );
     final quote = quoted.getRight().toNullable();
     expect(quote?.freshness, QuoteFreshness.live);
     final submitted = await SubmitSwap(
@@ -61,5 +63,67 @@ void main() {
     expect(paper.store.all, isNotEmpty);
     expect(paper.store.all.first.venue, PaperVenue.market);
     expect(paper.store.all.first.status, PaperOrderStatus.filled);
+  });
+
+  test('live limit swap holds from and stays open', () async {
+    final auth = MockAuthRepository();
+    when(() => auth.restoreSession()).thenAnswer(
+      (_) async => Either.right(
+        const Session(token: 't', phone: '6912345678', biometricEnabled: false),
+      ),
+    );
+    final paper = PaperHarness(freshness: QuoteFreshness.live);
+    final repo = SwapRepositoryImpl(
+      SwapLocalDataSource(),
+      feed: paper.feed,
+      ledger: paper.ledger,
+    );
+    final instant = await GetSwapQuote(
+      RequireSession(auth),
+      GetEligibility(auth),
+      repo,
+    )(
+      SwapQuoteRequest(
+        from: Currency.nexo,
+        to: Currency.doge,
+        amount: Money.parse('10', Currency.nexo),
+        type: SwapOrderType.instant,
+      ),
+    );
+    final rate = instant.getRight().toNullable()!.rateFromPerTo;
+    final quoted = await GetSwapQuote(
+      RequireSession(auth),
+      GetEligibility(auth),
+      repo,
+    )(
+      SwapQuoteRequest(
+        from: Currency.nexo,
+        to: Currency.doge,
+        amount: Money.parse('10', Currency.nexo),
+        type: SwapOrderType.limit,
+        limitPrice: Money.fromDecimal(
+          rate.amount - Money.parse('0.01', Currency.nexo).amount,
+          Currency.nexo,
+        ),
+      ),
+    );
+    final quote = quoted.getRight().toNullable();
+    expect(quote?.type, SwapOrderType.limit);
+    final submitted = await SubmitSwap(
+      RequireSession(auth),
+      GetEligibility(auth),
+      repo,
+    )((
+      requestId: 'swap-limit-1',
+      quoteId: quote!.quoteId,
+      wallet: SwapWallet.savings,
+      stepUp: true,
+    ));
+    expect(
+      submitted.getRight().toNullable()?.settlement,
+      SettlementStatus.confirmed,
+    );
+    expect(paper.store.all.first.venue, PaperVenue.limit);
+    expect(paper.store.all.first.status, PaperOrderStatus.open);
   });
 }

@@ -9,10 +9,6 @@ abstract class HomeRepository {
     DashboardPeriod period = DashboardPeriod.oneWeek,
   });
 
-  Future<Either<Failure, CreditHubTeaser>> getCreditHub();
-
-  Future<Either<Failure, SavingsHubTeaser>> getSavingsHub();
-
   Future<Either<Failure, List<WatchlistItem>>> getWatchlist();
 
   Future<Either<Failure, List<DashboardAlert>>> getAlerts();

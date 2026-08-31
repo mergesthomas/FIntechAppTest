@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../market/price_series.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../market/price_series.dart';
 
 abstract final class ChartPeriodLabel {
   static String of(ChartPeriod period) {
@@ -27,26 +26,36 @@ class PeriodChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
       children: [
         for (final period in ChartPeriod.values)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              key: Key('period_${period.name}'),
-              label: Text(ChartPeriodLabel.of(period)),
-              selected: selected == period,
-              selectedColor: AppColors.surfaceMuted,
-              labelStyle: AppTextStyles.secondary.copyWith(
-                color: AppColors.textPrimary,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: TextButton(
+                key: Key('period_${period.name}'),
+                onPressed: () => onSelected(period),
+                style: TextButton.styleFrom(
+                  foregroundColor: selected == period
+                      ? scheme.onSurface
+                      : scheme.onSurfaceVariant,
+                  backgroundColor: selected == period
+                      ? scheme.surfaceContainerHighest
+                      : Colors.transparent,
+                  minimumSize: const Size(0, 36),
+                  padding: EdgeInsets.zero,
+                  textStyle: AppTextStyles.meta.copyWith(
+                    fontWeight: selected == period
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                  ),
+                ),
+                child: Text(ChartPeriodLabel.of(period)),
               ),
-              onSelected: (_) => onSelected(period),
             ),
           ),
       ],
-      ),
     );
   }
 }

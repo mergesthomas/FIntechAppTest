@@ -29,6 +29,7 @@ final class BinanceMarketFeed implements MarketFeed {
   final Duration staleAfter;
   final Map<String, MarketQuote> _quotes = {};
   final Map<String, PriceSeries> _series = {};
+  final Map<String, Future<PriceSeries>> _inflight = {};
   final _controller = StreamController<MarketQuote>.broadcast();
   QuoteFreshness _connection = QuoteFreshness.disconnected;
   HttpClient? _http;
@@ -87,9 +88,12 @@ final class BinanceMarketFeed implements MarketFeed {
       }
       _connection = QuoteFreshness.live;
       _lastTick = _clock.now();
-      unawaited(refreshSeries(Currency.btc, ChartPeriod.oneDay));
-      unawaited(refreshSeries(Currency.eth, ChartPeriod.oneDay));
-      unawaited(refreshSeries(Currency.nexo, ChartPeriod.oneDay));
+      unawaited(
+        Future.wait([
+          for (final currency in binanceChartCurrencies)
+            refreshSeries(currency, ChartPeriod.oneDay),
+        ]),
+      );
     } on Object {
       _connection = QuoteFreshness.disconnected;
     }
@@ -202,11 +206,15 @@ final class BinanceMarketFeed implements MarketFeed {
     if (cached != null) {
       return cached.copyWith(freshness: _connection);
     }
+    return _syntheticSeries(currency, period);
+  }
+
+  PriceSeries _syntheticSeries(Currency currency, ChartPeriod period) {
     final last = usdPrice(currency)?.amount ?? Decimal.one;
     return PriceSeries(
       period: period,
       closes: syntheticCloses(last: last, period: period),
-      freshness: _connection,
+      freshness: QuoteFreshness.stale,
     );
   }
 
@@ -218,6 +226,28 @@ final class BinanceMarketFeed implements MarketFeed {
     if (_closed) {
       return seriesFor(currency, period);
     }
+    final key = _seriesKey(currency, period);
+    final cached = _series[key];
+    if (cached != null) {
+      return cached.copyWith(freshness: _connection);
+    }
+    final pending = _inflight[key];
+    if (pending != null) {
+      return pending;
+    }
+    final future = _fetchSeries(currency, period);
+    _inflight[key] = future;
+    try {
+      return await future;
+    } finally {
+      _inflight.remove(key);
+    }
+  }
+
+  Future<PriceSeries> _fetchSeries(
+    Currency currency,
+    ChartPeriod period,
+  ) async {
     if (isUsdPeg(currency)) {
       final peg = PriceSeries(
         period: period,
@@ -229,7 +259,7 @@ final class BinanceMarketFeed implements MarketFeed {
     }
     final symbol = binanceSymbolFor(currency);
     if (symbol == null) {
-      return seriesFor(currency, period);
+      return _syntheticSeries(currency, period);
     }
     try {
       _http ??= HttpClient();
@@ -251,24 +281,16 @@ final class BinanceMarketFeed implements MarketFeed {
       final request = await _http!.getUrl(uri);
       final response = await request.close().timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
-        return seriesFor(currency, period);
+        return _syntheticSeries(currency, period);
       }
       final body = await utf8.decodeStream(response);
       final decoded = jsonDecode(body);
       if (decoded is! List) {
-        return seriesFor(currency, period);
+        return _syntheticSeries(currency, period);
       }
-      var closes = parseBinanceKlineCloses(decoded);
+      final closes = parseBinanceKlineCloses(decoded);
       if (closes.length < 2) {
-        return seriesFor(currency, period);
-      }
-      if (currency.code == 'PEPE') {
-        closes = [
-          for (final close in closes)
-            (close / Decimal.fromInt(1000)).toDecimal(
-              scaleOnInfinitePrecision: 18,
-            ),
-        ];
+        return _syntheticSeries(currency, period);
       }
       final series = PriceSeries(
         period: period,
@@ -278,7 +300,7 @@ final class BinanceMarketFeed implements MarketFeed {
       _series[_seriesKey(currency, period)] = series;
       return series;
     } on Object {
-      return seriesFor(currency, period);
+      return _syntheticSeries(currency, period);
     }
   }
 
@@ -288,13 +310,7 @@ final class BinanceMarketFeed implements MarketFeed {
     if (quote == null) {
       return null;
     }
-    var amount = quote.price.amount;
-    if (currency.code == 'PEPE') {
-      amount = (amount / Decimal.fromInt(1000)).toDecimal(
-        scaleOnInfinitePrecision: 18,
-      );
-    }
-    return Money.fromDecimal(amount, Currency.usd);
+    return Money.fromDecimal(quote.price.amount, Currency.usd);
   }
 
   @override

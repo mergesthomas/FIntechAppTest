@@ -37,32 +37,6 @@ final class GetDashboardOverview
   }
 }
 
-final class GetCreditHubTeaser implements UseCase<CreditHubTeaser, NoParams> {
-  GetCreditHubTeaser(this._requireSession, this._home);
-
-  final RequireSession _requireSession;
-  final HomeRepository _home;
-
-  @override
-  Future<Either<Failure, CreditHubTeaser>> call(NoParams params) async {
-    final session = await _requireSession(params);
-    return session.fold(Either.left, (_) => _home.getCreditHub());
-  }
-}
-
-final class GetSavingsHubTeaser implements UseCase<SavingsHubTeaser, NoParams> {
-  GetSavingsHubTeaser(this._requireSession, this._home);
-
-  final RequireSession _requireSession;
-  final HomeRepository _home;
-
-  @override
-  Future<Either<Failure, SavingsHubTeaser>> call(NoParams params) async {
-    final session = await _requireSession(params);
-    return session.fold(Either.left, (_) => _home.getSavingsHub());
-  }
-}
-
 final class GetWatchlist implements UseCase<List<WatchlistItem>, NoParams> {
   GetWatchlist(this._requireSession, this._home);
 

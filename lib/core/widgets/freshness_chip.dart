@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../market/quote_freshness.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
 class FreshnessChip extends StatelessWidget {
@@ -11,21 +10,15 @@ class FreshnessChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final color = switch (freshness) {
-      QuoteFreshness.live => AppColors.accent,
-      QuoteFreshness.stale => AppColors.textSecondary,
-      QuoteFreshness.disconnected => AppColors.danger,
+      QuoteFreshness.live => scheme.tertiary,
+      QuoteFreshness.stale => scheme.onSurfaceVariant,
+      QuoteFreshness.disconnected => scheme.error,
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        freshness.name,
-        style: AppTextStyles.secondary.copyWith(color: color, fontSize: 12),
-      ),
+    return Text(
+      freshness.name,
+      style: AppTextStyles.meta.copyWith(color: color),
     );
   }
 }

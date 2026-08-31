@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/chart/chart_layout.dart';
 
 class Sparkline extends StatelessWidget {
   const Sparkline({super.key, required this.points, this.height = 48});
@@ -16,26 +16,30 @@ class Sparkline extends StatelessWidget {
     }
     return CustomPaint(
       size: Size(double.infinity, height),
-      painter: _SparklinePainter(points),
+      painter: _SparklinePainter(
+        points,
+        Theme.of(context).colorScheme.tertiary,
+      ),
     );
   }
 }
 
 class _SparklinePainter extends CustomPainter {
-  _SparklinePainter(this.points);
+  _SparklinePainter(this.points, this.color);
 
   final List<Decimal> points;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final values = points.map((p) => p.toString()).map(double.parse).toList();
-    final min = values.reduce((a, b) => a < b ? a : b);
-    final max = values.reduce((a, b) => a > b ? a : b);
-    final span = (max - min).abs() < 0.0001 ? 1.0 : max - min;
+    final ys = chartUnitYs(points);
+    if (ys.length < 2) {
+      return;
+    }
     final path = Path();
-    for (var i = 0; i < values.length; i++) {
-      final x = size.width * i / (values.length - 1);
-      final y = size.height - ((values[i] - min) / span) * size.height;
+    for (var i = 0; i < ys.length; i++) {
+      final x = size.width * i / (ys.length - 1);
+      final y = size.height * (1 - ys[i]);
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -45,13 +49,15 @@ class _SparklinePainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = AppColors.accent
-        ..strokeWidth = 2
-        ..style = PaintingStyle.stroke,
+        ..color = color
+        ..strokeWidth = 1.4
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
     );
   }
 
   @override
   bool shouldRepaint(covariant _SparklinePainter oldDelegate) =>
-      oldDelegate.points != points;
+      oldDelegate.points != points || oldDelegate.color != color;
 }

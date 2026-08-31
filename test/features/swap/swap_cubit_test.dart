@@ -4,6 +4,7 @@ import 'package:fintech_app_test/features/auth/domain/repositories/auth_reposito
 import 'package:fintech_app_test/features/auth/domain/usecases/session_usecases.dart';
 import 'package:fintech_app_test/features/swap/data/datasources/swap_local_datasource.dart';
 import 'package:fintech_app_test/features/swap/data/repositories/swap_repository_impl.dart';
+import 'package:fintech_app_test/features/swap/domain/entities/swap.dart';
 import 'package:fintech_app_test/features/swap/domain/usecases/swap_usecases.dart';
 import 'package:fintech_app_test/features/swap/presentation/cubit/swap_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,8 +30,9 @@ void main() {
     final session = RequireSession(auth);
     final eligibility = GetEligibility(auth);
     cubit = SwapCubit(
-      getWallets: GetSwapWallets(session, repo),
       searchAssets: SearchSwapAssets(session, repo),
+      getOrderTypes: GetSwapOrderTypes(session),
+      watchRate: WatchSwapRate(session, repo),
       getQuote: GetSwapQuote(session, eligibility, repo),
       submit: SubmitSwap(session, eligibility, repo),
     );
@@ -54,5 +56,12 @@ void main() {
     );
     await cubit.load();
     expect(cubit.state, isA<SwapFailure>());
+  });
+
+  test('selectOrderType switches to limit', () async {
+    await cubit.load();
+    cubit.selectOrderType(SwapOrderType.limit);
+    final ready = cubit.state as SwapReady;
+    expect(ready.orderType, SwapOrderType.limit);
   });
 }

@@ -3,7 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_route.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../domain/entities/product_tile.dart';
 import '../cubit/products_cubit.dart';
 
 class ProductsPage extends StatefulWidget {
@@ -32,22 +36,54 @@ class _ProductsPageState extends State<ProductsPage> {
         builder: (context, state) {
           return switch (state) {
             ProductsLoading() => const Center(child: CircularProgressIndicator()),
-            ProductsEmpty() => const Center(child: Text('No products')),
-            ProductsFailure(:final failure) => Center(child: Text('$failure')),
-            ProductsSuccess(:final tiles) => ListView(
-                children: [
-                  for (final tile in tiles)
-                    ListTile(
-                      title: Text(tile.label),
-                      subtitle: Text(tile.group, style: AppTextStyles.secondary),
-                      enabled: tile.enabled,
-                      onTap: tile.enabled ? () => _open(context, tile.id) : null,
-                    ),
-                ],
-              ),
+            ProductsEmpty() => const AppEmptyState(message: 'No products'),
+            ProductsFailure(:final failure) => AppEmptyState(message: '$failure'),
+            ProductsSuccess(:final tiles) => _Catalog(tiles: tiles),
           };
         },
       ),
+    );
+  }
+}
+
+class _Catalog extends StatelessWidget {
+  const _Catalog({required this.tiles});
+
+  final List<ProductTile> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = <String, List<ProductTile>>{};
+    for (final tile in tiles) {
+      groups.putIfAbsent(tile.group, () => []).add(tile);
+    }
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
+      children: [
+        for (final entry in groups.entries) ...[
+          AppSectionHeader(entry.key),
+          for (final tile in entry.value)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(tile.label),
+              enabled: tile.enabled,
+              trailing: tile.enabled
+                  ? null
+                  : Text(
+                      'Unavailable',
+                      style: AppTextStyles.meta.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+              onTap: tile.enabled ? () => _open(context, tile.id) : null,
+            ),
+        ],
+      ],
     );
   }
 
@@ -55,8 +91,6 @@ class _ProductsPageState extends State<ProductsPage> {
     final route = switch (id) {
       'explore' => AppRoute.explore,
       'news' => AppRoute.news,
-      'savings' => AppRoute.earn,
-      'credit' => AppRoute.borrow,
       'card' => AppRoute.card,
       'swap' => AppRoute.swap,
       'futures' => AppRoute.futures,
@@ -67,9 +101,7 @@ class _ProductsPageState extends State<ProductsPage> {
     }
     if (route == AppRoute.explore ||
         route == AppRoute.news ||
-        route == AppRoute.borrow ||
         route == AppRoute.funding ||
-        route == AppRoute.earn ||
         route == AppRoute.card ||
         route == AppRoute.swap ||
         route == AppRoute.futures) {

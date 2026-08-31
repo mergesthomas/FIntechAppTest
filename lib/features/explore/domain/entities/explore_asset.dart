@@ -31,40 +31,6 @@ final class ExploreAsset extends Equatable {
       [currency, name, price, change24h, freshness, isNew, sparkline];
 }
 
-final class ExploreEarningAsset extends Equatable {
-  const ExploreEarningAsset({
-    required this.currency,
-    required this.name,
-    required this.change24h,
-    required this.apyTeaser,
-    required this.freshness,
-  });
-
-  final Currency currency;
-  final String name;
-  final Decimal change24h;
-  final String apyTeaser;
-  final QuoteFreshness freshness;
-
-  @override
-  List<Object?> get props => [currency, name, change24h, apyTeaser, freshness];
-}
-
-final class ExploreOpportunity extends Equatable {
-  const ExploreOpportunity({
-    required this.id,
-    required this.title,
-    required this.subtitleTeaser,
-  });
-
-  final String id;
-  final String title;
-  final String subtitleTeaser;
-
-  @override
-  List<Object?> get props => [id, title, subtitleTeaser];
-}
-
 final class ExplorePerpetual extends Equatable {
   const ExplorePerpetual({
     required this.pair,
@@ -114,8 +80,6 @@ final class ExploreFeed extends Equatable {
     required this.promo,
     required this.gainers,
     required this.losers,
-    required this.topEarning,
-    required this.opportunities,
     required this.perpetuals,
     required this.products,
     required this.assets,
@@ -124,8 +88,6 @@ final class ExploreFeed extends Equatable {
   final ExplorePromo promo;
   final List<ExploreAsset> gainers;
   final List<ExploreAsset> losers;
-  final List<ExploreEarningAsset> topEarning;
-  final List<ExploreOpportunity> opportunities;
   final List<ExplorePerpetual> perpetuals;
   final List<ExploreProductTile> products;
   final List<ExploreAsset> assets;
@@ -135,8 +97,6 @@ final class ExploreFeed extends Equatable {
         promo,
         gainers,
         losers,
-        topEarning,
-        opportunities,
         perpetuals,
         products,
         assets,

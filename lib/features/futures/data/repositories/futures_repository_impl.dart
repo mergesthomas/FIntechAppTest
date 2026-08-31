@@ -5,6 +5,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/ledger/paper_ledger.dart';
 import '../../../../core/ledger/paper_order.dart';
 import '../../../../core/market/market_feed.dart';
+import '../../../../core/market/price_series.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 import '../../../../core/settlement/settlement_status.dart';
@@ -35,7 +36,8 @@ final class FuturesRepositoryImpl implements FuturesRepository {
         ask: tick?.price ?? fixture.ask,
         leverageTeasers: fixture.leverageTeasers,
         freshness: tick?.freshness ?? fixture.freshness,
-        chart: _feed.seriesFor(Currency.btc).closes,
+        chart: (await _feed.refreshSeries(Currency.btc, ChartPeriod.oneDay))
+            .closes,
       ),
     );
   }

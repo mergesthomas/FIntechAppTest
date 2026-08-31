@@ -7,15 +7,20 @@ import '../../../../core/market/price_series.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_page_body.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/asset_list_row.dart';
+import '../../../../core/widgets/freshness_chip.dart';
 import '../../../../core/widgets/period_chips.dart';
 import '../../../../core/widgets/price_chart.dart';
 import '../../../../core/widgets/trade_actions.dart';
-import '../../../auth/presentation/cubit/session_cubit.dart';
+import '../../../explore/presentation/widgets/explore_sparkline.dart';
 import '../../domain/entities/dashboard.dart';
 import '../copy/home_copy.dart';
 import '../cubit/home_cubit.dart';
-import '../../../explore/presentation/widgets/explore_sparkline.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -28,8 +33,8 @@ class DashboardPage extends StatelessWidget {
           builder: (context, state) {
             return switch (state) {
               HomeLoading() => const Center(child: CircularProgressIndicator()),
-              HomeEmpty() => const Center(child: Text('No dashboard data')),
-              HomeFailure(:final failure) => Center(child: Text('$failure')),
+              HomeEmpty() => const AppEmptyState(message: 'No dashboard data'),
+              HomeFailure(:final failure) => AppEmptyState(message: '$failure'),
               HomeSuccess() => _DashboardBody(state: state),
             };
           },
@@ -49,124 +54,125 @@ class _DashboardBody extends StatelessWidget {
     final overview = state.overview;
     final change = overview.periodChangeRatio;
     final negative = change < Decimal.zero;
-    return ListView(
-      key: const Key('dashboard_scroll'),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => context.push(AppRoute.profile.path),
-              child: CircleAvatar(
-                backgroundColor: AppColors.surfaceMuted,
-                child: Text(overview.initials, style: AppTextStyles.body),
+    final scheme = Theme.of(context).colorScheme;
+    return AppPageBody(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
+      child: ListView(
+        key: const Key('dashboard_scroll'),
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => context.push(AppRoute.profile.path),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: scheme.surfaceContainerHighest,
+                  foregroundColor: scheme.onSurface,
+                  child: Text(
+                    overview.initials,
+                    style: AppTextStyles.meta.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Inbox',
+                onPressed: () => _go(context, AppRoute.inbox),
+                icon: Icon(
+                  Icons.notifications_none,
+                  color: scheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Text(
+            'Net worth',
+            style: AppTextStyles.secondary.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
-            const Spacer(),
-            Text('Nexo', style: AppTextStyles.headline),
-            const Spacer(),
-            IconButton(
-              tooltip: 'Orders',
-              onPressed: () => _go(context, AppRoute.orders),
-              icon: const Icon(Icons.receipt_long_outlined),
-            ),
-            IconButton(
-              tooltip: 'Rewards',
-              onPressed: () => _soon(context, 'Rewards'),
-              icon: const Icon(Icons.card_giftcard),
-            ),
-            IconButton(
-              tooltip: 'Inbox',
-              onPressed: () => _go(context, AppRoute.inbox),
-              icon: const Icon(Icons.notifications_none),
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            formatMoney(overview.netWorth),
+            key: const Key('net_worth'),
+            style: AppTextStyles.balance,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Text(
+                '${negative ? '' : '+'}${(change * Decimal.fromInt(100)).toString()}% · ${ChartPeriodLabel.of(chartPeriodOf(overview.period))}',
+                style: AppTextStyles.secondary.copyWith(
+                  color: AppSemanticColors.change(scheme, up: !negative),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              FreshnessChip(freshness: overview.freshness),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TradeActions(
+            onBuy: () => _go(context, AppRoute.funding, query: 'action=buy'),
+            onExchange: () => _go(context, AppRoute.swap),
+            onFutures: () => _go(context, AppRoute.futures),
+            onAddFunds: () => _go(context, AppRoute.funding),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          PriceChart(points: overview.chart, height: 120),
+          const SizedBox(height: AppSpacing.sm),
+          PeriodChips(
+            selected: chartPeriodOf(overview.period),
+            onSelected: (period) => context.read<HomeCubit>().selectPeriod(
+                  _dashboardPeriod(period),
+                ),
+          ),
+          for (final alert in state.alerts.where((a) => !a.dismissed)) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _AlertBanner(
+              text: HomeCopy.alert(alert.copyKey),
+              onDismiss: () => context.read<HomeCubit>().dismiss(alert.id),
+              onLearnMore: () => _go(context, AppRoute.funding),
             ),
           ],
-        ),
-        const SizedBox(height: 20),
-        Text(
-          formatMoney(overview.netWorth),
-          key: const Key('net_worth'),
-          style: AppTextStyles.title,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${negative ? '' : '+'}${(change * Decimal.fromInt(100)).toString()}% · ${ChartPeriodLabel.of(chartPeriodOf(overview.period))} · ${overview.freshness.name}',
-          style: AppTextStyles.secondary.copyWith(
-            color: negative ? AppColors.danger : AppColors.accent,
-          ),
-        ),
-        const SizedBox(height: 16),
-        TradeActions(
-          onBuy: () => _go(context, AppRoute.funding, query: 'action=buy'),
-          onExchange: () => _go(context, AppRoute.swap),
-          onFutures: () => _go(context, AppRoute.futures),
-          onAddFunds: () => _go(context, AppRoute.funding),
-        ),
-        const SizedBox(height: 16),
-        _HubCard(
-          key: const Key('credit_hub'),
-          title: 'Credit Hub',
-          value: formatMoney(state.credit.availableToBorrow),
-          caption: 'Available to borrow',
-          onTap: () => _go(context, AppRoute.borrow),
-        ),
-        const SizedBox(height: 12),
-        _HubCard(
-          key: const Key('savings_hub'),
-          title: 'Savings Hub',
-          value: formatMoney(state.savings.interestEarned),
-          caption: 'Interest earned',
-          onTap: () => _go(context, AppRoute.earn),
-        ),
-        const SizedBox(height: 16),
-        PriceChart(points: overview.chart, height: 128),
-        const SizedBox(height: 8),
-        PeriodChips(
-          selected: chartPeriodOf(overview.period),
-          onSelected: (period) => context.read<HomeCubit>().selectPeriod(
-                _dashboardPeriod(period),
+          const AppSectionHeader('Watchlist'),
+          for (final item in state.watchlist) _WatchlistRow(item: item),
+          if (state.promos.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            for (final promo in state.promos)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(HomeCopy.promoTitle(promo.titleKey)),
+                subtitle: Text(HomeCopy.promoBody(promo.bodyKey)),
+                onTap: () => _go(context, AppRoute.news),
               ),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: () => _soon(context, 'Wallet'),
-            child: const Text('Wallet >'),
+          ],
+          AppSectionHeader(
+            'News',
+            trailing: TextButton(
+              onPressed: () => _go(context, AppRoute.news),
+              child: const Text('All'),
+            ),
           ),
-        ),
-        for (final alert in state.alerts.where((a) => !a.dismissed)) ...[
-          const SizedBox(height: 12),
-          _AlertCard(
-            text: HomeCopy.alert(alert.copyKey),
-            onDismiss: () => context.read<HomeCubit>().dismiss(alert.id),
-            onLearnMore: () => _go(context, AppRoute.funding),
-          ),
+          for (final item in state.news)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(HomeCopy.newsTitle(item.titleKey)),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: scheme.onSurfaceVariant,
+              ),
+              onTap: () => _go(context, AppRoute.news),
+            ),
         ],
-        const SizedBox(height: 20),
-        Text('Watchlist', style: AppTextStyles.headline),
-        const SizedBox(height: 8),
-        for (final item in state.watchlist) _WatchlistRow(item: item),
-        const SizedBox(height: 16),
-        for (final promo in state.promos)
-          _PromoCard(
-            title: HomeCopy.promoTitle(promo.titleKey),
-            body: HomeCopy.promoBody(promo.bodyKey),
-            onTap: () => _go(context, AppRoute.borrow),
-          ),
-        const SizedBox(height: 16),
-        Text('News', style: AppTextStyles.headline),
-        for (final item in state.news)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(HomeCopy.newsTitle(item.titleKey)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _go(context, AppRoute.news),
-          ),
-        TextButton(
-          onPressed: () => context.read<SessionCubit>().lock(),
-          child: const Text('Lock session'),
-        ),
-      ],
+      ),
     );
   }
 
@@ -179,8 +185,6 @@ class _DashboardBody extends StatelessWidget {
       AppRoute.news,
       AppRoute.explore,
       AppRoute.funding,
-      AppRoute.borrow,
-      AppRoute.earn,
       AppRoute.card,
       AppRoute.swap,
       AppRoute.futures,
@@ -191,7 +195,9 @@ class _DashboardBody extends StatelessWidget {
       context.push(query == null ? route.path : '${route.path}?$query');
       return;
     }
-    _soon(context, route.path);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${route.path} — next feature')),
+    );
   }
 
   DashboardPeriod _dashboardPeriod(ChartPeriod period) {
@@ -202,54 +208,10 @@ class _DashboardBody extends StatelessWidget {
       ChartPeriod.oneYear => DashboardPeriod.oneYear,
     };
   }
-
-  void _soon(BuildContext context, String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label — next feature')),
-    );
-  }
 }
 
-class _HubCard extends StatelessWidget {
-  const _HubCard({
-    super.key,
-    required this.title,
-    required this.value,
-    required this.caption,
-    required this.onTap,
-  });
-
-  final String title;
-  final String value;
-  final String caption;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Ink(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: AppTextStyles.secondary),
-            const SizedBox(height: 8),
-            Text(value, style: AppTextStyles.headline),
-            Text(caption, style: AppTextStyles.secondary),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AlertCard extends StatelessWidget {
-  const _AlertCard({
+class _AlertBanner extends StatelessWidget {
+  const _AlertBanner({
     required this.text,
     required this.onDismiss,
     required this.onLearnMore,
@@ -261,46 +223,32 @@ class _AlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadii.card,
+        border: Border.all(color: scheme.outline),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(text, style: AppTextStyles.body),
-          Row(
-            children: [
-              TextButton(onPressed: onLearnMore, child: const Text('Learn more')),
-              TextButton(onPressed: onDismiss, child: const Text('Dismiss')),
-            ],
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.sm,
+          AppSpacing.md,
+          AppSpacing.xs,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(text, style: AppTextStyles.body),
+            Row(
+              children: [
+                TextButton(onPressed: onLearnMore, child: const Text('Learn more')),
+                TextButton(onPressed: onDismiss, child: const Text('Dismiss')),
+              ],
+            ),
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class _PromoCard extends StatelessWidget {
-  const _PromoCard({
-    required this.title,
-    required this.body,
-    required this.onTap,
-  });
-
-  final String title;
-  final String body;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(title),
-      subtitle: Text(body),
-      onTap: onTap,
     );
   }
 }
@@ -312,32 +260,21 @@ class _WatchlistRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final up = item.change24hRatio >= Decimal.zero;
-    return ListTile(
+    final scheme = Theme.of(context).colorScheme;
+    return AssetListRow(
       key: Key('watchlist_${item.currency.code}'),
-      contentPadding: EdgeInsets.zero,
-      title: Text(item.currency.code),
-      subtitle: Text('${item.displayName} · ${item.freshness.name}'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ExploreSparkline(
-            points: item.sparkline,
-            color: up ? AppColors.accent : AppColors.danger,
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(formatMoney(item.price)),
-              Text(
-                '${up ? '+' : ''}${(item.change24hRatio * Decimal.fromInt(100)).toString()}%',
-                style: TextStyle(color: up ? AppColors.accent : AppColors.danger),
-              ),
-            ],
-          ),
-        ],
+      symbol: item.currency.code,
+      subtitle: '${item.displayName} · ${item.freshness.name}',
+      priceLabel: formatMoney(item.price),
+      changeLabel:
+          '${item.change24hRatio >= Decimal.zero ? '+' : ''}${(item.change24hRatio * Decimal.fromInt(100)).toString()}%',
+      change: item.change24hRatio,
+      leadingTrail: ExploreSparkline(
+        points: item.sparkline,
+        color: AppSemanticColors.change(
+          scheme,
+          up: item.change24hRatio >= Decimal.zero,
+        ),
       ),
       onTap: () => context.push('${AppRoute.market.path}/${item.currency.code}'),
     );

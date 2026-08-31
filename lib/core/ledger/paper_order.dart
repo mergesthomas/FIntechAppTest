@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../money/currency.dart';
 import '../money/money.dart';
 
 enum PaperSide { buy, sell }
@@ -18,6 +19,11 @@ final class PaperOrder extends Equatable {
     required this.amount,
     required this.wallet,
     required this.venue,
+    this.pay,
+    this.receive,
+    this.limitPrice,
+    this.takeProfit,
+    this.stopLoss,
   });
 
   final String id;
@@ -28,6 +34,11 @@ final class PaperOrder extends Equatable {
   final Money amount;
   final String wallet;
   final PaperVenue venue;
+  final Currency? pay;
+  final Currency? receive;
+  final Money? limitPrice;
+  final Money? takeProfit;
+  final Money? stopLoss;
 
   PaperOrder copyWith({PaperOrderStatus? status}) {
     return PaperOrder(
@@ -39,12 +50,30 @@ final class PaperOrder extends Equatable {
       amount: amount,
       wallet: wallet,
       venue: venue,
+      pay: pay,
+      receive: receive,
+      limitPrice: limitPrice,
+      takeProfit: takeProfit,
+      stopLoss: stopLoss,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, requestId, pair, side, status, amount, wallet, venue];
+  List<Object?> get props => [
+        id,
+        requestId,
+        pair,
+        side,
+        status,
+        amount,
+        wallet,
+        venue,
+        pay,
+        receive,
+        limitPrice,
+        takeProfit,
+        stopLoss,
+      ];
 }
 
 final class PaperOrderStore {
@@ -65,7 +94,26 @@ final class PaperOrderStore {
     _orders[index] = _orders[index].copyWith(status: status);
   }
 
+  PaperOrder? byId(String id) {
+    for (final order in _orders) {
+      if (order.id == id) {
+        return order;
+      }
+    }
+    return null;
+  }
+
   List<PaperOrder> byVenue(PaperVenue venue) {
     return _orders.where((o) => o.venue == venue).toList();
+  }
+
+  List<PaperOrder> get openResting {
+    return _orders
+        .where(
+          (o) =>
+              o.status == PaperOrderStatus.open &&
+              (o.venue == PaperVenue.limit || o.venue == PaperVenue.trigger),
+        )
+        .toList();
   }
 }

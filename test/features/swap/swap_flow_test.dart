@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/swap_flow.dart';
+
 void main() {
   testWidgets('swap confirm is rejected because the quote is stale', (
     tester,
@@ -26,16 +28,14 @@ void main() {
     await tester.tap(find.byKey(const Key('nav_exchange')));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byKey(const Key('swap_amount')), '10');
+    await enterSwapDigits(tester, '10');
+    await tester.ensureVisible(find.byKey(const Key('swap_preview')));
     await tester.tap(find.byKey(const Key('swap_preview')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('swap_confirm')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1'));
-    await tester.tap(find.text('2'));
-    await tester.tap(find.text('3'));
-    await tester.tap(find.text('4'));
+    await enterStepUpPin(tester);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('swap_result')), findsOneWidget);

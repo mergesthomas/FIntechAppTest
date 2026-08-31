@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/market/market_feed.dart';
+import '../../../../core/market/price_series.dart';
 import '../../../../core/money/currency.dart';
 import '../../domain/entities/explore_asset.dart';
 import '../../domain/repositories/explore_repository.dart';
@@ -16,9 +17,13 @@ final class ExploreRepositoryImpl implements ExploreRepository {
   final ExploreLocalDataSource _local;
   final MarketFeed _feed;
 
-  ExploreAsset _overlay(ExploreAsset asset) {
+  Future<ExploreAsset> _overlay(ExploreAsset asset) async {
     final tick = _feed.quoteFor(asset.currency);
     final usd = _feed.usdPrice(asset.currency);
+    final series = await _feed.refreshSeries(
+      asset.currency,
+      ChartPeriod.oneDay,
+    );
     return ExploreAsset(
       currency: asset.currency,
       name: asset.name,
@@ -26,17 +31,18 @@ final class ExploreRepositoryImpl implements ExploreRepository {
       change24h: tick?.change24h ?? asset.change24h,
       freshness: tick?.freshness ?? asset.freshness,
       isNew: asset.isNew,
-      sparkline: _feed.seriesFor(asset.currency).closes,
+      sparkline: series.closes,
     );
   }
 
-  ExploreFeed _overlayFeed(ExploreFeed feed) {
+  Future<ExploreFeed> _overlayFeed(ExploreFeed feed) async {
+    final gainers = await Future.wait(feed.gainers.map(_overlay));
+    final losers = await Future.wait(feed.losers.map(_overlay));
+    final assets = await Future.wait(feed.assets.map(_overlay));
     return ExploreFeed(
       promo: feed.promo,
-      gainers: feed.gainers.map(_overlay).toList(),
-      losers: feed.losers.map(_overlay).toList(),
-      topEarning: feed.topEarning,
-      opportunities: feed.opportunities,
+      gainers: gainers,
+      losers: losers,
       perpetuals: [
         for (final row in feed.perpetuals)
           ExplorePerpetual(
@@ -51,24 +57,28 @@ final class ExploreRepositoryImpl implements ExploreRepository {
           ),
       ],
       products: feed.products,
-      assets: feed.assets.map(_overlay).toList(),
+      assets: assets,
     );
   }
 
   @override
   Future<Either<Failure, ExploreFeed>> getFeed() async {
-    return Either.right(_overlayFeed(_local.feed()));
+    return Either.right(await _overlayFeed(_local.feed()));
   }
 
   @override
   Future<Either<Failure, List<ExploreAsset>>> getAssets(
     ExploreAssetFilter filter,
   ) async {
-    return Either.right(_local.assetsFor(filter).map(_overlay).toList());
+    final assets = await Future.wait(
+      _local.assetsFor(filter).map(_overlay),
+    );
+    return Either.right(assets);
   }
 
   @override
   Future<Either<Failure, List<ExploreAsset>>> searchAssets(String query) async {
-    return Either.right(_local.search(query).map(_overlay).toList());
+    final assets = await Future.wait(_local.search(query).map(_overlay));
+    return Either.right(assets);
   }
 }

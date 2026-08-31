@@ -39,24 +39,6 @@ final class DashboardOverview extends Equatable {
       [netWorth, periodChangeRatio, period, chart, freshness, initials];
 }
 
-final class CreditHubTeaser extends Equatable {
-  const CreditHubTeaser({required this.availableToBorrow});
-
-  final Money availableToBorrow;
-
-  @override
-  List<Object?> get props => [availableToBorrow];
-}
-
-final class SavingsHubTeaser extends Equatable {
-  const SavingsHubTeaser({required this.interestEarned});
-
-  final Money interestEarned;
-
-  @override
-  List<Object?> get props => [interestEarned];
-}
-
 final class WatchlistItem extends Equatable {
   const WatchlistItem({
     required this.currency,

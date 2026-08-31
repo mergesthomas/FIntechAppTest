@@ -14,8 +14,6 @@ enum AppRoute {
   news('/news'),
   explore('/explore'),
   funding('/funding'),
-  borrow('/borrow'),
-  earn('/earn'),
   card('/card'),
   swap('/swap'),
   orders('/orders'),

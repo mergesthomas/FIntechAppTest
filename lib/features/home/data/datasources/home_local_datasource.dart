@@ -61,16 +61,6 @@ final class HomeLocalDataSource {
     };
   }
 
-  CreditHubTeaser creditHub() {
-    return CreditHubTeaser(availableToBorrow: Money.zero(Currency.usd));
-  }
-
-  SavingsHubTeaser savingsHub() {
-    return SavingsHubTeaser(
-      interestEarned: Money.parse('2479.74', Currency.usd),
-    );
-  }
-
   List<WatchlistItem> watchlist() {
     WatchlistItem item({
       required Currency currency,
@@ -113,15 +103,7 @@ final class HomeLocalDataSource {
     await _store.write(_dismissedKey, ids.join(','));
   }
 
-  List<DashboardPromo> promos() {
-    return const [
-      DashboardPromo(
-        id: 'zero_interest',
-        titleKey: 'home.promo.zero_interest.title',
-        bodyKey: 'home.promo.zero_interest.body',
-      ),
-    ];
-  }
+  List<DashboardPromo> promos() => const [];
 
   List<NewsPreview> news() {
     return const [

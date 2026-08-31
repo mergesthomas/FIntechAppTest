@@ -52,4 +52,76 @@ void main() {
     );
     expect(paper.store.all.first.status, PaperOrderStatus.filled);
   });
+
+  test('placeHold debits from and cancelHold restores it', () async {
+    final paper = PaperHarness();
+    final order = PaperOrder(
+      id: 'ord-hold',
+      requestId: 'swap-hold',
+      pair: 'NEXO/DOGE',
+      side: PaperSide.sell,
+      status: PaperOrderStatus.open,
+      amount: Money.parse('10', Currency.nexo),
+      wallet: 'savings',
+      venue: PaperVenue.limit,
+      pay: Currency.nexo,
+      receive: Currency.doge,
+      limitPrice: Money.parse('0.10', Currency.nexo),
+    );
+    final placed = await paper.ledger.placeHold(
+      requestId: 'swap-hold',
+      hold: Money.parse('10', Currency.nexo),
+      book: LedgerBook.savings,
+      order: order,
+    );
+    expect(placed.getRight().toNullable(), SettlementStatus.confirmed);
+    expect(
+      paper.ledger.balance(LedgerBook.savings, Currency.nexo),
+      Money.parse('110', Currency.nexo),
+    );
+    expect(paper.store.all.first.status, PaperOrderStatus.open);
+    final canceled = await paper.ledger.cancelHold(
+      requestId: 'cancel-hold',
+      orderId: 'ord-hold',
+    );
+    expect(canceled.getRight().toNullable(), SettlementStatus.confirmed);
+    expect(
+      paper.ledger.balance(LedgerBook.savings, Currency.nexo),
+      Money.parse('120', Currency.nexo),
+    );
+    expect(paper.store.all.first.status, PaperOrderStatus.canceled);
+  });
+
+  test('fillHold credits receive and marks filled', () async {
+    final paper = PaperHarness();
+    final order = PaperOrder(
+      id: 'ord-fill',
+      requestId: 'swap-fill',
+      pair: 'NEXO/DOGE',
+      side: PaperSide.sell,
+      status: PaperOrderStatus.open,
+      amount: Money.parse('10', Currency.nexo),
+      wallet: 'savings',
+      venue: PaperVenue.limit,
+      pay: Currency.nexo,
+      receive: Currency.doge,
+    );
+    await paper.ledger.placeHold(
+      requestId: 'swap-fill',
+      hold: Money.parse('10', Currency.nexo),
+      book: LedgerBook.savings,
+      order: order,
+    );
+    final filled = await paper.ledger.fillHold(
+      orderId: 'ord-fill',
+      credit: Money.parse('40', Currency.doge),
+      book: LedgerBook.savings,
+    );
+    expect(filled.getRight().toNullable(), SettlementStatus.confirmed);
+    expect(
+      paper.ledger.balance(LedgerBook.savings, Currency.doge),
+      Money.parse('40', Currency.doge),
+    );
+    expect(paper.store.all.first.status, PaperOrderStatus.filled);
+  });
 }

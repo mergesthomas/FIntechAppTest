@@ -6,7 +6,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/asset_list_row.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../../domain/entities/explore_asset.dart';
 import '../cubit/explore_cubit.dart';
@@ -41,6 +45,7 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -49,9 +54,12 @@ class _ExplorePageState extends State<ExplorePage> {
                 key: const Key('explore_search'),
                 controller: _search,
                 autofocus: true,
+                style: AppTextStyles.body,
                 decoration: const InputDecoration(
                   hintText: 'Search assets',
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
                 onChanged: context.read<ExploreCubit>().search,
               )
@@ -62,8 +70,15 @@ class _ExplorePageState extends State<ExplorePage> {
                 tooltip: 'Profile',
                 onPressed: () => context.push(AppRoute.profile.path),
                 icon: CircleAvatar(
-                  backgroundColor: AppColors.surfaceMuted,
-                  child: Text(_initials(context), style: AppTextStyles.secondary),
+                  radius: 16,
+                  backgroundColor: scheme.surfaceContainerHighest,
+                  foregroundColor: scheme.onSurface,
+                  child: Text(
+                    _initials(context),
+                    style: AppTextStyles.meta.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
         actions: [
@@ -87,8 +102,8 @@ class _ExplorePageState extends State<ExplorePage> {
         builder: (context, state) {
           return switch (state) {
             ExploreLoading() => const Center(child: CircularProgressIndicator()),
-            ExploreEmpty() => const Center(child: Text('No assets')),
-            ExploreFailure(:final failure) => Center(child: Text('$failure')),
+            ExploreEmpty() => const AppEmptyState(message: 'No assets'),
+            ExploreFailure(:final failure) => AppEmptyState(message: '$failure'),
             ExploreSuccess() => _Feed(state: state),
           };
         },
@@ -118,141 +133,98 @@ class _Feed extends StatelessWidget {
   Widget build(BuildContext context) {
     final feed = state.feed;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         _Promo(promo: feed.promo),
-        const SizedBox(height: 20),
-        Text('Popular categories', style: AppTextStyles.headline),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 220,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _CategoryCard(title: 'Top gainers', assets: feed.gainers),
-              const SizedBox(width: 12),
-              _CategoryCard(title: 'Top losers', assets: feed.losers),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text('Top earning assets', style: AppTextStyles.headline),
-        Text(
-          'APY teasers are placeholders',
-          style: AppTextStyles.secondary,
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 120,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              for (final asset in feed.topEarning)
-                _EarningCard(asset: asset),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        for (final opportunity in feed.opportunities)
-          _OpportunityTile(opportunity: opportunity),
-        const SizedBox(height: 12),
-        Text('Trending perpetuals', style: AppTextStyles.headline),
+        const AppSectionHeader('Top movers'),
+        for (final asset in [...feed.gainers.take(3), ...feed.losers.take(3)])
+          _assetRow(context, asset, keyed: false),
+        const AppSectionHeader('Trending perpetuals'),
         for (final row in feed.perpetuals)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(row.pair),
-            subtitle: Text('${row.leverageTeaser} · ${row.freshness.name}'),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(formatMoney(row.price)),
-                Text(
-                  _pct(row.change24h),
-                  style: TextStyle(color: _changeColor(row.change24h)),
-                ),
-              ],
-            ),
+          AssetListRow(
+            symbol: row.pair,
+            subtitle: '${row.leverageTeaser} · ${row.freshness.name}',
+            priceLabel: formatMoney(row.price),
+            changeLabel: _pct(row.change24h),
+            change: row.change24h,
             onTap: () => context.push(AppRoute.futures.path),
           ),
-        const SizedBox(height: 8),
-        Text('Products', style: AppTextStyles.headline),
-        const SizedBox(height: 8),
+        const AppSectionHeader('Products'),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
           children: [
             for (final tile in feed.products)
-              ActionChip(
+              TextButton(
                 key: Key('explore_product_${tile.id}'),
-                label: Text(tile.label),
                 onPressed: () => _openProduct(context, tile.id),
+                child: Text(tile.label),
               ),
           ],
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Text('All assets', style: AppTextStyles.headline),
-            const Spacer(),
-            TextButton(
-              onPressed: () => context.push(AppRoute.news.path),
-              child: const Text('News'),
-            ),
-          ],
-        ),
-        Wrap(
-          spacing: 8,
-          children: [
-            for (final filter in ExploreAssetFilter.values)
-              FilterChip(
-                key: Key('explore_filter_${filter.name}'),
-                label: Text(_filterLabel(filter)),
-                selected: state.filter == filter,
-                onSelected: (_) =>
-                    context.read<ExploreCubit>().applyFilter(filter),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        for (final asset in state.assets)
-          ListTile(
-            key: Key('explore_asset_${asset.currency.code}'),
-            contentPadding: EdgeInsets.zero,
-            title: Text(asset.currency.code),
-            subtitle: Text('${asset.name} · ${asset.freshness.name}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ExploreSparkline(
-                  points: asset.sparkline,
-                  color: _changeColor(asset.change24h),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(formatMoney(asset.price)),
-                    Text(
-                      _pct(asset.change24h),
-                      style: TextStyle(color: _changeColor(asset.change24h)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            onTap: () =>
-                context.push('${AppRoute.market.path}/${asset.currency.code}'),
+        AppSectionHeader(
+          'All assets',
+          trailing: TextButton(
+            onPressed: () => context.push(AppRoute.news.path),
+            child: const Text('News'),
           ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final filter in ExploreAssetFilter.values)
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.xs),
+                  child: ChoiceChip(
+                    key: Key('explore_filter_${filter.name}'),
+                    label: Text(_filterLabel(filter)),
+                    selected: state.filter == filter,
+                    onSelected: (_) =>
+                        context.read<ExploreCubit>().applyFilter(filter),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        for (final asset in state.assets) _assetRow(context, asset),
       ],
+    );
+  }
+
+  Widget _assetRow(
+    BuildContext context,
+    ExploreAsset asset, {
+    bool keyed = true,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return AssetListRow(
+      key: keyed ? Key('explore_asset_${asset.currency.code}') : null,
+      symbol: asset.currency.code,
+      subtitle: '${asset.name} · ${asset.freshness.name}',
+      priceLabel: formatMoney(asset.price),
+      changeLabel: _pct(asset.change24h),
+      change: asset.change24h,
+      leadingTrail: ExploreSparkline(
+        points: asset.sparkline,
+        color: AppSemanticColors.change(
+          scheme,
+          up: asset.change24h >= Decimal.zero,
+        ),
+      ),
+      onTap: () =>
+          context.push('${AppRoute.market.path}/${asset.currency.code}'),
     );
   }
 
   void _openProduct(BuildContext context, String id) {
     final route = switch (id) {
-      'credit' => AppRoute.borrow,
-      'savings' => AppRoute.earn,
       'futures' => AppRoute.futures,
       'card' => AppRoute.card,
       'more' => AppRoute.products,
@@ -275,144 +247,27 @@ class _Promo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm, top: AppSpacing.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(promo.badge, style: AppTextStyles.secondary),
-          const SizedBox(height: 8),
-          Text(promo.body, style: AppTextStyles.body),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => context.push(AppRoute.earn.path),
-            child: Text(
-              promo.ctaLabel,
-              style: const TextStyle(color: AppColors.accent),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryCard extends StatelessWidget {
-  const _CategoryCard({required this.title, required this.assets});
-
-  final String title;
-  final List<ExploreAsset> assets;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 260,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: AppTextStyles.body),
-          const SizedBox(height: 8),
-          for (final asset in assets.take(4))
-            InkWell(
-              onTap: () => context.push(
-                '${AppRoute.market.path}/${asset.currency.code}',
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(asset.currency.code)),
-                    Text(
-                      _pct(asset.change24h),
-                      style: TextStyle(color: _changeColor(asset.change24h)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EarningCard extends StatelessWidget {
-  const _EarningCard({required this.asset});
-
-  final ExploreEarningAsset asset;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => context.push(AppRoute.earn.path),
-      child: Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(asset.currency.code, style: AppTextStyles.body),
           Text(
-            _pct(asset.change24h),
-            style: TextStyle(color: _changeColor(asset.change24h)),
+            promo.badge,
+            style: AppTextStyles.meta.copyWith(color: scheme.onSurfaceVariant),
           ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.accent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              asset.apyTeaser,
-              style: const TextStyle(
-                color: AppColors.onAccent,
-                fontSize: 10,
-              ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(promo.body, style: AppTextStyles.body),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () => context.push(AppRoute.news.path),
+              child: Text(promo.ctaLabel),
             ),
           ),
         ],
       ),
-      ),
-    );
-  }
-}
-
-class _OpportunityTile extends StatelessWidget {
-  const _OpportunityTile({required this.opportunity});
-
-  final ExploreOpportunity opportunity;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(opportunity.title),
-      subtitle: Text(opportunity.subtitleTeaser),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        if (opportunity.id == 'earn_nexo') {
-          context.push(AppRoute.earn.path);
-          return;
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fixed Term — screens missing')),
-        );
-      },
     );
   }
 }
@@ -435,11 +290,4 @@ String _pct(Decimal change) {
     return value.startsWith('-') ? '$value%' : '- $value%';
   }
   return '0.00%';
-}
-
-Color _changeColor(Decimal change) {
-  if (change < Decimal.zero) {
-    return AppColors.danger;
-  }
-  return AppColors.accent;
 }

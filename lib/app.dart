@@ -37,8 +37,6 @@ class _FintechAppState extends ConsumerState<FintechApp> {
         BlocProvider.value(value: ref.watch(newsCubitProvider)),
         BlocProvider.value(value: ref.watch(exploreCubitProvider)),
         BlocProvider.value(value: ref.watch(fundingCubitProvider)),
-        BlocProvider.value(value: ref.watch(borrowCubitProvider)),
-        BlocProvider.value(value: ref.watch(earnCubitProvider)),
         BlocProvider.value(value: ref.watch(cardCubitProvider)),
         BlocProvider.value(value: ref.watch(swapCubitProvider)),
         BlocProvider.value(value: ref.watch(ordersCubitProvider)),
@@ -46,7 +44,9 @@ class _FintechAppState extends ConsumerState<FintechApp> {
       ],
       child: MaterialApp.router(
         title: 'Nexo',
-        theme: AppTheme.dark(),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.light,
         routerConfig: _router,
       ),
     );

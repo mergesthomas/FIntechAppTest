@@ -9,7 +9,7 @@ String? binanceSymbolFor(Currency currency) {
     'DOGE' => 'DOGEUSDT',
     'SOL' => 'SOLUSDT',
     'XRP' => 'XRPUSDT',
-    'PEPE' => '1000PEPEUSDT',
+    'PEPE' => 'PEPEUSDT',
     'BONK' => 'BONKUSDT',
     'USDC' => 'USDCUSDT',
     'EURx' => 'EURUSDT',
@@ -31,8 +31,19 @@ const binanceTickerSymbols = [
   'DOGEUSDT',
   'SOLUSDT',
   'XRPUSDT',
-  '1000PEPEUSDT',
+  'PEPEUSDT',
   'BONKUSDT',
   'USDCUSDT',
   'EURUSDT',
+];
+
+const binanceChartCurrencies = [
+  Currency.btc,
+  Currency.eth,
+  Currency.nexo,
+  Currency.doge,
+  Currency.sol,
+  Currency.xrp,
+  Currency.pepe,
+  Currency.bonk,
 ];

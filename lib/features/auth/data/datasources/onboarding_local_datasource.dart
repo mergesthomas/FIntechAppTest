@@ -11,18 +11,8 @@ final class OnboardingLocalDataSource {
         showAuthActions: true,
       ),
       OnboardingSlide(
-        titleKey: 'onboarding.earn.title',
-        bodyKey: 'onboarding.earn.body',
-        showAuthActions: false,
-      ),
-      OnboardingSlide(
         titleKey: 'onboarding.exchange.title',
         bodyKey: 'onboarding.exchange.body',
-        showAuthActions: false,
-      ),
-      OnboardingSlide(
-        titleKey: 'onboarding.credit.title',
-        bodyKey: 'onboarding.credit.body',
         showAuthActions: false,
       ),
       OnboardingSlide(
