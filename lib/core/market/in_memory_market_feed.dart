@@ -7,6 +7,7 @@ import '../money/currency.dart';
 import '../money/money.dart';
 import 'candle_interval.dart';
 import 'candle_series.dart';
+import 'depth_book.dart';
 import 'market_feed.dart';
 import 'market_quote.dart';
 import 'market_symbols.dart';
@@ -25,7 +26,9 @@ final class InMemoryMarketFeed implements MarketFeed {
   final AppClock _clock;
   QuoteFreshness _connection;
   final Map<String, MarketQuote> _quotes = {};
+  final Map<String, DepthBook> _depths = {};
   final _controller = StreamController<MarketQuote>.broadcast();
+  final _depthController = StreamController<DepthBook>.broadcast();
 
   @override
   QuoteFreshness get connection => _connection;
@@ -38,11 +41,19 @@ final class InMemoryMarketFeed implements MarketFeed {
     for (final entry in _quotes.entries) {
       _quotes[entry.key] = entry.value.copyWith(freshness: value);
     }
+    for (final entry in _depths.entries) {
+      _depths[entry.key] = entry.value.copyWith(freshness: value);
+    }
   }
 
   void put(MarketQuote quote) {
     _quotes[quote.symbol] = quote.copyWith(freshness: _connection);
     _controller.add(_quotes[quote.symbol]!);
+  }
+
+  void putDepth(DepthBook book) {
+    _depths[book.symbol] = book.copyWith(freshness: _connection);
+    _depthController.add(_depths[book.symbol]!);
   }
 
   void _seed() {
@@ -134,6 +145,27 @@ final class InMemoryMarketFeed implements MarketFeed {
   }
 
   @override
+  DepthBook? depthFor(Currency currency) {
+    final symbol = binanceSymbolFor(currency);
+    if (symbol == null) {
+      return null;
+    }
+    final book = _depths[symbol];
+    if (book == null) {
+      return null;
+    }
+    return book.copyWith(freshness: _connection);
+  }
+
+  @override
+  Stream<DepthBook> get depths => _depthController.stream;
+
+  @override
+  Future<DepthBook?> refreshDepth(Currency currency) async {
+    return depthFor(currency);
+  }
+
+  @override
   Money? usdPrice(Currency currency) {
     final quote = quoteFor(currency);
     if (quote == null) {
@@ -145,5 +177,6 @@ final class InMemoryMarketFeed implements MarketFeed {
   @override
   void dispose() {
     _controller.close();
+    _depthController.close();
   }
 }

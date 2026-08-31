@@ -16,6 +16,21 @@ String? binanceSymbolFor(Currency currency) {
   };
 }
 
+Currency? currencyForBinanceSymbol(String symbol) {
+  return switch (symbol) {
+    'BTCUSDT' => Currency.btc,
+    'ETHUSDT' => Currency.eth,
+    'DOGEUSDT' => Currency.doge,
+    'SOLUSDT' => Currency.sol,
+    'XRPUSDT' => Currency.xrp,
+    'PEPEUSDT' => Currency.pepe,
+    'BONKUSDT' => Currency.bonk,
+    'USDCUSDT' => Currency.usdc,
+    'EURUSDT' => Currency.eurx,
+    _ => null,
+  };
+}
+
 bool isUsdPeg(Currency currency) {
   return switch (currency.code) {
     'USD' || 'USDT' || 'USDx' || 'xUSD' => true,

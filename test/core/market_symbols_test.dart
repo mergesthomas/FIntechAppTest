@@ -10,4 +10,10 @@ void main() {
     expect(binanceTickerSymbols, isNot(contains('1000PEPEUSDT')));
     expect(binanceTickerSymbols, isNot(contains('NEXOUSDT')));
   });
+
+  test('Binance symbols map back to paper currencies', () {
+    expect(currencyForBinanceSymbol('BTCUSDT'), Currency.btc);
+    expect(currencyForBinanceSymbol('EURUSDT'), Currency.eurx);
+    expect(currencyForBinanceSymbol('NEXOUSDT'), isNull);
+  });
 }
