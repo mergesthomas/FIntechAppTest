@@ -5,6 +5,8 @@ import 'package:decimal/decimal.dart';
 import '../clock/app_clock.dart';
 import '../money/currency.dart';
 import '../money/money.dart';
+import 'candle_interval.dart';
+import 'candle_series.dart';
 import 'market_feed.dart';
 import 'market_quote.dart';
 import 'market_symbols.dart';
@@ -103,6 +105,28 @@ final class InMemoryMarketFeed implements MarketFeed {
     ChartPeriod period,
   ) async {
     return seriesFor(currency, period);
+  }
+
+  @override
+  CandleSeries candlesFor(
+    Currency currency, [
+    CandleInterval interval = CandleInterval.m15,
+  ]) {
+    final last = usdPrice(currency)?.amount ?? Decimal.one;
+    return syntheticCandleSeries(
+      last: last,
+      interval: interval,
+      now: _clock.now(),
+      freshness: _connection,
+    );
+  }
+
+  @override
+  Future<CandleSeries> refreshCandles(
+    Currency currency,
+    CandleInterval interval,
+  ) async {
+    return candlesFor(currency, interval);
   }
 
   @override

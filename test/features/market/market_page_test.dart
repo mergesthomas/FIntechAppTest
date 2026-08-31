@@ -1,13 +1,15 @@
+import 'package:candlesticks/candlesticks.dart';
 import 'package:fintech_app_test/app.dart';
 import 'package:fintech_app_test/core/di/providers.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
+import 'package:fintech_app_test/core/widgets/price_chart.dart';
 import 'package:fintech_app_test/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('watchlist opens market with chart and trade actions', (
+  testWidgets('watchlist opens market with candlestick chart and trade actions', (
     tester,
   ) async {
     final store = InMemorySecureStore();
@@ -25,6 +27,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.byType(PriceChart), findsWidgets);
+    expect(find.byType(Candlesticks), findsNothing);
+
     await tester.drag(
       find.byKey(const Key('dashboard_scroll')),
       const Offset(0, -800),
@@ -34,9 +39,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('market_price')), findsOneWidget);
-    expect(find.byKey(const Key('market_chart')), findsOneWidget);
+    expect(find.byKey(const Key('market_candlestick_chart')), findsOneWidget);
+    expect(find.byType(Candlesticks), findsOneWidget);
+    expect(find.byType(PriceChart), findsNothing);
+    expect(find.byKey(const Key('candle_interval_m15')), findsOneWidget);
+    expect(find.byKey(const Key('market_volume_toggle')), findsOneWidget);
+    expect(find.byKey(const Key('market_zoom_reset')), findsOneWidget);
+    expect(find.byKey(const Key('market_ohlc_stats')), findsOneWidget);
     expect(find.byKey(const Key('trade_buy')), findsOneWidget);
     expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
     expect(find.byKey(const Key('trade_futures')), findsOneWidget);
+  });
+
+  testWidgets('timeframe chip reloads candles on the market page', (
+    tester,
+  ) async {
+    final store = InMemorySecureStore();
+    await store.write(AuthStoreKeys.sessionToken, 'token');
+    await store.write(AuthStoreKeys.sessionPhone, '6912345678');
+    await store.write(AuthStoreKeys.biometricEnabled, '0');
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          secureStoreProvider.overrideWith((ref) => store),
+        ],
+        child: const FintechApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const Key('dashboard_scroll')),
+      const Offset(0, -800),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('watchlist_BTC')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('candle_interval_h1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Candlesticks), findsOneWidget);
+    expect(find.byKey(const Key('market_candlestick_chart')), findsOneWidget);
   });
 }

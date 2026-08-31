@@ -1,5 +1,7 @@
 import '../money/currency.dart';
 import '../money/money.dart';
+import 'candle_interval.dart';
+import 'candle_series.dart';
 import 'market_quote.dart';
 import 'price_series.dart';
 import 'quote_freshness.dart';
@@ -14,5 +16,13 @@ abstract class MarketFeed {
     ChartPeriod period = ChartPeriod.oneDay,
   ]);
   Future<PriceSeries> refreshSeries(Currency currency, ChartPeriod period);
+  CandleSeries candlesFor(
+    Currency currency, [
+    CandleInterval interval = CandleInterval.m15,
+  ]);
+  Future<CandleSeries> refreshCandles(
+    Currency currency,
+    CandleInterval interval,
+  );
   void dispose();
 }

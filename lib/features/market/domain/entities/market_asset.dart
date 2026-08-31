@@ -23,13 +23,18 @@ final class MarketAsset extends Equatable {
   final QuoteFreshness freshness;
   final PriceSeries chart;
 
-  MarketAsset copyWith({PriceSeries? chart}) {
+  MarketAsset copyWith({
+    Money? price,
+    Decimal? change24h,
+    QuoteFreshness? freshness,
+    PriceSeries? chart,
+  }) {
     return MarketAsset(
       currency: currency,
       name: name,
-      price: price,
-      change24h: change24h,
-      freshness: freshness,
+      price: price ?? this.price,
+      change24h: change24h ?? this.change24h,
+      freshness: freshness ?? this.freshness,
       chart: chart ?? this.chart,
     );
   }

@@ -1,4 +1,5 @@
 import 'package:fintech_app_test/core/error/failure.dart';
+import 'package:fintech_app_test/core/market/candle_interval.dart';
 import 'package:fintech_app_test/core/market/price_series.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
 import 'package:fintech_app_test/features/auth/domain/entities/session.dart';
@@ -17,17 +18,13 @@ class MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
   late MockAuthRepository auth;
-  late GetMarketAsset getAsset;
+  late MarketRepositoryImpl repo;
 
   setUp(() {
     auth = MockAuthRepository();
-    final paper = PaperHarness();
-    getAsset = GetMarketAsset(
-      RequireSession(auth),
-      MarketRepositoryImpl(
-        const MarketLocalDataSource(),
-        feed: paper.feed,
-      ),
+    repo = MarketRepositoryImpl(
+      const MarketLocalDataSource(),
+      feed: PaperHarness().feed,
     );
   });
 
@@ -35,6 +32,7 @@ void main() {
     when(() => auth.restoreSession()).thenAnswer(
       (_) async => Either.left(const SessionFailure()),
     );
+    final getAsset = GetMarketAsset(RequireSession(auth), repo);
     final result = await getAsset((
       currency: Currency.btc,
       period: ChartPeriod.oneDay,
@@ -48,10 +46,39 @@ void main() {
         const Session(token: 't', phone: '6912345678', biometricEnabled: false),
       ),
     );
+    final getAsset = GetMarketAsset(RequireSession(auth), repo);
     final result = await getAsset((
       currency: Currency.btc,
       period: ChartPeriod.oneDay,
     ));
     expect(result.getRight().toNullable()?.currency, Currency.btc);
+  });
+
+  test('GetCandleChart refuses without a session', () async {
+    when(() => auth.restoreSession()).thenAnswer(
+      (_) async => Either.left(const SessionFailure()),
+    );
+    final getCandles = GetCandleChart(RequireSession(auth), repo);
+    final result = await getCandles((
+      currency: Currency.btc,
+      interval: CandleInterval.m15,
+    ));
+    expect(result.getLeft().toNullable(), isA<SessionFailure>());
+  });
+
+  test('GetCandleChart loads OHLCV when session exists', () async {
+    when(() => auth.restoreSession()).thenAnswer(
+      (_) async => Either.right(
+        const Session(token: 't', phone: '6912345678', biometricEnabled: false),
+      ),
+    );
+    final getCandles = GetCandleChart(RequireSession(auth), repo);
+    final result = await getCandles((
+      currency: Currency.btc,
+      interval: CandleInterval.h1,
+    ));
+    final series = result.getRight().toNullable();
+    expect(series?.interval, CandleInterval.h1);
+    expect(series?.candles.length, greaterThan(1));
   });
 }
