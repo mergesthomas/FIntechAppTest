@@ -24,12 +24,16 @@ void main() {
   });
 
   test('adds subtracts and converts without double', () {
-    final ten = Money.parse('10', Currency.nexo);
-    expect((ten + Money.parse('2', Currency.nexo)).amount, Decimal.parse('12'));
-    expect((ten - Money.parse('2', Currency.nexo)).amount, Decimal.parse('8'));
+    final ten = Money.parse('10', Currency.usdc);
+    expect((ten + Money.parse('2', Currency.usdc)).amount, Decimal.parse('12'));
+    expect((ten - Money.parse('2', Currency.usdc)).amount, Decimal.parse('8'));
     expect(
       ten.convert(Decimal.parse('0.5'), Currency.eurx).amount,
       Decimal.parse('5'),
     );
+  });
+
+  test('NEXO is not a listed currency', () {
+    expect(Currency.tryParse('NEXO'), isNull);
   });
 }

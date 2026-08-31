@@ -48,7 +48,7 @@ void main() {
     expect(find.byKey(const Key('market_ohlc_stats')), findsOneWidget);
     expect(find.byKey(const Key('trade_buy')), findsOneWidget);
     expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
-    expect(find.byKey(const Key('trade_futures')), findsOneWidget);
+    expect(find.byKey(const Key('trade_futures')), findsNothing);
   });
 
   testWidgets('timeframe chip reloads candles on the market page', (

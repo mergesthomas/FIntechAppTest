@@ -2,4 +2,4 @@
 
 Discovery feed from screenshot fixtures. Prices are `stale`. Promo copy is a placeholder for compliance review.
 
-No trade submit. Perpetual rows open `futures`. Asset rows do not open wallet (blocked). Recurring Buy stays closed.
+No trade submit. Asset rows open market detail. Recurring Buy stays closed. Perpetuals / futures are out of scope.

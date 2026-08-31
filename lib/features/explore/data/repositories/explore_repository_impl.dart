@@ -43,19 +43,6 @@ final class ExploreRepositoryImpl implements ExploreRepository {
       promo: feed.promo,
       gainers: gainers,
       losers: losers,
-      perpetuals: [
-        for (final row in feed.perpetuals)
-          ExplorePerpetual(
-            pair: row.pair,
-            leverageTeaser: row.leverageTeaser,
-            price: _feed.usdPrice(
-                  row.pair.startsWith('ETH') ? Currency.eth : Currency.btc,
-                ) ??
-                row.price,
-            change24h: row.change24h,
-            freshness: _feed.connection,
-          ),
-      ],
       products: feed.products,
       assets: assets,
     );

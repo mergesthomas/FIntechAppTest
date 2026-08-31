@@ -93,7 +93,6 @@ class _Catalog extends StatelessWidget {
       'news' => AppRoute.news,
       'card' => AppRoute.card,
       'swap' => AppRoute.swap,
-      'futures' => AppRoute.futures,
       _ => null,
     };
     if (route == null) {
@@ -103,8 +102,7 @@ class _Catalog extends StatelessWidget {
         route == AppRoute.news ||
         route == AppRoute.funding ||
         route == AppRoute.card ||
-        route == AppRoute.swap ||
-        route == AppRoute.futures) {
+        route == AppRoute.swap) {
       context.push(route.path);
       return;
     }

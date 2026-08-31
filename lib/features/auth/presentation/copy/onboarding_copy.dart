@@ -3,11 +3,11 @@ abstract final class OnboardingCopy {
   static const titles = {
     'onboarding.grow.title': 'Grow and preserve your wealth',
     'onboarding.exchange.title': 'Exchange over 100 digital assets',
-    'onboarding.card.title': 'Spend with the Nexo Card',
+    'onboarding.card.title': 'Spend with the Card',
   };
 
   static const bodies = {
-    'onboarding.grow.body': 'Join clients who use Nexo.',
+    'onboarding.grow.body': 'Join clients who use the app.',
     'onboarding.exchange.body': 'Swap assets in the app.',
     'onboarding.card.body': 'Credit vs Debit mode.',
   };

@@ -60,7 +60,7 @@ final class FundingLocalDataSource {
       rail: rail,
       beneficiary: 'Local emulator beneficiary',
       ibanOrAccount: asset == Currency.usdx ? '00000000' : 'LT000000000000',
-      reference: 'NEXO-LOCAL',
+      reference: 'LOCAL-REF',
     );
   }
 
@@ -77,7 +77,7 @@ final class FundingLocalDataSource {
     final all = const [
       ReceivableAsset(currency: Currency.btc, network: 'Bitcoin'),
       ReceivableAsset(currency: Currency.eth, network: 'Ethereum'),
-      ReceivableAsset(currency: Currency.nexo, network: 'Ethereum'),
+      ReceivableAsset(currency: Currency.usdc, network: 'Ethereum'),
     ];
     if (query.isEmpty) {
       return all;

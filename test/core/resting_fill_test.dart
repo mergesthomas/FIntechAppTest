@@ -14,13 +14,13 @@ PaperOrder _order({
   return PaperOrder(
     id: 'ord-1',
     requestId: 'r1',
-    pair: 'NEXO/DOGE',
+    pair: 'USDC/DOGE',
     side: PaperSide.sell,
     status: PaperOrderStatus.open,
-    amount: Money.parse('10', Currency.nexo),
+    amount: Money.parse('10', Currency.usdc),
     wallet: 'savings',
     venue: venue,
-    pay: Currency.nexo,
+    pay: Currency.usdc,
     receive: Currency.doge,
     limitPrice: limit,
     takeProfit: tp,
@@ -29,12 +29,12 @@ PaperOrder _order({
 }
 
 void main() {
-  final live = Money.parse('0.20', Currency.nexo);
+  final live = Money.parse('0.20', Currency.usdc);
 
   test('limit fills at or better than limit', () {
     final order = _order(
       venue: PaperVenue.limit,
-      limit: Money.parse('0.18', Currency.nexo),
+      limit: Money.parse('0.18', Currency.usdc),
     );
     expect(
       shouldFillResting(order: order, liveFromPerTo: live),
@@ -43,14 +43,14 @@ void main() {
     expect(
       shouldFillResting(
         order: order,
-        liveFromPerTo: Money.parse('0.18', Currency.nexo),
+        liveFromPerTo: Money.parse('0.18', Currency.usdc),
       ),
       isTrue,
     );
     expect(
       shouldFillResting(
         order: order,
-        liveFromPerTo: Money.parse('0.10', Currency.nexo),
+        liveFromPerTo: Money.parse('0.10', Currency.usdc),
       ),
       isTrue,
     );
@@ -59,21 +59,21 @@ void main() {
   test('trigger fills on take-profit or stop-loss', () {
     final order = _order(
       venue: PaperVenue.trigger,
-      tp: Money.parse('0.15', Currency.nexo),
-      sl: Money.parse('0.25', Currency.nexo),
+      tp: Money.parse('0.15', Currency.usdc),
+      sl: Money.parse('0.25', Currency.usdc),
     );
     expect(shouldFillResting(order: order, liveFromPerTo: live), isFalse);
     expect(
       shouldFillResting(
         order: order,
-        liveFromPerTo: Money.parse('0.15', Currency.nexo),
+        liveFromPerTo: Money.parse('0.15', Currency.usdc),
       ),
       isTrue,
     );
     expect(
       shouldFillResting(
         order: order,
-        liveFromPerTo: Money.parse('0.25', Currency.nexo),
+        liveFromPerTo: Money.parse('0.25', Currency.usdc),
       ),
       isTrue,
     );
@@ -92,7 +92,7 @@ void main() {
   test('compares decimals not double', () {
     final order = _order(
       venue: PaperVenue.limit,
-      limit: Money.parse('0.20000001', Currency.nexo),
+      limit: Money.parse('0.20000001', Currency.usdc),
     );
     expect(
       shouldFillResting(order: order, liveFromPerTo: live),

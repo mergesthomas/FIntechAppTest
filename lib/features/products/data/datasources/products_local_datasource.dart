@@ -19,12 +19,6 @@ final class ProductsLocalDataSource {
         group: 'Trade',
         enabled: moneyMovingEnabled,
       ),
-      ProductTile(
-        id: 'futures',
-        label: 'Futures',
-        group: 'Trade',
-        enabled: moneyMovingEnabled,
-      ),
       const ProductTile(
         id: 'explore',
         label: 'Explore',

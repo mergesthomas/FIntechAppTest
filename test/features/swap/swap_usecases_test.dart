@@ -40,9 +40,9 @@ void main() {
   test('instant quote is live', () async {
     final result = await getQuote(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.doge,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.instant,
       ),
     );
@@ -53,22 +53,22 @@ void main() {
   test('limit requires a better price than live', () async {
     final live = await getQuote(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.doge,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.instant,
       ),
     );
     final rate = live.getRight().toNullable()!.rateFromPerTo;
     final worse = await getQuote(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.doge,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.limit,
         limitPrice: Money.fromDecimal(
-          rate.amount + Money.parse('1', Currency.nexo).amount,
-          Currency.nexo,
+          rate.amount + Money.parse('1', Currency.usdc).amount,
+          Currency.usdc,
         ),
       ),
     );
@@ -81,9 +81,9 @@ void main() {
   test('trigger refuses when neither TP nor SL is set', () async {
     final result = await getQuote(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.doge,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.trigger,
       ),
     );
@@ -96,9 +96,9 @@ void main() {
   test('same asset pair is invalid', () async {
     final result = await getQuote(
       SwapQuoteRequest(
-        from: Currency.nexo,
-        to: Currency.nexo,
-        amount: Money.parse('10', Currency.nexo),
+        from: Currency.usdc,
+        to: Currency.usdc,
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.instant,
       ),
     );

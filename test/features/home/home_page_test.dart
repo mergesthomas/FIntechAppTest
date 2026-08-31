@@ -29,5 +29,9 @@ void main() {
     expect(find.textContaining('stale'), findsWidgets);
     expect(find.byKey(const Key('trade_buy')), findsOneWidget);
     expect(find.byKey(const Key('add_funds')), findsOneWidget);
+    expect(find.byKey(const Key('nav_futures')), findsNothing);
+    expect(find.byKey(const Key('trade_futures')), findsNothing);
+    expect(find.text('Futures'), findsNothing);
+    expect(find.text('Nexo'), findsNothing);
   });
 }

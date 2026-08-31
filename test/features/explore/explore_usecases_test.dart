@@ -51,10 +51,6 @@ void main() {
     );
     final feed = result.getRight().toNullable();
     expect(feed?.assets.every((a) => a.freshness == QuoteFreshness.stale), isTrue);
-    expect(
-      feed?.perpetuals.every((p) => p.freshness == QuoteFreshness.stale),
-      isTrue,
-    );
   });
 
   test('market filter returns only gainers', () async {

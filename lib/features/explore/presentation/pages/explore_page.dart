@@ -144,16 +144,6 @@ class _Feed extends StatelessWidget {
         const AppSectionHeader('Top movers'),
         for (final asset in [...feed.gainers.take(3), ...feed.losers.take(3)])
           _assetRow(context, asset, keyed: false),
-        const AppSectionHeader('Trending perpetuals'),
-        for (final row in feed.perpetuals)
-          AssetListRow(
-            symbol: row.pair,
-            subtitle: '${row.leverageTeaser} · ${row.freshness.name}',
-            priceLabel: formatMoney(row.price),
-            changeLabel: _pct(row.change24h),
-            change: row.change24h,
-            onTap: () => context.push(AppRoute.futures.path),
-          ),
         const AppSectionHeader('Products'),
         Wrap(
           spacing: AppSpacing.xs,
@@ -225,7 +215,6 @@ class _Feed extends StatelessWidget {
 
   void _openProduct(BuildContext context, String id) {
     final route = switch (id) {
-      'futures' => AppRoute.futures,
       'card' => AppRoute.card,
       'more' => AppRoute.products,
       _ => null,

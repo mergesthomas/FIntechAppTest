@@ -38,9 +38,9 @@ void main() {
       repo,
     )(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.eurx,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.instant,
       ),
     );
@@ -84,9 +84,9 @@ void main() {
       repo,
     )(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.doge,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.instant,
       ),
     );
@@ -97,13 +97,13 @@ void main() {
       repo,
     )(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.doge,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.limit,
         limitPrice: Money.fromDecimal(
-          rate.amount - Money.parse('0.01', Currency.nexo).amount,
-          Currency.nexo,
+          rate.amount - Money.parse('0.01', Currency.usdc).amount,
+          Currency.usdc,
         ),
       ),
     );

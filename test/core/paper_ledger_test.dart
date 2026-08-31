@@ -13,10 +13,10 @@ void main() {
     final order = PaperOrder(
       id: 'ord-1',
       requestId: 'swap-1',
-      pair: 'NEXO/EURx',
+      pair: 'USDC/EURx',
       side: PaperSide.sell,
       status: PaperOrderStatus.open,
-      amount: Money.parse('10', Currency.nexo),
+      amount: Money.parse('10', Currency.usdc),
       wallet: 'savings',
       venue: PaperVenue.market,
     );
@@ -25,7 +25,7 @@ void main() {
       lines: [
         LedgerLine(
           book: LedgerBook.savings,
-          delta: Money.zero(Currency.nexo) - Money.parse('10', Currency.nexo),
+          delta: Money.zero(Currency.usdc) - Money.parse('10', Currency.usdc),
         ),
         LedgerLine(
           book: LedgerBook.savings,
@@ -39,7 +39,7 @@ void main() {
       lines: [
         LedgerLine(
           book: LedgerBook.savings,
-          delta: Money.zero(Currency.nexo) - Money.parse('10', Currency.nexo),
+          delta: Money.zero(Currency.usdc) - Money.parse('10', Currency.usdc),
         ),
       ],
       order: order,
@@ -47,8 +47,8 @@ void main() {
     expect(first.getRight().toNullable(), SettlementStatus.confirmed);
     expect(retry.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
-      paper.ledger.balance(LedgerBook.savings, Currency.nexo),
-      Money.parse('110', Currency.nexo),
+      paper.ledger.balance(LedgerBook.savings, Currency.usdc),
+      Money.parse('110', Currency.usdc),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.filled);
   });
@@ -58,26 +58,26 @@ void main() {
     final order = PaperOrder(
       id: 'ord-hold',
       requestId: 'swap-hold',
-      pair: 'NEXO/DOGE',
+      pair: 'USDC/DOGE',
       side: PaperSide.sell,
       status: PaperOrderStatus.open,
-      amount: Money.parse('10', Currency.nexo),
+      amount: Money.parse('10', Currency.usdc),
       wallet: 'savings',
       venue: PaperVenue.limit,
-      pay: Currency.nexo,
+      pay: Currency.usdc,
       receive: Currency.doge,
-      limitPrice: Money.parse('0.10', Currency.nexo),
+      limitPrice: Money.parse('0.10', Currency.usdc),
     );
     final placed = await paper.ledger.placeHold(
       requestId: 'swap-hold',
-      hold: Money.parse('10', Currency.nexo),
+      hold: Money.parse('10', Currency.usdc),
       book: LedgerBook.savings,
       order: order,
     );
     expect(placed.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
-      paper.ledger.balance(LedgerBook.savings, Currency.nexo),
-      Money.parse('110', Currency.nexo),
+      paper.ledger.balance(LedgerBook.savings, Currency.usdc),
+      Money.parse('110', Currency.usdc),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.open);
     final canceled = await paper.ledger.cancelHold(
@@ -86,8 +86,8 @@ void main() {
     );
     expect(canceled.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
-      paper.ledger.balance(LedgerBook.savings, Currency.nexo),
-      Money.parse('120', Currency.nexo),
+      paper.ledger.balance(LedgerBook.savings, Currency.usdc),
+      Money.parse('120', Currency.usdc),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.canceled);
   });
@@ -97,18 +97,18 @@ void main() {
     final order = PaperOrder(
       id: 'ord-fill',
       requestId: 'swap-fill',
-      pair: 'NEXO/DOGE',
+      pair: 'USDC/DOGE',
       side: PaperSide.sell,
       status: PaperOrderStatus.open,
-      amount: Money.parse('10', Currency.nexo),
+      amount: Money.parse('10', Currency.usdc),
       wallet: 'savings',
       venue: PaperVenue.limit,
-      pay: Currency.nexo,
+      pay: Currency.usdc,
       receive: Currency.doge,
     );
     await paper.ledger.placeHold(
       requestId: 'swap-fill',
-      hold: Money.parse('10', Currency.nexo),
+      hold: Money.parse('10', Currency.usdc),
       book: LedgerBook.savings,
       order: order,
     );

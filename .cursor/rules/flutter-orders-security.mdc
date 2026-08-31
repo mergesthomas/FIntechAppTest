@@ -1,5 +1,5 @@
 ---
-description: Security gates for order-placement CTAs (swap, futures, buy, cancel) — not the Orders history tab
+description: Security gates for order-placement CTAs (swap, buy, cancel) — not the Orders history tab
 alwaysApply: true
 ---
 
@@ -11,9 +11,9 @@ There is no backend and no `can_place_orders` role. The authority is the **Use C
 
 ## What counts
 
-Placement: `SubmitSwap`, `SubmitFuturesOrder`, `SubmitBuyCrypto`, `CancelOrder` (releases a hold).
+Placement: `SubmitSwap`, `SubmitBuyCrypto`, `CancelOrder` (releases a hold).
 
-Not placement: `OrdersPage` tabs, `TradeActions` Buy/Exchange/Futures (navigation only).
+Not placement: `OrdersPage` tabs, `TradeActions` Buy/Exchange (navigation only).
 
 ## Gates before the confirm CTA is interactive
 

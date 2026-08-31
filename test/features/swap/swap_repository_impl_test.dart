@@ -18,9 +18,9 @@ void main() {
     );
     final quote = await repo.getQuote(
       SwapQuoteRequest(
-        from: Currency.nexo,
+        from: Currency.usdc,
         to: Currency.eurx,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         type: SwapOrderType.instant,
       ),
     );

@@ -17,7 +17,7 @@ Session + KYC `approved` + step-up + `requestId`. Quote-sized submit still requi
 
 ## Ledger
 
-Shared in-memory `PaperLedger`. Seed matches emulator fixtures (NEXO 120, BTC 0.15, EURx −1.16, USD 10,000, futures USDT 186.25).
+Shared in-memory `PaperLedger`. Seed matches emulator fixtures (USDC 120, BTC 0.15, EURx −1.16, USD 10,000).
 
 Submit: check balances → hold → `inFlight` breadcrumb (`requestId` + status only) → settler applies debit/credit → `confirmed` (or `failed`). Retries reuse `requestId`.
 
