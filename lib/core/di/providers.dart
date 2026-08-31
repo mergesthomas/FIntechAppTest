@@ -457,7 +457,8 @@ final marketCubitProvider =
   final session = RequireSession(auth);
   final cubit = MarketCubit(
     getAsset: GetMarketAsset(session, market),
-    getChart: GetPriceChart(session, market),
+    getCandles: GetCandleChart(session, market),
+    watchTicks: WatchMarketTicks(session, market),
     code: code,
   );
   ref.onDispose(cubit.close);

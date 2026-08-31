@@ -10,6 +10,8 @@ import '../money/currency.dart';
 import '../money/money.dart';
 import 'binance_klines.dart';
 import 'binance_ticker.dart';
+import 'candle_interval.dart';
+import 'candle_series.dart';
 import 'market_feed.dart';
 import 'market_quote.dart';
 import 'market_symbols.dart';
@@ -30,6 +32,8 @@ final class BinanceMarketFeed implements MarketFeed {
   final Map<String, MarketQuote> _quotes = {};
   final Map<String, PriceSeries> _series = {};
   final Map<String, Future<PriceSeries>> _inflight = {};
+  final Map<String, CandleSeries> _candles = {};
+  final Map<String, Future<CandleSeries>> _candleInflight = {};
   final _controller = StreamController<MarketQuote>.broadcast();
   QuoteFreshness _connection = QuoteFreshness.disconnected;
   HttpClient? _http;
@@ -302,6 +306,122 @@ final class BinanceMarketFeed implements MarketFeed {
     } on Object {
       return _syntheticSeries(currency, period);
     }
+  }
+
+  String _candleKey(Currency currency, CandleInterval interval) {
+    return '${currency.code}:${interval.name}';
+  }
+
+  CandleSeries _syntheticCandles(
+    Currency currency,
+    CandleInterval interval,
+  ) {
+    final last = usdPrice(currency)?.amount ?? Decimal.one;
+    return syntheticCandleSeries(
+      last: last,
+      interval: interval,
+      now: _clock.now(),
+      freshness: QuoteFreshness.stale,
+    );
+  }
+
+  @override
+  CandleSeries candlesFor(
+    Currency currency, [
+    CandleInterval interval = CandleInterval.m15,
+  ]) {
+    _decay();
+    final cached = _candles[_candleKey(currency, interval)];
+    if (cached != null) {
+      return cached.copyWith(freshness: _connection);
+    }
+    return _syntheticCandles(currency, interval);
+  }
+
+  @override
+  Future<CandleSeries> refreshCandles(
+    Currency currency,
+    CandleInterval interval,
+  ) async {
+    if (_closed) {
+      return candlesFor(currency, interval);
+    }
+    final key = _candleKey(currency, interval);
+    final pending = _candleInflight[key];
+    if (pending != null) {
+      return pending;
+    }
+    final future = _fetchCandles(currency, interval);
+    _candleInflight[key] = future;
+    try {
+      return await future;
+    } finally {
+      _candleInflight.remove(key);
+    }
+  }
+
+  Future<CandleSeries> _fetchCandles(
+    Currency currency,
+    CandleInterval interval,
+  ) async {
+    if (isUsdPeg(currency)) {
+      final peg = syntheticCandleSeries(
+        last: Decimal.one,
+        interval: interval,
+        now: _clock.now(),
+        freshness: connection,
+      );
+      _candles[_candleKey(currency, interval)] = peg;
+      return peg;
+    }
+    final symbol = binanceSymbolFor(currency);
+    if (symbol == null) {
+      return _syntheticCandles(currency, interval);
+    }
+    try {
+      _http ??= HttpClient();
+      final uri = Uri.parse(
+        '${_flavor.marketRestUrl}/api/v3/klines?symbol=$symbol&interval=${interval.binanceCode}&limit=${interval.requestLimit}',
+      );
+      final request = await _http!.getUrl(uri);
+      final response = await request.close().timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        return _cachedOrSynthetic(currency, interval);
+      }
+      final body = await utf8.decodeStream(response);
+      final decoded = jsonDecode(body);
+      if (decoded is! List) {
+        return _cachedOrSynthetic(currency, interval);
+      }
+      final parsed = parseBinanceKlines(decoded);
+      if (parsed.length < 2) {
+        return _cachedOrSynthetic(currency, interval);
+      }
+      final series = CandleSeries(
+        interval: interval,
+        candles: parsed,
+        freshness: _connection,
+      );
+      _candles[_candleKey(currency, interval)] = series;
+      return series;
+    } on Object {
+      return _cachedOrSynthetic(currency, interval);
+    }
+  }
+
+  CandleSeries _cachedOrSynthetic(
+    Currency currency,
+    CandleInterval interval,
+  ) {
+    final cached = _candles[_candleKey(currency, interval)];
+    if (cached != null) {
+      return cached.copyWith(
+        freshness: _connection == QuoteFreshness.disconnected
+            ? QuoteFreshness.disconnected
+            : QuoteFreshness.stale,
+      );
+    }
+    return _syntheticCandles(currency, interval);
   }
 
   @override

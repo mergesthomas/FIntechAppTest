@@ -1,4 +1,6 @@
 import 'package:decimal/decimal.dart';
+import 'package:fintech_app_test/core/market/candle_interval.dart';
+import 'package:fintech_app_test/core/market/candle_series.dart';
 import 'package:fintech_app_test/core/market/market_feed.dart';
 import 'package:fintech_app_test/core/market/market_quote.dart';
 import 'package:fintech_app_test/core/market/price_series.dart';
@@ -98,6 +100,26 @@ final class _RefreshFeed implements MarketFeed {
       closes: closes,
       freshness: QuoteFreshness.stale,
     );
+  }
+
+  @override
+  CandleSeries candlesFor(
+    Currency currency, [
+    CandleInterval interval = CandleInterval.m15,
+  ]) {
+    return syntheticCandleSeries(
+      last: Decimal.one,
+      interval: interval,
+      now: DateTime.utc(2026, 1, 1),
+    );
+  }
+
+  @override
+  Future<CandleSeries> refreshCandles(
+    Currency currency,
+    CandleInterval interval,
+  ) async {
+    return candlesFor(currency, interval);
   }
 
   @override
