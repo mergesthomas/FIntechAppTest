@@ -1,6 +1,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/chart/chart_layout.dart';
+
 class ExploreSparkline extends StatelessWidget {
   const ExploreSparkline({
     super.key,
@@ -35,14 +37,14 @@ class _ExploreSparklinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final values = points.map((p) => double.parse(p.toString())).toList();
-    final min = values.reduce((a, b) => a < b ? a : b);
-    final max = values.reduce((a, b) => a > b ? a : b);
-    final span = (max - min).abs() < 0.0001 ? 1.0 : max - min;
+    final ys = chartUnitYs(points);
+    if (ys.length < 2) {
+      return;
+    }
     final path = Path();
-    for (var i = 0; i < values.length; i++) {
-      final x = size.width * i / (values.length - 1);
-      final y = size.height - ((values[i] - min) / span) * size.height;
+    for (var i = 0; i < ys.length; i++) {
+      final x = size.width * i / (ys.length - 1);
+      final y = size.height * (1 - ys[i]);
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -53,7 +55,9 @@ class _ExploreSparklinePainter extends CustomPainter {
       path,
       Paint()
         ..color = color
-        ..strokeWidth = 1.5
+        ..strokeWidth = 1.2
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
         ..style = PaintingStyle.stroke,
     );
   }

@@ -21,6 +21,13 @@ final class LedgerLine {
   final Money delta;
 }
 
+final class _Hold {
+  const _Hold({required this.book, required this.amount});
+
+  final LedgerBook book;
+  final Money amount;
+}
+
 final class PaperLedger {
   PaperLedger({
     required PaperOrderStore orders,
@@ -34,6 +41,7 @@ final class PaperLedger {
   final PaperSettler _settler;
   final Map<String, Decimal> _balances = {};
   final Map<String, SettlementStatus> _posts = {};
+  final Map<String, _Hold> _holds = {};
 
   PaperOrderStore get orders => _orders;
 
@@ -67,8 +75,7 @@ final class PaperLedger {
     for (final line in lines) {
       if (line.delta.isNegative) {
         final next = balance(line.book, line.delta.currency) + line.delta;
-        if (next.isNegative &&
-            line.delta.currency != Currency.eurx) {
+        if (next.isNegative && line.delta.currency != Currency.eurx) {
           return Either.left(const ValidationFailure('insufficient_balance'));
         }
       }
@@ -93,6 +100,114 @@ final class PaperLedger {
     return Either.right(
       _posts[requestId] ?? SettlementStatus.unknown,
     );
+  }
+
+  Future<Either<Failure, SettlementStatus>> placeHold({
+    required String requestId,
+    required Money hold,
+    required LedgerBook book,
+    required PaperOrder order,
+  }) async {
+    if (requestId.isEmpty) {
+      return Either.left(const ValidationFailure('request_id_required'));
+    }
+    final existing = _posts[requestId];
+    if (existing != null) {
+      return Either.right(existing);
+    }
+    if (!hold.isPositive) {
+      return Either.left(const ValidationFailure('amount_required'));
+    }
+    final next = balance(book, hold.currency) - hold;
+    if (next.isNegative && hold.currency != Currency.eurx) {
+      return Either.left(const ValidationFailure('insufficient_balance'));
+    }
+    _posts[requestId] = SettlementStatus.inFlight;
+    _orders.add(order.copyWith(status: PaperOrderStatus.open));
+    _holds[order.id] = _Hold(book: book, amount: hold);
+    _set(book, next);
+    logSettlementBreadcrumb(
+      requestId: requestId,
+      status: SettlementStatus.inFlight,
+    );
+    _posts[requestId] = SettlementStatus.confirmed;
+    logSettlementBreadcrumb(
+      requestId: requestId,
+      status: SettlementStatus.confirmed,
+    );
+    return Either.right(SettlementStatus.confirmed);
+  }
+
+  Future<Either<Failure, SettlementStatus>> fillHold({
+    required String orderId,
+    required Money credit,
+    required LedgerBook book,
+  }) async {
+    final order = _orders.byId(orderId);
+    final hold = _holds[orderId];
+    if (order == null || hold == null) {
+      return Either.left(const ValidationFailure('order_not_found'));
+    }
+    if (order.status != PaperOrderStatus.open) {
+      return Either.left(const ValidationFailure('order_not_open'));
+    }
+    if (!credit.isPositive) {
+      return Either.left(const ValidationFailure('amount_required'));
+    }
+    final fillId = 'fill-$orderId';
+    final existing = _posts[fillId];
+    if (existing != null) {
+      return Either.right(existing);
+    }
+    _posts[fillId] = SettlementStatus.inFlight;
+    logSettlementBreadcrumb(
+      requestId: fillId,
+      status: SettlementStatus.inFlight,
+    );
+    _set(book, balance(book, credit.currency) + credit);
+    _holds.remove(orderId);
+    _orders.setStatus(orderId, PaperOrderStatus.filled);
+    _posts[fillId] = SettlementStatus.confirmed;
+    logSettlementBreadcrumb(
+      requestId: fillId,
+      status: SettlementStatus.confirmed,
+    );
+    return Either.right(SettlementStatus.confirmed);
+  }
+
+  Future<Either<Failure, SettlementStatus>> cancelHold({
+    required String requestId,
+    required String orderId,
+  }) async {
+    if (requestId.isEmpty) {
+      return Either.left(const ValidationFailure('request_id_required'));
+    }
+    final existing = _posts[requestId];
+    if (existing != null) {
+      return Either.right(existing);
+    }
+    final order = _orders.byId(orderId);
+    final hold = _holds[orderId];
+    if (order == null || hold == null) {
+      return Either.left(const ValidationFailure('order_not_found'));
+    }
+    if (order.status != PaperOrderStatus.open) {
+      return Either.left(const ValidationFailure('order_not_open'));
+    }
+    _posts[requestId] = SettlementStatus.inFlight;
+    logSettlementBreadcrumb(
+      requestId: requestId,
+      status: SettlementStatus.inFlight,
+    );
+    _set(hold.book, balance(hold.book, hold.amount.currency) + hold.amount);
+    _holds.remove(orderId);
+    _orders.setStatus(orderId, PaperOrderStatus.canceled);
+    _posts[requestId] = SettlementStatus.confirmed;
+    logSettlementBreadcrumb(
+      requestId: requestId,
+      status: SettlementStatus.confirmed,
+    );
+    return Either.right(SettlementStatus.confirmed);
   }
 
   String _key(LedgerBook book, Currency currency) =>

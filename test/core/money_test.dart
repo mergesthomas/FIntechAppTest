@@ -11,6 +11,18 @@ void main() {
     expect(formatMoney(money), r'$35,862.41');
   });
 
+  test('formats sub-cent USD quotes instead of \$0.00', () {
+    expect(
+      formatMoney(Money.parse('0.00000282', Currency.usd)),
+      r'$0.0000028',
+    );
+    expect(
+      formatMoney(Money.parse('0.00000353', Currency.usd)),
+      r'$0.0000035',
+    );
+    expect(formatMoney(Money.parse('0.08', Currency.usd)), r'$0.08');
+  });
+
   test('adds subtracts and converts without double', () {
     final ten = Money.parse('10', Currency.nexo);
     expect((ten + Money.parse('2', Currency.nexo)).amount, Decimal.parse('12'));

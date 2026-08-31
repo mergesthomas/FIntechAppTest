@@ -14,4 +14,24 @@ void main() {
     expect(series.closes.first, isA<Decimal>());
     expect(seriesChangeRatio(series.closes), isA<Decimal>());
   });
+
+  test('synthetic series is not a repeating 5-sample sawtooth', () {
+    final closes = syntheticCloses(
+      last: Decimal.parse('100'),
+      period: ChartPeriod.oneDay,
+    );
+    expect(closes.length, 24);
+    final repeats = [
+      for (var i = 0; i < 5; i++) closes[i] == closes[i + 5],
+    ];
+    expect(repeats.every((repeat) => repeat), isFalse);
+  });
+
+  test('synthetic series keeps range at micro prices', () {
+    final closes = syntheticCloses(
+      last: Decimal.parse('0.00000282'),
+      period: ChartPeriod.oneDay,
+    );
+    expect(closes.toSet().length, greaterThan(2));
+  });
 }
