@@ -17,7 +17,6 @@ enum AppRoute {
   card('/card'),
   swap('/swap'),
   orders('/orders'),
-  futures('/futures'),
   market('/market');
 
   const AppRoute(this.path);

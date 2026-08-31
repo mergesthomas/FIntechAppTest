@@ -13,7 +13,7 @@ import '../../domain/repositories/swap_repository.dart';
 import '../datasources/swap_local_datasource.dart';
 
 const _swapCurrencies = [
-  Currency.nexo,
+  Currency.usdc,
   Currency.eurx,
   Currency.btc,
   Currency.eth,
@@ -22,7 +22,6 @@ const _swapCurrencies = [
   Currency.xrp,
   Currency.pepe,
   Currency.bonk,
-  Currency.usdc,
   Currency.usd,
   Currency.usdt,
 ];

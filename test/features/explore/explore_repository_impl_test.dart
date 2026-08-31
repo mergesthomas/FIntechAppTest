@@ -28,12 +28,6 @@ void main() {
       isTrue,
     );
     expect(
-      feed.getRight().toNullable()?.perpetuals.every(
-        (p) => p.freshness != QuoteFreshness.live,
-      ),
-      isTrue,
-    );
-    expect(
       assets.getRight().toNullable()?.every((a) => a.sparkline.length >= 2),
       isTrue,
     );

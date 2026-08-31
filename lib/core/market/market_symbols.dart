@@ -5,7 +5,6 @@ String? binanceSymbolFor(Currency currency) {
   return switch (currency.code) {
     'BTC' => 'BTCUSDT',
     'ETH' => 'ETHUSDT',
-    'NEXO' => 'NEXOUSDT',
     'DOGE' => 'DOGEUSDT',
     'SOL' => 'SOLUSDT',
     'XRP' => 'XRPUSDT',
@@ -27,7 +26,6 @@ bool isUsdPeg(Currency currency) {
 const binanceTickerSymbols = [
   'BTCUSDT',
   'ETHUSDT',
-  'NEXOUSDT',
   'DOGEUSDT',
   'SOLUSDT',
   'XRPUSDT',
@@ -40,7 +38,6 @@ const binanceTickerSymbols = [
 const binanceChartCurrencies = [
   Currency.btc,
   Currency.eth,
-  Currency.nexo,
   Currency.doge,
   Currency.sol,
   Currency.xrp,

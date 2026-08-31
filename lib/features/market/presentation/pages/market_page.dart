@@ -170,7 +170,6 @@ class _BodyState extends State<_Body> {
                   '${AppRoute.funding.path}?action=buy&asset=${asset.currency.code}',
                 ),
                 onExchange: () => context.push(AppRoute.swap.path),
-                onFutures: () => context.push(AppRoute.futures.path),
               ),
             ],
           ),

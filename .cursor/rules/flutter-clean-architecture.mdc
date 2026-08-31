@@ -1,11 +1,11 @@
 ---
-description: Feature-based Clean Architecture for the Nexo clone
+description: Feature-based Clean Architecture
 alwaysApply: true
 ---
 
 # Feature-based Clean Architecture (mandatory)
 
-Nexo clone. Every feature is fully self-contained. Shared code lives only in `lib/core/`.
+Every feature is fully self-contained. Shared code lives only in `lib/core/`.
 Layers: Presentation (UI + Bloc/Cubit) → Domain ← Data.
 Domain never depends on other layers, Flutter, or UI/network packages.
 Keep the architecture scalable. No god classes.

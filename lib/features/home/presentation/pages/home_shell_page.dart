@@ -5,7 +5,6 @@ import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../cubit/home_cubit.dart';
 import '../../../card/presentation/pages/card_page.dart';
 import '../../../explore/presentation/pages/explore_page.dart';
-import '../../../futures/presentation/pages/futures_page.dart';
 import '../../../swap/presentation/pages/swap_page.dart';
 import 'dashboard_page.dart';
 
@@ -52,7 +51,6 @@ class _HomeTabsState extends State<_HomeTabs> {
     final pages = [
       const DashboardPage(),
       const ExplorePage(),
-      const FuturesPage(),
       const CardPage(),
       const SwapPage(),
     ];
@@ -74,10 +72,6 @@ class _HomeTabsState extends State<_HomeTabs> {
           NavigationDestination(
             icon: Icon(Icons.explore_outlined),
             label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.show_chart, key: Key('nav_futures')),
-            label: 'Futures',
           ),
           NavigationDestination(
             icon: Icon(Icons.credit_card_outlined),

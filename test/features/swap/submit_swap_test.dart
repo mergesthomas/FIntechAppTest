@@ -42,12 +42,12 @@ void main() {
       (_) async => Either.right(
         SwapQuote(
           quoteId: 'q1',
-          from: Money.parse('10', Currency.nexo),
+          from: Money.parse('10', Currency.usdc),
           to: Money.parse('1', Currency.eurx),
           wallet: SwapWallet.savings,
           freshness: QuoteFreshness.stale,
           type: SwapOrderType.instant,
-          rateFromPerTo: Money.parse('1', Currency.nexo),
+          rateFromPerTo: Money.parse('1', Currency.usdc),
         ),
       ),
     );

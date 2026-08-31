@@ -122,7 +122,6 @@ class _DashboardBody extends StatelessWidget {
           TradeActions(
             onBuy: () => _go(context, AppRoute.funding, query: 'action=buy'),
             onExchange: () => _go(context, AppRoute.swap),
-            onFutures: () => _go(context, AppRoute.futures),
             onAddFunds: () => _go(context, AppRoute.funding),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -187,7 +186,6 @@ class _DashboardBody extends StatelessWidget {
       AppRoute.funding,
       AppRoute.card,
       AppRoute.swap,
-      AppRoute.futures,
       AppRoute.orders,
       AppRoute.market,
     };

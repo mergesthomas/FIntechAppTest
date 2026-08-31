@@ -5,13 +5,13 @@ alwaysApply: true
 
 # Local-first emulation (mandatory)
 
-The app runs **only on device / local storage**. There is no backend. Features are emulated: session, KYC, balances, funding, earn, borrow, card, inbox.
+The app runs **only on device / local storage**. There is no backend. Features are emulated: session, KYC, balances, funding, card, inbox.
 
 **Data:** Local data sources and an in-app ledger only. Repositories must not call production payment, KYC, or bank APIs. Seed fixtures for screens. Flavor config may add a remote **later**; features stay against repository ports so the swap is Data-only.
 
 **Settlement still applies.** Fake submits use `requestId` and `inFlight` → `confirmed` / `failed` / `unknown` (delay or local worker). Do not treat a local write as instantly settled if the product would wait.
 
-**Prices / trading:** Until a remote price feed exists, quotes are cached fixtures with freshness `stale` or `disconnected`. Do not mark fixture prices `live`. Swap, buy, futures, and any quote-sized submit stay rejected until a live remote (or explicit `dev` simulator) quote exists. Then follow Market data: `live` required to submit.
+**Prices / trading:** Until a remote price feed exists, quotes are cached fixtures with freshness `stale` or `disconnected`. Do not mark fixture prices `live`. Swap, buy, and any quote-sized submit stay rejected until a live remote (or explicit `dev` simulator) quote exists. Then follow Market data: `live` required to submit.
 
 ```text
 ❌ BAD — call a real card processor or mark a hardcoded BTC price as live

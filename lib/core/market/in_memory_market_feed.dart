@@ -58,7 +58,6 @@ final class InMemoryMarketFeed implements MarketFeed {
 
     add('BTCUSDT', '78899.13', '0.0154');
     add('ETHUSDT', '2466.03', '0.0128');
-    add('NEXOUSDT', '0.8639', '0.0499');
     add('DOGEUSDT', '0.18', '-0.0120');
     add('SOLUSDT', '148.20', '0.0210');
     add('XRPUSDT', '1.39', '0.0096');

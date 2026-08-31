@@ -9,7 +9,7 @@ import '../settlement/settlement_status.dart';
 import 'paper_order.dart';
 import 'paper_settler.dart';
 
-enum LedgerBook { savings, credit, futures }
+enum LedgerBook { savings, credit }
 
 final class LedgerLine {
   const LedgerLine({
@@ -46,11 +46,10 @@ final class PaperLedger {
   PaperOrderStore get orders => _orders;
 
   void seed() {
-    _set(LedgerBook.savings, Money.parse('120.00', Currency.nexo));
+    _set(LedgerBook.savings, Money.parse('120.00', Currency.usdc));
     _set(LedgerBook.savings, Money.parse('0.15', Currency.btc));
     _set(LedgerBook.savings, Money.parse('-1.16', Currency.eurx));
     _set(LedgerBook.savings, Money.parse('10000.00', Currency.usd));
-    _set(LedgerBook.futures, Money.parse('186.25', Currency.usdt));
   }
 
   Money balance(LedgerBook book, Currency currency) {

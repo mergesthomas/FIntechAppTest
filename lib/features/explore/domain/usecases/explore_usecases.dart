@@ -47,20 +47,3 @@ final class SearchExploreAssets implements UseCase<List<ExploreAsset>, String> {
     return session.fold(Either.left, (_) => _repo.searchAssets(query));
   }
 }
-
-final class GetTrendingPerpetuals
-    implements UseCase<List<ExplorePerpetual>, NoParams> {
-  GetTrendingPerpetuals(this._session, this._repo);
-
-  final RequireSession _session;
-  final ExploreRepository _repo;
-
-  @override
-  Future<Either<Failure, List<ExplorePerpetual>>> call(NoParams params) async {
-    final session = await _session(params);
-    return session.fold(Either.left, (_) async {
-      final feed = await _repo.getFeed();
-      return feed.map((value) => value.perpetuals);
-    });
-  }
-}

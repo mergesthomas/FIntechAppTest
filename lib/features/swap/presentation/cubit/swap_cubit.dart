@@ -46,7 +46,7 @@ final class SwapReady extends SwapState {
     required this.assets,
     required this.orderTypes,
     this.orderType = SwapOrderType.instant,
-    this.from = Currency.nexo,
+    this.from = Currency.usdc,
     this.to = Currency.doge,
     this.amountInput = '',
     this.limitInput = '',

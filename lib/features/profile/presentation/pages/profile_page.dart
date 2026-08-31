@@ -73,7 +73,7 @@ class _ProfileBody extends StatelessWidget {
         if (state.overview.isPrivate)
           const Padding(
             padding: EdgeInsets.only(top: AppSpacing.xs),
-            child: Text('Nexo Private'),
+            child: Text('Private'),
           ),
         if (state.rewards.isNotEmpty) ...[
           const AppSectionHeader('Rewards'),
@@ -117,7 +117,6 @@ class _ProfileBody extends StatelessWidget {
     final route = switch (id) {
       'security' => AppRoute.security,
       'products' => AppRoute.products,
-      'futures' => AppRoute.futures,
       'card' => AppRoute.card,
       _ => null,
     };
@@ -130,8 +129,7 @@ class _ProfileBody extends StatelessWidget {
         route == AppRoute.news ||
         route == AppRoute.funding ||
         route == AppRoute.card ||
-        route == AppRoute.swap ||
-        route == AppRoute.futures) {
+        route == AppRoute.swap) {
       context.push(route.path);
       return;
     }

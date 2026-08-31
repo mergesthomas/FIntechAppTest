@@ -54,7 +54,7 @@ final class HomeRepositoryImpl implements HomeRepository {
     const books = LedgerBook.values;
     const currencies = [
       Currency.btc,
-      Currency.nexo,
+      Currency.usdc,
       Currency.eurx,
       Currency.usd,
       Currency.usdt,

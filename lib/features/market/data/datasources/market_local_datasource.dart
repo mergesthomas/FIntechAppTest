@@ -7,7 +7,6 @@ final class MarketLocalDataSource {
     return switch (currency.code) {
       'BTC' => 'Bitcoin',
       'ETH' => 'Ethereum',
-      'NEXO' => 'NEXO',
       'DOGE' => 'Dogecoin',
       'SOL' => 'Solana',
       'XRP' => 'XRP',

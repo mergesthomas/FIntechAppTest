@@ -20,27 +20,27 @@ void main() {
     final live = convertWithFeed(
       feed: paper.feed,
       from: Money.parse('1', Currency.doge),
-      to: Currency.nexo,
+      to: Currency.usdc,
     ).getRight().toNullable()!;
     final limit = Money.fromDecimal(
       live.to.amount - Decimal.parse('0.01'),
-      Currency.nexo,
+      Currency.usdc,
     );
 
     await paper.ledger.placeHold(
       requestId: 'swap-limit-1',
-      hold: Money.parse('10', Currency.nexo),
+      hold: Money.parse('10', Currency.usdc),
       book: LedgerBook.savings,
       order: PaperOrder(
         id: 'ord-limit-1',
         requestId: 'swap-limit-1',
-        pair: 'NEXO/DOGE',
+        pair: 'USDC/DOGE',
         side: PaperSide.sell,
         status: PaperOrderStatus.open,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         wallet: 'savings',
         venue: PaperVenue.limit,
-        pay: Currency.nexo,
+        pay: Currency.usdc,
         receive: Currency.doge,
         limitPrice: limit,
       ),
@@ -74,20 +74,20 @@ void main() {
 
     await paper.ledger.placeHold(
       requestId: 'swap-limit-stale',
-      hold: Money.parse('10', Currency.nexo),
+      hold: Money.parse('10', Currency.usdc),
       book: LedgerBook.savings,
       order: PaperOrder(
         id: 'ord-limit-stale',
         requestId: 'swap-limit-stale',
-        pair: 'NEXO/DOGE',
+        pair: 'USDC/DOGE',
         side: PaperSide.sell,
         status: PaperOrderStatus.open,
-        amount: Money.parse('10', Currency.nexo),
+        amount: Money.parse('10', Currency.usdc),
         wallet: 'savings',
         venue: PaperVenue.limit,
-        pay: Currency.nexo,
+        pay: Currency.usdc,
         receive: Currency.doge,
-        limitPrice: Money.parse('9', Currency.nexo),
+        limitPrice: Money.parse('9', Currency.usdc),
       ),
     );
     await watcher.evaluate();

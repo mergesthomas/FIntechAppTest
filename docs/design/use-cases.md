@@ -2,7 +2,7 @@
 
 Status: **proposal — do not implement until a feature below is explicitly approved**  
 Branch: `feature/use-cases`  
-Source: local Nexo screenshots (`screenshots/`, gitignored)
+Source: local reference screenshots (`screenshots/`, gitignored). The shipped product drops Nexo branding, the NEXO token, and futures.
 
 This is the product map. Features are grouped by product area. Each feature lists screens, flows, Domain Use Cases, and gates.
 
@@ -48,7 +48,6 @@ Unauthenticated
 Authenticated shell (tabs)
 ├── Dashboard
 ├── Explore
-├── Futures
 ├── Card
 └── Exchange (Swap)
 
@@ -76,7 +75,7 @@ Profile / Products / Security & Settings / Inbox / News
 | 12 | `card` | Spend | **yes** | nexo_card_product, card_frozen | frozen + marketing; active card missing |
 | 13 | `swap` | Trade | **yes** | swap, swap_asset_picker | yes (preview/result missing — improvise) |
 | 14 | `orders` | Trade history | no (read) | order_history | yes |
-| 15 | `futures` | Trade | **yes** | futures, position_details | yes (chart/TP-SL/close confirm missing — improvise) |
+| 15 | `futures` | Trade | — | — | **dropped** |
 | 16 | `wallet` | Portfolio | no | — | **blocked** (Wallet CTA on dashboard; no screens) |
 
 Approve **one** row. Approving one does not approve the others.
@@ -156,10 +155,10 @@ Visible data:
 - Header: avatar initials, logo, gift, bell
 - Portfolio: total **$35,862.41**, **−4.92% / 1W**, line chart, **Wallet >**
 - Banner: EURx below zero — Learn more / dismiss
-- Watchlist: BTC, DOGE, PEPE, BONK, NEXO — price + 24h + sparkline
+- Watchlist: BTC, DOGE, PEPE, BONK, ETH — price + 24h + sparkline
 - Promo cards + News teaser
 - CTAs: **Send crypto** | **Add funds**
-- Tabs: Dashboard, Explore, Futures, Card, Exchange
+- Tabs: Dashboard, Explore, Card, Exchange
 
 ### Use Cases
 
@@ -185,7 +184,7 @@ Session required. Show last cached portfolio as **stale**, never as live.
 |---|---|---|
 | Profile (scrolled) | `profile` | yes (2) |
 
-Visible: greeting, Security & Settings, Loyalty **Platinum**, Nexo Private teaser, Rewards Hub, Refer a friend, product tiles (Credit / Savings / Futures / Card / Recurring Buy / More), Contact us, Help Center, How it works, Share feedback, app version **7.9.1**, Terms, About.
+Visible: greeting, Security & Settings, Loyalty **Platinum**, Private teaser, Rewards Hub, Refer a friend, product tiles (Card / Swap / Recurring Buy / More), Contact us, Help Center, How it works, Share feedback, app version **7.9.1**, Terms, About.
 
 ### Use Cases
 
@@ -207,7 +206,7 @@ Catalog of product entry points (not a submit).
 |---|---|---|
 | Products grid | `products` | yes |
 
-Groups: **Spend** (Card) · **Trade** (Swap, Futures) · **Information** (Explore, News).
+Groups: **Spend** (Card) · **Trade** (Swap) · **Information** (Explore, News).
 
 ### Use Cases
 
@@ -229,7 +228,7 @@ Three tabs on one surface.
 
 **Security:** Login information, Passkeys (Recommended), PIN, Address book (Whitelisting off), 2FA Enabled, Anti-phishing Enabled, Biometric toggle ON, Last logins, Close account, Log out.
 
-**Settings:** Identity, Savings settings, Credit Line settings, Futures settings, Payment methods, Notifications; Display currency USD, Language English, Appearance System.
+**Settings:** Identity, Payment methods, Notifications; Display currency USD, Language English, Appearance System.
 
 **Documents:** Tax report with Koinly; generate Account confirmation, Card confirmation, Account balance, Loan statement, Savings statement.
 
@@ -295,7 +294,7 @@ Source, headline, age, category, thumbnail. Header: avatar, logo, gift, bell. Ta
 | Explore discovery | `explore` | yes (3) |
 | Explore assets + products | `explore_assets` | yes |
 
-Visible: For-you promo, Top gainers / losers, Trending perpetuals, product tile row, All assets / News tabs, filters (All / Top gainers / losers / New), search.
+Visible: For-you promo, Top gainers / losers, product tile row, All assets / News tabs, filters (All / Top gainers / losers / New), search.
 
 Prices and APY from server. Freshness on every tick.
 
@@ -304,9 +303,8 @@ Prices and APY from server. Freshness on every tick.
 - `GetExploreFeed` — sections from server (do not hard-code gainers)
 - `GetMarketAssets` — filter + sort; price + 24h + sparkline + freshness
 - `SearchExploreAssets`
-- `GetTrendingPerpetuals`
 
-No trade submit on this feature. Tapping a pair opens `futures` or asset detail (**missing**).
+No trade submit on this feature. Tapping an asset opens market detail.
 
 ---
 
@@ -424,7 +422,7 @@ Exchange tab.
 | Swap asset picker | `swap_asset_picker` | yes |
 | Preview / result | `swap_preview`, `swap_result` | **missing — improvise** |
 
-Ticket: Instant / Limit / Trigger · From NEXO → To DOGE · live rate · Preview order.  
+Ticket: Instant / Limit / Trigger · From USDC → To DOGE · live rate · Preview order.  
 Savings / Credit hidden (savings book). Limit price and Trigger TP/SL as `Money`.  
 Picker: Pay with | Receive · supported assets with balances.
 
@@ -461,32 +459,7 @@ Tabs: Trigger Orders | Limit Orders. Past orders: pair, SELL, CANCELED, amount, 
 
 ## 15. `futures`
 
-### Screens
-
-| Screen | Folder | Have |
-|---|---|---|
-| Futures ticket + open position | `futures` | yes |
-| Position details | `position_details` | yes (3) |
-| Chart / preview / TP-SL / close confirm | those folders | **missing — improvise** |
-
-Ticket: BTCUSDT bid/ask, 100x, Long/Short, Market, size BTC↔USDT, % slider, TP/SL checkbox, bonus 21%, available margin **186.25 USDT** (+ add), required margin, margin risk **27.78%**, Preview position. Open: 1000PEPEUSDT LONG 100x.
-
-Details: size, leverage, P/L, entry / mark / liq, locked collateral, maintenance margin, funding + countdown, order id, Set TP/SL, Close position.
-
-### Use Cases
-
-- `GetFuturesInstrument` — pair, bid/ask, leverage options, freshness
-- `GetFuturesAccount` — available margin, required, risk, bonus progress
-- `GetOpenPositions`
-- `GetPositionDetails`
-- `GetFuturesQuote` — side + size + leverage + `quoteId` + freshness
-- `PreviewFuturesPosition` — same quote, no submit
-- `SubmitFuturesOrder` — `requestId` + `quoteId` + step-up. Refuse stale. Settlement
-- `SetTakeProfitStopLoss` — `requestId` + live mark
-- `ClosePosition` — `requestId` + settlement
-- `GetLastTrades`
-
-Do not submit on stale mark/bid-ask. Size and P/L are `Money`, not `double`.
+**Dropped.** Perpetuals and the futures ticket are out of scope.
 
 ---
 
@@ -506,7 +479,6 @@ Do not invent a portfolio feature. When shots arrive: balances, asset detail, tr
 | Dashboard Wallet | `wallet` (blocked) |
 | Card Restore balance | `funding` or `swap` |
 | Frozen card overflow | `swap` |
-| Explore perpetuals | `futures` |
 | Products tiles | matching feature |
 | Profile Security & Settings | `security_settings` |
 | Settings → Payment methods | `funding` methods |
@@ -515,7 +487,7 @@ Do not invent a portfolio feature. When shots arrive: balances, asset detail, tr
 
 ## Out of scope until screens exist
 
-Do not invent success UI or fields for: login/signup form, KYC wizard, wallet/asset/transaction detail, send crypto, buy/swap preview+result (structure may be improvised as review → confirm → confirmed/failed/unknown), link-card form / 3DS, recurring schedule editor, ACH instructions, restore-balance dedicated flow, loan detail, repay, futures chart / close confirm / pair picker, notification center, empty/error gallery, active card + transactions.
+Do not invent success UI or fields for: login/signup form, KYC wizard, wallet/asset/transaction detail, send crypto, buy/swap preview+result (structure may be improvised as review → confirm → confirmed/failed/unknown), link-card form / 3DS, recurring schedule editor, ACH instructions, restore-balance dedicated flow, loan detail, repay, notification center, empty/error gallery, active card + transactions.
 
 Improvise only the **standard money-moving chrome** (review → confirm → confirmed / failed / unknown). Do not invent fees, APY, LTV tables, or legal body.
 

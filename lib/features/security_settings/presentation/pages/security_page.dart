@@ -190,10 +190,6 @@ class _SettingsTab extends StatelessWidget {
         const ListTile(contentPadding: EdgeInsets.zero, title: Text('Identity')),
         const ListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text('Futures settings'),
-        ),
-        const ListTile(
-          contentPadding: EdgeInsets.zero,
           title: Text('Payment methods'),
         ),
         const ListTile(

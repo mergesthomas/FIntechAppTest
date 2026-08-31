@@ -83,7 +83,7 @@ final class HomeLocalDataSource {
       item(currency: Currency.doge, name: 'Dogecoin', price: '0.18', change: '-0.0120'),
       item(currency: Currency.pepe, name: 'Pepe', price: '0.00001', change: '0.0320'),
       item(currency: Currency.bonk, name: 'Bonk', price: '0.00002', change: '-0.0080'),
-      item(currency: Currency.nexo, name: 'NEXO', price: '0.8639', change: '0.0499'),
+      item(currency: Currency.eth, name: 'Ethereum', price: '2466.03', change: '0.0128'),
     ];
   }
 

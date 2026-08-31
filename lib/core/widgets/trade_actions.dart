@@ -6,7 +6,6 @@ import '../theme/app_text_styles.dart';
 abstract final class TradeActionLabels {
   static const buy = 'Buy';
   static const exchange = 'Exchange';
-  static const futures = 'Futures';
   static const addFunds = 'Add funds';
 }
 
@@ -15,13 +14,11 @@ class TradeActions extends StatelessWidget {
     super.key,
     required this.onBuy,
     required this.onExchange,
-    required this.onFutures,
     this.onAddFunds,
   });
 
   final VoidCallback onBuy;
   final VoidCallback onExchange;
-  final VoidCallback onFutures;
   final VoidCallback? onAddFunds;
 
   @override
@@ -39,12 +36,6 @@ class TradeActions extends StatelessWidget {
           icon: Icons.swap_horiz,
           label: TradeActionLabels.exchange,
           onTap: onExchange,
-        ),
-        _Action(
-          key: const Key('trade_futures'),
-          icon: Icons.show_chart,
-          label: TradeActionLabels.futures,
-          onTap: onFutures,
         ),
         if (onAddFunds != null)
           _Action(

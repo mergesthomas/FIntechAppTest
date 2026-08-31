@@ -20,7 +20,6 @@ final class Currency extends Equatable {
   static const doge = Currency(code: 'DOGE', scale: 8);
   static const pepe = Currency(code: 'PEPE', scale: 8);
   static const bonk = Currency(code: 'BONK', scale: 8);
-  static const nexo = Currency(code: 'NEXO', scale: 8);
 
   static Currency? tryParse(String? code) {
     return switch (code) {
@@ -38,7 +37,6 @@ final class Currency extends Equatable {
       'DOGE' => doge,
       'PEPE' => pepe,
       'BONK' => bonk,
-      'NEXO' => nexo,
       _ => null,
     };
   }

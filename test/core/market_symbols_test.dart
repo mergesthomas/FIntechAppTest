@@ -8,5 +8,6 @@ void main() {
     expect(binanceSymbolFor(Currency.bonk), 'BONKUSDT');
     expect(binanceTickerSymbols, containsAll(['PEPEUSDT', 'BONKUSDT']));
     expect(binanceTickerSymbols, isNot(contains('1000PEPEUSDT')));
+    expect(binanceTickerSymbols, isNot(contains('NEXOUSDT')));
   });
 }
