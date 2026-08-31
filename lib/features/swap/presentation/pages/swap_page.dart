@@ -33,10 +33,21 @@ class _SwapPageState extends State<SwapPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<SwapCubit>().load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
       }
+      await context.read<SwapCubit>().load();
+      if (!mounted) {
+        return;
+      }
+      final params = GoRouterState.of(context).uri.queryParameters;
+      context.read<SwapCubit>().applyRouteSeed(
+        toCode: params['to'],
+        quoteCode: params['quote'],
+        type: params['type'],
+        limitPrice: params['limitPrice'],
+      );
     });
   }
 

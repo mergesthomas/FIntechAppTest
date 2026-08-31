@@ -17,6 +17,7 @@ No Bloc, UI, or `lib/features/` until you approve **one** feature from the index
 | Funding | `funding` |
 | Spend | `card` |
 | Trade | `swap`, `orders` |
+| Markets | `order_book` (Use Cases on `feature/order-book`; UI later) |
 | Dropped | `borrow`, `earn`, `futures` |
 | Blocked | `wallet` (no screens) |
 

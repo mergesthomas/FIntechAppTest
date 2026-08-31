@@ -195,6 +195,57 @@ class SwapCubit extends Cubit<SwapState> {
     });
   }
 
+  /// Seeds Limit from a book tap. Does not quote or submit.
+  void applyRouteSeed({
+    String? toCode,
+    String? quoteCode,
+    String? type,
+    String? limitPrice,
+  }) {
+    final current = _ready;
+    if (current == null || type != 'limit') {
+      return;
+    }
+    final to = Currency.tryParse(toCode);
+    if (to == null || limitPrice == null || limitPrice.isEmpty) {
+      return;
+    }
+    final quote = Currency.tryParse(quoteCode) ?? Currency.usdt;
+    final parsed = _parse(limitPrice, quote);
+    if (parsed == null) {
+      return;
+    }
+    final from = _payCurrencyFor(quote, current.assets);
+    if (from == to) {
+      return;
+    }
+    final next = current.copyWith(
+      orderType: SwapOrderType.limit,
+      from: from,
+      to: to,
+      limitInput: parsed.amount.toString(),
+      inputField: SwapInputField.limitPrice,
+      clearQuote: true,
+      clearRate: true,
+    );
+    emit(next);
+    _listenRate(next);
+  }
+
+  Currency _payCurrencyFor(Currency quote, List<SwapAsset> assets) {
+    if (quote == Currency.usdt ||
+        quote == Currency.usd ||
+        quote == Currency.usdx) {
+      return Currency.usdc;
+    }
+    for (final asset in assets) {
+      if (asset.currency == quote) {
+        return quote;
+      }
+    }
+    return Currency.usdc;
+  }
+
   void selectOrderType(SwapOrderType type) {
     final current = _ready;
     if (current == null) {

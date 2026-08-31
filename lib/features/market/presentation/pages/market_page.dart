@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/providers.dart';
+import '../../../../core/market/candle_interval.dart';
+import '../../../../core/market/candle_series.dart';
+import '../../../../core/market/quote_freshness.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -14,11 +17,14 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/freshness_chip.dart';
 import '../../../../core/widgets/trade_actions.dart';
 import '../../domain/entities/market_asset.dart';
+import '../../domain/entities/order_book.dart';
 import '../copy/market_copy.dart';
 import '../cubit/market_cubit.dart';
+import '../market_swap_link.dart';
 import '../widgets/market_candlestick_chart.dart';
 import '../widgets/market_interval_chips.dart';
 import '../widgets/market_ohlc_bar.dart';
+import '../widgets/market_order_book.dart';
 
 class MarketPage extends ConsumerStatefulWidget {
   const MarketPage({super.key, required this.code});
@@ -48,6 +54,8 @@ class _MarketPageState extends ConsumerState<MarketPage> {
       child: Scaffold(
         appBar: AppBar(title: Text(widget.code)),
         body: BlocBuilder<MarketCubit, MarketState>(
+          buildWhen: (previous, current) =>
+              previous.runtimeType != current.runtimeType,
           builder: (context, state) {
             return switch (state) {
               MarketLoading() =>
@@ -55,7 +63,7 @@ class _MarketPageState extends ConsumerState<MarketPage> {
               MarketEmpty() => const AppEmptyState(message: 'No market data'),
               MarketFailure(:final failure) =>
                 AppEmptyState(message: '$failure'),
-              MarketSuccess() => _Body(state: state),
+              MarketSuccess() => const _Body(),
             };
           },
         ),
@@ -65,9 +73,7 @@ class _MarketPageState extends ConsumerState<MarketPage> {
 }
 
 class _Body extends StatefulWidget {
-  const _Body({required this.state});
-
-  final MarketSuccess state;
+  const _Body();
 
   @override
   State<_Body> createState() => _BodyState();
@@ -76,105 +82,212 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   final _chartKey = GlobalKey<MarketCandlestickChartState>();
 
-  MarketAsset get asset => widget.state.asset;
-  MarketSuccess get state => widget.state;
-
   @override
   Widget build(BuildContext context) {
-    final up = asset.change24h >= Decimal.zero;
-    final scheme = Theme.of(context).colorScheme;
-    final latest = state.candles.latest;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.pageHorizontal,
-            AppSpacing.md,
-            AppSpacing.pageHorizontal,
-            0,
+    return BlocListener<MarketCubit, MarketState>(
+      listenWhen: (previous, current) {
+        final prev =
+            previous is MarketSuccess ? previous.selectionFailure : null;
+        final next = current is MarketSuccess ? current.selectionFailure : null;
+        return next != null && next != prev;
+      },
+      listener: (context, state) {
+        if (state is! MarketSuccess || state.selectionFailure == null) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(MarketCopy.bookFailure(state.selectionFailure!)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                asset.name,
-                style: AppTextStyles.secondary.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      formatMoney(asset.price, withCode: true),
-                      key: const Key('market_price'),
-                      style: AppTextStyles.balance,
+        );
+        context.read<MarketCubit>().clearSelectionFailure();
+      },
+      child: ListView(
+        key: const Key('market_scroll'),
+        children: [
+          const _Header(),
+          SizedBox(
+            height: 220,
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: BlocSelector<
+                  MarketCubit,
+                  MarketState,
+                  ({CandleSeries? candles, bool showVolume})>(
+                selector: (state) {
+                  if (state is! MarketSuccess) {
+                    return (candles: null, showVolume: true);
+                  }
+                  return (
+                    candles: state.candles,
+                    showVolume: state.showVolume,
+                  );
+                },
+                builder: (context, view) {
+                  final series = view.candles;
+                  if (series == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return KeyedSubtree(
+                    key: const Key('market_candlestick_chart'),
+                    child: MarketCandlestickChart(
+                      key: _chartKey,
+                      series: series,
+                      showVolume: view.showVolume,
                     ),
-                  ),
-                  FreshnessChip(freshness: asset.freshness),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                '${up ? '+' : ''}${(asset.change24h * Decimal.fromInt(100)).toString()}%',
-                style: AppTextStyles.secondary.copyWith(
-                  color: AppSemanticColors.change(scheme, up: up),
-                ),
-              ),
-              if (latest != null) ...[
-                const SizedBox(height: AppSpacing.xs),
-                MarketOhlcBar(
-                  key: const Key('market_ohlc_stats'),
-                  candle: latest,
-                ),
-              ],
-            ],
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: KeyedSubtree(
-              key: const Key('market_candlestick_chart'),
-              child: MarketCandlestickChart(
-                key: _chartKey,
-                series: state.candles,
-                showVolume: state.showVolume,
+                  );
+                },
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.pageHorizontal,
-            AppSpacing.xs,
-            AppSpacing.pageHorizontal,
-            AppSpacing.lg,
-          ),
-          child: Column(
-            children: [
-              MarketIntervalChips(
-                selected: state.candles.interval,
-                onSelected: context.read<MarketCubit>().selectInterval,
-              ),
-              const SizedBox(height: AppSpacing.xxs),
-              _ChartToolbar(
-                showVolume: state.showVolume,
-                onReset: () => _chartKey.currentState?.resetZoom(),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TradeActions(
-                onBuy: () => context.push(
-                  '${AppRoute.funding.path}?action=buy&asset=${asset.currency.code}',
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.pageHorizontal,
+              AppSpacing.xs,
+              AppSpacing.pageHorizontal,
+              AppSpacing.lg,
+            ),
+            child: Column(
+              children: [
+                BlocSelector<MarketCubit, MarketState, CandleInterval>(
+                  selector: (state) => state is MarketSuccess
+                      ? state.candles.interval
+                      : CandleInterval.m15,
+                  builder: (context, interval) {
+                    return MarketIntervalChips(
+                      selected: interval,
+                      onSelected: context.read<MarketCubit>().selectInterval,
+                    );
+                  },
                 ),
-                onExchange: () => context.push(AppRoute.swap.path),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.xxs),
+                BlocSelector<MarketCubit, MarketState, bool>(
+                  selector: (state) =>
+                      state is MarketSuccess ? state.showVolume : true,
+                  builder: (context, showVolume) {
+                    return _ChartToolbar(
+                      showVolume: showVolume,
+                      onReset: () => _chartKey.currentState?.resetZoom(),
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocSelector<MarketCubit, MarketState, OrderBook?>(
+                  selector: (state) =>
+                      state is MarketSuccess ? state.orderBook : null,
+                  builder: (context, book) {
+                    return MarketOrderBook(
+                      book: book,
+                      onLevelSelected:
+                          book?.freshness == QuoteFreshness.disconnected
+                              ? null
+                              : (level) => _selectLevel(context, level),
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocSelector<MarketCubit, MarketState, String>(
+                  selector: (state) => state is MarketSuccess
+                      ? state.asset.currency.code
+                      : '',
+                  builder: (context, code) {
+                    return TradeActions(
+                      onBuy: () => context.push(
+                        '${AppRoute.funding.path}?action=buy&asset=$code',
+                      ),
+                      onExchange: () => context.push(AppRoute.swap.path),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectLevel(
+    BuildContext context,
+    OrderBookLevel level,
+  ) async {
+    final draft = await context.read<MarketCubit>().selectLevel(
+      side: level.side,
+      price: level.price,
+    );
+    if (draft == null || !context.mounted) {
+      return;
+    }
+    context.push(MarketSwapLink.limitFromDraft(draft));
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.md,
+        AppSpacing.pageHorizontal,
+        0,
+      ),
+      child: BlocSelector<MarketCubit, MarketState, MarketAsset?>(
+        selector: (state) => state is MarketSuccess ? state.asset : null,
+        builder: (context, asset) {
+          if (asset == null) {
+            return const SizedBox.shrink();
+          }
+          final up = asset.change24h >= Decimal.zero;
+          final scheme = Theme.of(context).colorScheme;
+          return BlocSelector<MarketCubit, MarketState, OhlcvCandle?>(
+            selector: (state) =>
+                state is MarketSuccess ? state.candles.latest : null,
+            builder: (context, latest) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    asset.name,
+                    style: AppTextStyles.secondary.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          formatMoney(asset.price, withCode: true),
+                          key: const Key('market_price'),
+                          style: AppTextStyles.balance,
+                        ),
+                      ),
+                      FreshnessChip(freshness: asset.freshness),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${up ? '+' : ''}${(asset.change24h * Decimal.fromInt(100)).toString()}%',
+                    style: AppTextStyles.secondary.copyWith(
+                      color: AppSemanticColors.change(scheme, up: up),
+                    ),
+                  ),
+                  if (latest != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    MarketOhlcBar(
+                      key: const Key('market_ohlc_stats'),
+                      candle: latest,
+                    ),
+                  ],
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
