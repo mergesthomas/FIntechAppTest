@@ -3,7 +3,6 @@ import 'package:fpdart/fpdart.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/market/market_feed.dart';
 import '../../../../core/market/price_series.dart';
-import '../../../../core/money/currency.dart';
 import '../../domain/entities/explore_asset.dart';
 import '../../domain/repositories/explore_repository.dart';
 import '../datasources/explore_local_datasource.dart';

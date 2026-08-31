@@ -124,6 +124,7 @@ void main() {
       Money.parse('10040', Currency.doge),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.filled);
+    expect(paper.store.all.first.filledAt, isNotNull);
   });
 
   test('seed records filled card buys including USDC funding before 1Y', () {

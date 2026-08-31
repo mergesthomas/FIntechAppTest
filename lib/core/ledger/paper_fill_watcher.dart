@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import '../error/failure.dart';
 import '../market/market_feed.dart';
 import '../market/quote_freshness.dart';
 import '../market/quote_math.dart';

@@ -282,7 +282,14 @@ final securityCubitProvider = Provider<SecurityCubit>((ref) {
 });
 
 final inboxRepositoryProvider = Provider<InboxRepository>((ref) {
-  return InboxRepositoryImpl(const InboxLocalDataSource());
+  final ledger = ref.watch(paperLedgerProvider);
+  return InboxRepositoryImpl(
+    InboxLocalDataSource(
+      store: ledger.orders,
+      feed: ref.watch(marketFeedProvider),
+      clock: ref.watch(appClockProvider),
+    ),
+  );
 });
 
 final inboxCubitProvider = Provider<InboxCubit>((ref) {

@@ -118,7 +118,12 @@ final class PaperLedger {
       }
     }
     _posts[requestId] = SettlementStatus.inFlight;
-    _orders.add(order.copyWith(status: PaperOrderStatus.open));
+    _orders.add(
+      order.copyWith(
+        status: PaperOrderStatus.open,
+        createdAt: order.createdAt ?? _clock.now().toUtc(),
+      ),
+    );
     logSettlementBreadcrumb(
       requestId: requestId,
       status: SettlementStatus.inFlight,
@@ -166,7 +171,12 @@ final class PaperLedger {
       return Either.left(const ValidationFailure('insufficient_balance'));
     }
     _posts[requestId] = SettlementStatus.inFlight;
-    _orders.add(order.copyWith(status: PaperOrderStatus.open));
+    _orders.add(
+      order.copyWith(
+        status: PaperOrderStatus.open,
+        createdAt: order.createdAt ?? _clock.now().toUtc(),
+      ),
+    );
     _holds[order.id] = _Hold(book: book, amount: hold);
     _set(book, next);
     logSettlementBreadcrumb(
@@ -209,7 +219,11 @@ final class PaperLedger {
     );
     _set(book, balance(book, credit.currency) + credit);
     _holds.remove(orderId);
-    _orders.setStatus(orderId, PaperOrderStatus.filled);
+    _orders.setStatus(
+      orderId,
+      PaperOrderStatus.filled,
+      filledAt: _clock.now().toUtc(),
+    );
     _posts[fillId] = SettlementStatus.confirmed;
     logSettlementBreadcrumb(
       requestId: fillId,
@@ -292,6 +306,7 @@ final class PaperLedger {
         wallet: 'card',
         venue: PaperVenue.market,
         receive: receive.currency,
+        createdAt: at,
         filledAt: at,
       ),
     );

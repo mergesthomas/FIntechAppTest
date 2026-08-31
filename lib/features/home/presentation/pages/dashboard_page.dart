@@ -110,6 +110,7 @@ class _DashboardHeader extends StatelessWidget {
         ),
         const Spacer(),
         IconButton(
+          key: const Key('inbox'),
           tooltip: 'Inbox',
           onPressed: () => _go(context, AppRoute.inbox),
           icon: Icon(Icons.notifications_none, color: scheme.onSurface),

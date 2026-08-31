@@ -45,15 +45,18 @@ void main() {
     when(() => inbox.getItems()).thenAnswer(
       (_) async => Either.right([
         InboxItem(
-          id: '1',
-          title: 'Interest Earned',
-          amount: Money.parse('2.40', Currency.usd),
-          dateLabel: 'Today',
+          id: 'ord-seed-buy-btc',
+          title: 'Bought BTC',
+          amount: Money.parse('0.15', Currency.btc),
+          dateLabel: 'May 1, 2025',
+          kind: InboxItemKind.buy,
+          occurredAt: DateTime.utc(2025, 5, 1),
+          unitPrice: Money.parse('65000', Currency.usd),
         ),
       ]),
     );
 
     final result = await getItems(const NoParams());
-    expect(result.getRight().toNullable()?.first.title, 'Interest Earned');
+    expect(result.getRight().toNullable()?.first.title, 'Bought BTC');
   });
 }

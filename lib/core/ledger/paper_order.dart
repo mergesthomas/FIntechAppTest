@@ -24,6 +24,7 @@ final class PaperOrder extends Equatable {
     this.limitPrice,
     this.takeProfit,
     this.stopLoss,
+    this.createdAt,
     this.filledAt,
   });
 
@@ -40,9 +41,16 @@ final class PaperOrder extends Equatable {
   final Money? limitPrice;
   final Money? takeProfit;
   final Money? stopLoss;
+  final DateTime? createdAt;
   final DateTime? filledAt;
 
-  PaperOrder copyWith({PaperOrderStatus? status, DateTime? filledAt}) {
+  DateTime? get occurredAt => filledAt ?? createdAt;
+
+  PaperOrder copyWith({
+    PaperOrderStatus? status,
+    DateTime? createdAt,
+    DateTime? filledAt,
+  }) {
     return PaperOrder(
       id: id,
       requestId: requestId,
@@ -57,6 +65,7 @@ final class PaperOrder extends Equatable {
       limitPrice: limitPrice,
       takeProfit: takeProfit,
       stopLoss: stopLoss,
+      createdAt: createdAt ?? this.createdAt,
       filledAt: filledAt ?? this.filledAt,
     );
   }
@@ -76,6 +85,7 @@ final class PaperOrder extends Equatable {
         limitPrice,
         takeProfit,
         stopLoss,
+        createdAt,
         filledAt,
       ];
 }
