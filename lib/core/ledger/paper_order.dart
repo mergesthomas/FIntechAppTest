@@ -24,6 +24,8 @@ final class PaperOrder extends Equatable {
     this.limitPrice,
     this.takeProfit,
     this.stopLoss,
+    this.createdAt,
+    this.filledAt,
   });
 
   final String id;
@@ -39,8 +41,16 @@ final class PaperOrder extends Equatable {
   final Money? limitPrice;
   final Money? takeProfit;
   final Money? stopLoss;
+  final DateTime? createdAt;
+  final DateTime? filledAt;
 
-  PaperOrder copyWith({PaperOrderStatus? status}) {
+  DateTime? get occurredAt => filledAt ?? createdAt;
+
+  PaperOrder copyWith({
+    PaperOrderStatus? status,
+    DateTime? createdAt,
+    DateTime? filledAt,
+  }) {
     return PaperOrder(
       id: id,
       requestId: requestId,
@@ -55,6 +65,8 @@ final class PaperOrder extends Equatable {
       limitPrice: limitPrice,
       takeProfit: takeProfit,
       stopLoss: stopLoss,
+      createdAt: createdAt ?? this.createdAt,
+      filledAt: filledAt ?? this.filledAt,
     );
   }
 
@@ -73,6 +85,8 @@ final class PaperOrder extends Equatable {
         limitPrice,
         takeProfit,
         stopLoss,
+        createdAt,
+        filledAt,
       ];
 }
 
@@ -86,12 +100,15 @@ final class PaperOrderStore {
     _orders.insert(0, order);
   }
 
-  void setStatus(String id, PaperOrderStatus status) {
+  void setStatus(String id, PaperOrderStatus status, {DateTime? filledAt}) {
     final index = _orders.indexWhere((o) => o.id == id);
     if (index < 0) {
       return;
     }
-    _orders[index] = _orders[index].copyWith(status: status);
+    _orders[index] = _orders[index].copyWith(
+      status: status,
+      filledAt: filledAt,
+    );
   }
 
   PaperOrder? byId(String id) {

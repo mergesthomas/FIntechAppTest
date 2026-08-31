@@ -20,6 +20,7 @@ import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/security_settings/presentation/pages/security_page.dart';
 import '../../features/market/presentation/pages/market_page.dart';
+import '../../features/home/presentation/pages/add_watchlist_page.dart';
 import 'app_route.dart';
 
 class SessionRouterRefresh extends ChangeNotifier {
@@ -64,15 +65,13 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       ),
       GoRoute(
         path: AppRoute.login.path,
-        builder: (context, state) => const PhoneAuthPage(
-          intent: AuthIntent.login,
-        ),
+        builder:
+            (context, state) => const PhoneAuthPage(intent: AuthIntent.login),
       ),
       GoRoute(
         path: AppRoute.signUp.path,
-        builder: (context, state) => const PhoneAuthPage(
-          intent: AuthIntent.signUp,
-        ),
+        builder:
+            (context, state) => const PhoneAuthPage(intent: AuthIntent.signUp),
       ),
       GoRoute(
         path: AppRoute.verifySms.path,
@@ -136,9 +135,13 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       ),
       GoRoute(
         path: '${AppRoute.market.path}/:code',
-        builder: (context, state) => MarketPage(
-          code: state.pathParameters['code'] ?? '',
-        ),
+        builder:
+            (context, state) =>
+                MarketPage(code: state.pathParameters['code'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoute.watchlistAdd.path,
+        builder: (context, state) => const AddWatchlistPage(),
       ),
     ],
   );

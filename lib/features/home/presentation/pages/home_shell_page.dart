@@ -65,10 +65,7 @@ class _HomeTabsState extends State<_HomeTabs> {
           }
         },
         destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
+          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
           NavigationDestination(
             icon: Icon(Icons.explore_outlined),
             label: 'Explore',

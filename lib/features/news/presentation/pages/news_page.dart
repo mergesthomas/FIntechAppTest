@@ -35,32 +35,32 @@ class _NewsPageState extends State<NewsPage> {
             NewsEmpty() => const AppEmptyState(message: 'No news'),
             NewsFailure(:final failure) => AppEmptyState(message: '$failure'),
             NewsSuccess(:final items) => ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.pageHorizontal,
-                  AppSpacing.md,
-                  AppSpacing.pageHorizontal,
-                  AppSpacing.lg,
-                ),
-                children: [
-                  for (final item in items)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item.headline, style: AppTextStyles.body),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${item.source} · ${item.age}',
-                            style: AppTextStyles.meta.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+              key: const Key('news_feed_scroll'),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.pageHorizontal,
+                AppSpacing.md,
+                AppSpacing.pageHorizontal,
+                AppSpacing.lg,
+              ),
+              children: [
+                for (final item in items)
+                  ListTile(
+                    key: Key('news_item_${item.id}'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(item.headline, style: AppTextStyles.body),
+                    subtitle: Text(
+                      '${item.source} · ${item.age}',
+                      style: AppTextStyles.meta.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                ],
-              ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
           };
         },
       ),

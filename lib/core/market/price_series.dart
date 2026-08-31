@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 
 import 'quote_freshness.dart';
 
-enum ChartPeriod { oneDay, oneWeek, oneMonth, oneYear }
+enum ChartPeriod { oneDay, oneWeek, oneMonth, oneYear, all }
 
 final class PriceSeries extends Equatable {
   const PriceSeries({
@@ -34,25 +34,43 @@ final class PriceSeries extends Equatable {
 
 /// Deterministic series for tests and offline fallback. Decimal only.
 ///
-/// One slow hill plus seeded noise — not a repeating 5-sample sawtooth.
+/// Shape is seeded by [seedKey] (ticker) and [changeRatio] (24h). First and
+/// last closes match that move so every sparkline is not the same hill.
 List<Decimal> syntheticCloses({
   required Decimal last,
   required ChartPeriod period,
+  String seedKey = '',
+  Decimal? changeRatio,
 }) {
-  final count = switch (period) {
-    ChartPeriod.oneDay => 24,
-    ChartPeriod.oneWeek => 28,
-    ChartPeriod.oneMonth => 30,
-    ChartPeriod.oneYear => 24,
-  };
+  final count = syntheticPointCount(period);
   if (last == Decimal.zero) {
     return List.filled(count, Decimal.zero);
   }
-  final seed = _digitSeed(last);
   final n = count <= 1 ? 1 : count - 1;
+  final seed = _keySeed(seedKey, last);
+  final change = changeRatio ?? Decimal.zero;
+  final denom = Decimal.one + change;
+  final start =
+      denom == Decimal.zero
+          ? last
+          : (last / denom).toDecimal(scaleOnInfinitePrecision: 16);
+  final peak = 1 + seed % (n <= 1 ? 1 : n - 1);
+  final hill = seed.isEven ? 1 : -1;
+  final easeKind = seed % 3;
+  final intensity = _bumpIntensity(change);
   return [
     for (var i = 0; i < count; i++)
-      last + _syntheticDelta(i: i, n: n, last: last, seed: seed),
+      _syntheticClose(
+        i: i,
+        n: n,
+        last: last,
+        start: start,
+        seed: seed,
+        peak: peak,
+        hill: hill,
+        easeKind: easeKind,
+        intensity: intensity,
+      ),
   ];
 }
 
@@ -65,24 +83,86 @@ int _digitSeed(Decimal last) {
   return hash;
 }
 
-Decimal _syntheticDelta({
+int _keySeed(String seedKey, Decimal last) {
+  var hash = _digitSeed(last);
+  for (final unit in seedKey.codeUnits) {
+    hash = (hash * 33 + unit) & 0x7fffffff;
+  }
+  return hash == 0 ? 1 : hash;
+}
+
+Decimal _bumpIntensity(Decimal change) {
+  final abs = change.abs();
+  if (abs > Decimal.parse('0.008')) {
+    return abs * Decimal.parse('0.55');
+  }
+  return Decimal.parse('0.012');
+}
+
+Decimal _ease(int i, int n, int kind) {
+  final t = (Decimal.fromInt(i) / Decimal.fromInt(n)).toDecimal(
+    scaleOnInfinitePrecision: 12,
+  );
+  return switch (kind) {
+    1 => t * t,
+    2 => t * (Decimal.fromInt(2) - t),
+    _ => t,
+  };
+}
+
+Decimal _tri(int i, int n, int peak) {
+  if (i == 0 || i == n || peak <= 0 || peak >= n) {
+    return Decimal.zero;
+  }
+  if (i == peak) {
+    return Decimal.one;
+  }
+  if (i < peak) {
+    return (Decimal.fromInt(i) / Decimal.fromInt(peak)).toDecimal(
+      scaleOnInfinitePrecision: 12,
+    );
+  }
+  return (Decimal.fromInt(n - i) / Decimal.fromInt(n - peak)).toDecimal(
+    scaleOnInfinitePrecision: 12,
+  );
+}
+
+Decimal _syntheticClose({
   required int i,
   required int n,
   required Decimal last,
+  required Decimal start,
   required int seed,
+  required int peak,
+  required int hill,
+  required int easeKind,
+  required Decimal intensity,
 }) {
-  final arch = (Decimal.fromInt(4 * i * (n - i)) / Decimal.fromInt(n * n))
-      .toDecimal(scaleOnInfinitePrecision: 12);
-  final bump = last * Decimal.parse('0.03') * (arch - Decimal.parse('0.5'));
-  final drift = (last * Decimal.parse('0.01') * Decimal.fromInt(i) /
-          Decimal.fromInt(n + 1))
-      .toDecimal(scaleOnInfinitePrecision: 12);
-  final noise = (last *
-          Decimal.parse('0.004') *
+  if (i == 0) {
+    return start;
+  }
+  if (i == n) {
+    return last;
+  }
+  final trend = start + (last - start) * _ease(i, n, easeKind);
+  final bump =
+      last.abs() * intensity * Decimal.fromInt(hill) * _tri(i, n, peak);
+  final noise = (last.abs() *
+          Decimal.parse('0.002') *
           Decimal.fromInt(((i * 17 + seed) % 11) - 5) /
           Decimal.fromInt(5))
       .toDecimal(scaleOnInfinitePrecision: 12);
-  return bump + drift + noise;
+  return trend + bump + noise;
+}
+
+int syntheticPointCount(ChartPeriod period) {
+  return switch (period) {
+    ChartPeriod.oneDay => 24,
+    ChartPeriod.oneWeek => 28,
+    ChartPeriod.oneMonth => 30,
+    ChartPeriod.oneYear => 24,
+    ChartPeriod.all => 48,
+  };
 }
 
 Decimal seriesChangeRatio(List<Decimal> closes) {

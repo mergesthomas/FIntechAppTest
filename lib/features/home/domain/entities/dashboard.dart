@@ -1,12 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/market/chart_sample.dart';
 import '../../../../core/market/price_series.dart';
 import '../../../../core/market/quote_freshness.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 
-enum DashboardPeriod { oneDay, oneWeek, oneMonth, oneYear }
+enum DashboardPeriod { oneDay, oneWeek, oneMonth, oneYear, all }
 
 ChartPeriod chartPeriodOf(DashboardPeriod period) {
   return switch (period) {
@@ -14,6 +15,7 @@ ChartPeriod chartPeriodOf(DashboardPeriod period) {
     DashboardPeriod.oneWeek => ChartPeriod.oneWeek,
     DashboardPeriod.oneMonth => ChartPeriod.oneMonth,
     DashboardPeriod.oneYear => ChartPeriod.oneYear,
+    DashboardPeriod.all => ChartPeriod.all,
   };
 }
 
@@ -30,13 +32,50 @@ final class DashboardOverview extends Equatable {
   final Money netWorth;
   final Decimal periodChangeRatio;
   final DashboardPeriod period;
-  final List<Decimal> chart;
+  final List<ChartSample> chart;
   final QuoteFreshness freshness;
   final String initials;
 
   @override
-  List<Object?> get props =>
-      [netWorth, periodChangeRatio, period, chart, freshness, initials];
+  List<Object?> get props => [
+    netWorth,
+    periodChangeRatio,
+    period,
+    chart,
+    freshness,
+    initials,
+  ];
+}
+
+final class HoldingItem extends Equatable {
+  const HoldingItem({
+    required this.currency,
+    required this.displayName,
+    required this.quantity,
+    required this.value,
+    required this.change24hRatio,
+    required this.sparkline,
+    required this.freshness,
+  });
+
+  final Currency currency;
+  final String displayName;
+  final Money quantity;
+  final Money value;
+  final Decimal change24hRatio;
+  final List<Decimal> sparkline;
+  final QuoteFreshness freshness;
+
+  @override
+  List<Object?> get props => [
+    currency,
+    displayName,
+    quantity,
+    value,
+    change24hRatio,
+    sparkline,
+    freshness,
+  ];
 }
 
 final class WatchlistItem extends Equatable {
@@ -57,8 +96,14 @@ final class WatchlistItem extends Equatable {
   final QuoteFreshness freshness;
 
   @override
-  List<Object?> get props =>
-      [currency, displayName, price, change24hRatio, sparkline, freshness];
+  List<Object?> get props => [
+    currency,
+    displayName,
+    price,
+    change24hRatio,
+    sparkline,
+    freshness,
+  ];
 }
 
 final class DashboardAlert extends Equatable {
@@ -92,10 +137,7 @@ final class DashboardPromo extends Equatable {
 }
 
 final class NewsPreview extends Equatable {
-  const NewsPreview({
-    required this.id,
-    required this.titleKey,
-  });
+  const NewsPreview({required this.id, required this.titleKey});
 
   final String id;
   final String titleKey;

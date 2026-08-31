@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/market/quote_freshness.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -330,7 +331,7 @@ class _BuyAssets extends StatelessWidget {
           ListTile(
             key: Key('buy_asset_${asset.currency.code}'),
             title: Text(asset.currency.code),
-            subtitle: Text('${asset.displayName} · ${asset.freshness.name}'),
+            subtitle: Text(asset.freshness.labeled(asset.displayName)),
             trailing: Text(formatMoney(asset.price)),
             onTap: () => context.read<FundingCubit>().selectBuyAsset(asset),
           ),
@@ -411,7 +412,8 @@ class _BuyPreview extends StatelessWidget {
           label: 'Receive',
           value: formatMoney(quote.receive, withCode: true),
         ),
-        DetailRow(label: 'Freshness', value: quote.freshness.name),
+        if (quote.freshness.statusLabel != null)
+          DetailRow(label: 'Freshness', value: quote.freshness.statusLabel!),
         const SizedBox(height: AppSpacing.xs),
         Text(quote.cashbackTeaser, style: AppTextStyles.secondary),
         const SizedBox(height: AppSpacing.lg),

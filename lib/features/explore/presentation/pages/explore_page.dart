@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/market/quote_freshness.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -197,7 +198,7 @@ class _Feed extends StatelessWidget {
     return AssetListRow(
       key: keyed ? Key('explore_asset_${asset.currency.code}') : null,
       symbol: asset.currency.code,
-      subtitle: '${asset.name} · ${asset.freshness.name}',
+      subtitle: asset.freshness.labeled(asset.name),
       priceLabel: formatMoney(asset.price),
       changeLabel: _pct(asset.change24h),
       change: asset.change24h,

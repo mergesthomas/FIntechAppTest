@@ -15,6 +15,12 @@ void main() {
     expect(ys[1], lessThan(1.0));
   });
 
+  test('chartIndexAt maps pointer x to the nearest sample', () {
+    expect(chartIndexAt(count: 5, width: 100, dx: 0), 0);
+    expect(chartIndexAt(count: 5, width: 100, dx: 100), 4);
+    expect(chartIndexAt(count: 5, width: 100, dx: 50), 2);
+  });
+
   test('equal values sit on the midline', () {
     expect(
       chartUnitYs([Decimal.parse('1'), Decimal.parse('1')]),

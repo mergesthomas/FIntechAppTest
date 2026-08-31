@@ -23,8 +23,8 @@ final class BinanceMarketFeed implements MarketFeed {
     required FlavorConfig flavor,
     required AppClock clock,
     this.staleAfter = const Duration(seconds: 15),
-  })  : _flavor = flavor,
-        _clock = clock;
+  }) : _flavor = flavor,
+       _clock = clock;
 
   final FlavorConfig _flavor;
   final AppClock _clock;
@@ -67,7 +67,9 @@ final class BinanceMarketFeed implements MarketFeed {
         '${_flavor.marketRestUrl}/api/v3/ticker/24hr?symbols=$symbols',
       );
       final request = await _http!.getUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close().timeout(
+        const Duration(seconds: 8),
+      );
       if (response.statusCode != 200) {
         _connection = QuoteFreshness.disconnected;
         return;
@@ -143,9 +145,8 @@ final class BinanceMarketFeed implements MarketFeed {
         cancelOnError: false,
       );
     } on Object {
-      _connection = _quotes.isEmpty
-          ? QuoteFreshness.disconnected
-          : QuoteFreshness.stale;
+      _connection =
+          _quotes.isEmpty ? QuoteFreshness.disconnected : QuoteFreshness.stale;
     }
   }
 
@@ -162,9 +163,10 @@ final class BinanceMarketFeed implements MarketFeed {
       return;
     }
     if (_clock.now().difference(last) > staleAfter) {
-      _connection = _connection == QuoteFreshness.disconnected
-          ? QuoteFreshness.disconnected
-          : QuoteFreshness.stale;
+      _connection =
+          _connection == QuoteFreshness.disconnected
+              ? QuoteFreshness.disconnected
+              : QuoteFreshness.stale;
       for (final entry in _quotes.entries) {
         _quotes[entry.key] = entry.value.copyWith(freshness: _connection);
       }
@@ -179,9 +181,10 @@ final class BinanceMarketFeed implements MarketFeed {
         symbol: 'USD',
         price: Money.parse('1', Currency.usdt),
         change24h: Decimal.zero,
-        freshness: _connection == QuoteFreshness.disconnected
-            ? QuoteFreshness.disconnected
-            : _connection,
+        freshness:
+            _connection == QuoteFreshness.disconnected
+                ? QuoteFreshness.disconnected
+                : _connection,
         updatedAt: _clock.now(),
       );
     }
@@ -217,7 +220,12 @@ final class BinanceMarketFeed implements MarketFeed {
     final last = usdPrice(currency)?.amount ?? Decimal.one;
     return PriceSeries(
       period: period,
-      closes: syntheticCloses(last: last, period: period),
+      closes: syntheticCloses(
+        last: last,
+        period: period,
+        seedKey: currency.code,
+        changeRatio: quoteFor(currency)?.change24h,
+      ),
       freshness: QuoteFreshness.stale,
     );
   }
@@ -255,7 +263,7 @@ final class BinanceMarketFeed implements MarketFeed {
     if (isUsdPeg(currency)) {
       final peg = PriceSeries(
         period: period,
-        closes: List.filled(24, Decimal.one),
+        closes: List.filled(syntheticPointCount(period), Decimal.one),
         freshness: connection,
       );
       _series[_seriesKey(currency, period)] = peg;
@@ -272,18 +280,22 @@ final class BinanceMarketFeed implements MarketFeed {
         ChartPeriod.oneWeek => '4h',
         ChartPeriod.oneMonth => '1d',
         ChartPeriod.oneYear => '1w',
+        ChartPeriod.all => '1w',
       };
       final limit = switch (period) {
         ChartPeriod.oneDay => 24,
         ChartPeriod.oneWeek => 42,
         ChartPeriod.oneMonth => 30,
         ChartPeriod.oneYear => 52,
+        ChartPeriod.all => 104,
       };
       final uri = Uri.parse(
         '${_flavor.marketRestUrl}/api/v3/klines?symbol=$symbol&interval=$interval&limit=$limit',
       );
       final request = await _http!.getUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close().timeout(
+        const Duration(seconds: 8),
+      );
       if (response.statusCode != 200) {
         return _syntheticSeries(currency, period);
       }
@@ -312,10 +324,7 @@ final class BinanceMarketFeed implements MarketFeed {
     return '${currency.code}:${interval.name}';
   }
 
-  CandleSeries _syntheticCandles(
-    Currency currency,
-    CandleInterval interval,
-  ) {
+  CandleSeries _syntheticCandles(Currency currency, CandleInterval interval) {
     final last = usdPrice(currency)?.amount ?? Decimal.one;
     return syntheticCandleSeries(
       last: last,
@@ -384,7 +393,9 @@ final class BinanceMarketFeed implements MarketFeed {
         '${_flavor.marketRestUrl}/api/v3/klines?symbol=$symbol&interval=${interval.binanceCode}&limit=${interval.requestLimit}',
       );
       final request = await _http!.getUrl(uri);
-      final response = await request.close().timeout(const Duration(seconds: 8));
+      final response = await request.close().timeout(
+        const Duration(seconds: 8),
+      );
       if (response.statusCode != 200) {
         return _cachedOrSynthetic(currency, interval);
       }
@@ -409,16 +420,14 @@ final class BinanceMarketFeed implements MarketFeed {
     }
   }
 
-  CandleSeries _cachedOrSynthetic(
-    Currency currency,
-    CandleInterval interval,
-  ) {
+  CandleSeries _cachedOrSynthetic(Currency currency, CandleInterval interval) {
     final cached = _candles[_candleKey(currency, interval)];
     if (cached != null) {
       return cached.copyWith(
-        freshness: _connection == QuoteFreshness.disconnected
-            ? QuoteFreshness.disconnected
-            : QuoteFreshness.stale,
+        freshness:
+            _connection == QuoteFreshness.disconnected
+                ? QuoteFreshness.disconnected
+                : QuoteFreshness.stale,
       );
     }
     return _syntheticCandles(currency, interval);

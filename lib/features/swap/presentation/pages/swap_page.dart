@@ -384,9 +384,8 @@ class _RateLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final text =
         '1 ${from.code} = ${formatMoney(rate.toPerFrom, withCode: true)}';
-    final freshness = rate.freshness == QuoteFreshness.live
-        ? ''
-        : ' · ${rate.freshness.name}';
+    final status = rate.freshness.statusLabel;
+    final freshness = status == null ? '' : ' · $status';
     return Text(
       '$text$freshness',
       key: const Key('swap_rate'),

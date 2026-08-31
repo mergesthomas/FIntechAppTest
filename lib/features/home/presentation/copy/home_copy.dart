@@ -1,3 +1,5 @@
+import '../../../../core/fixtures/news_feed_fixture.dart';
+
 /// Screenshot / fixture copy. COMPLIANCE: APY and legal strings are placeholders.
 abstract final class HomeCopy {
   static const alerts = {
@@ -7,12 +9,23 @@ abstract final class HomeCopy {
 
   static const promos = <String, String>{};
 
-  static const news = {
-    'home.news.placeholder': 'Markets wrap — fixture headline',
-  };
+  static const watchlistTitle = 'Watchlist';
+  static const holdingsTitle = 'Holdings';
+  static const addToWatchlist = 'Add to watchlist';
+  static const watchlistSearchHint = 'Search coins';
+  static const watchlistNoMoreAssets = 'No more assets to add';
+  static const watchlistNoMatches = 'No matching coins';
 
   static String alert(String key) => alerts[key] ?? key;
   static String promoTitle(String key) => promos[key] ?? key;
   static String promoBody(String key) => promos[key] ?? key;
-  static String newsTitle(String key) => news[key] ?? key;
+
+  static String newsTitle(String key) {
+    for (final item in NewsFeedFixture.items) {
+      if (item.id == key) {
+        return item.headline;
+      }
+    }
+    return key;
+  }
 }

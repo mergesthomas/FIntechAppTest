@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../domain/entities/inbox_item.dart';
+import '../copy/inbox_copy.dart';
 import '../cubit/inbox_cubit.dart';
 
 class InboxPage extends StatefulWidget {
@@ -30,12 +31,12 @@ class _InboxPageState extends State<InboxPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inbox')),
+      appBar: AppBar(title: const Text(InboxCopy.title)),
       body: BlocBuilder<InboxCubit, InboxState>(
         builder: (context, state) {
           return switch (state) {
             InboxLoading() => const Center(child: CircularProgressIndicator()),
-            InboxEmpty() => const AppEmptyState(message: 'No inbox items'),
+            InboxEmpty() => const AppEmptyState(message: InboxCopy.empty),
             InboxFailure(:final failure) => AppEmptyState(message: '$failure'),
             InboxSuccess(:final items) => _InboxList(items: items),
           };
@@ -69,14 +70,27 @@ class _InboxList extends StatelessWidget {
           AppSectionHeader(entry.key),
           for (final item in entry.value)
             Padding(
+              key: Key('inbox_item_${item.id}'),
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(item.title, style: AppTextStyles.body),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.title, style: AppTextStyles.body),
+                        const SizedBox(height: 2),
+                        Text(
+                          formatQuantity(item.amount),
+                          style: AppTextStyles.meta.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Text(
-                    formatMoney(item.amount),
+                    _priceText(item),
                     style: AppTextStyles.numeric.copyWith(
                       color: scheme.onSurface,
                     ),
@@ -87,5 +101,13 @@ class _InboxList extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  String _priceText(InboxItem item) {
+    final price = item.unitPrice;
+    if (price == null) {
+      return formatQuantity(item.amount);
+    }
+    return formatMoney(price);
   }
 }

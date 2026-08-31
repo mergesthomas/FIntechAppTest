@@ -1,3 +1,4 @@
+import 'package:fintech_app_test/core/clock/app_clock.dart';
 import 'package:fintech_app_test/core/ledger/paper_ledger.dart';
 import 'package:fintech_app_test/core/ledger/paper_order.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
@@ -48,7 +49,7 @@ void main() {
     expect(retry.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
       paper.ledger.balance(LedgerBook.savings, Currency.usdc),
-      Money.parse('110', Currency.usdc),
+      Money.parse('9990', Currency.usdc),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.filled);
   });
@@ -77,7 +78,7 @@ void main() {
     expect(placed.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
       paper.ledger.balance(LedgerBook.savings, Currency.usdc),
-      Money.parse('110', Currency.usdc),
+      Money.parse('9990', Currency.usdc),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.open);
     final canceled = await paper.ledger.cancelHold(
@@ -87,7 +88,7 @@ void main() {
     expect(canceled.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
       paper.ledger.balance(LedgerBook.savings, Currency.usdc),
-      Money.parse('120', Currency.usdc),
+      Money.parse('10000', Currency.usdc),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.canceled);
   });
@@ -120,8 +121,52 @@ void main() {
     expect(filled.getRight().toNullable(), SettlementStatus.confirmed);
     expect(
       paper.ledger.balance(LedgerBook.savings, Currency.doge),
-      Money.parse('40', Currency.doge),
+      Money.parse('10040', Currency.doge),
     );
     expect(paper.store.all.first.status, PaperOrderStatus.filled);
+    expect(paper.store.all.first.filledAt, isNotNull);
+  });
+
+  test('seed records filled card buys including USDC funding before 1Y', () {
+    final clock = MutableClock(DateTime.utc(2026, 8, 31));
+    final paper = PaperHarness(clock: clock);
+    final oneYearAgo = clock.now().subtract(const Duration(days: 365));
+    final codes = paper.ledger.lots.map((lot) => lot.currency.code).toSet();
+
+    expect(codes, containsAll(['USDC', 'BTC', 'DOGE', 'PEPE']));
+    expect(
+      paper.ledger.balance(LedgerBook.savings, Currency.usdc),
+      Money.parse('10000.00', Currency.usdc),
+    );
+    expect(
+      paper.ledger.balance(LedgerBook.savings, Currency.btc),
+      Money.parse('0.15', Currency.btc),
+    );
+    expect(
+      paper.store.all.where((order) => order.side == PaperSide.buy),
+      isNotEmpty,
+    );
+    expect(
+      paper.store.all
+          .where((order) => order.side == PaperSide.buy)
+          .every(
+            (order) =>
+                order.status == PaperOrderStatus.filled &&
+                order.filledAt != null,
+          ),
+      isTrue,
+    );
+    expect(
+      paper.ledger.lots.any(
+        (lot) => lot.currency == Currency.usdc && lot.at.isBefore(oneYearAgo),
+      ),
+      isTrue,
+    );
+    expect(
+      paper.ledger.lots.any(
+        (lot) => lot.currency == Currency.btc && lot.at.isBefore(oneYearAgo),
+      ),
+      isTrue,
+    );
   });
 }
