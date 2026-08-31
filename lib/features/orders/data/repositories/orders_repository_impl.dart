@@ -1,15 +1,17 @@
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/ledger/paper_ledger.dart';
 import '../../../../core/settlement/settlement_status.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/repositories/orders_repository.dart';
 import '../datasources/orders_local_datasource.dart';
 
 final class OrdersRepositoryImpl implements OrdersRepository {
-  OrdersRepositoryImpl(this._local);
+  OrdersRepositoryImpl(this._local, {PaperLedger? ledger}) : _ledger = ledger;
 
   final OrdersLocalDataSource _local;
+  final PaperLedger? _ledger;
 
   @override
   Future<Either<Failure, List<TradeOrder>>> getHistory(OrderTab tab) async {
@@ -30,6 +32,10 @@ final class OrdersRepositoryImpl implements OrdersRepository {
     required String requestId,
     required String orderId,
   }) async {
+    final ledger = _ledger;
+    if (ledger != null && ledger.orders.byId(orderId) != null) {
+      return ledger.cancelHold(requestId: requestId, orderId: orderId);
+    }
     return Either.right(
       _local.cancel(requestId: requestId, orderId: orderId),
     );

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../clock/app_clock.dart';
 import '../config/flavor_config.dart';
+import '../ledger/paper_fill_watcher.dart';
 import '../ledger/paper_ledger.dart';
 import '../ledger/paper_order.dart';
 import '../ledger/paper_settler.dart';
@@ -109,6 +110,15 @@ final paperLedgerProvider = Provider<PaperLedger>((ref) {
     orders: ref.watch(paperOrderStoreProvider),
     settler: ref.watch(paperSettlerProvider),
   );
+});
+
+final paperFillWatcherProvider = Provider<PaperFillWatcher>((ref) {
+  final watcher = PaperFillWatcher(
+    feed: ref.watch(marketFeedProvider),
+    ledger: ref.watch(paperLedgerProvider),
+  );
+  ref.onDispose(watcher.dispose);
+  return watcher;
 });
 
 final secureStoreProvider = Provider<SecureStore>((ref) {
@@ -365,6 +375,7 @@ final cardCubitProvider = Provider<CardCubit>((ref) {
 });
 
 final swapRepositoryProvider = Provider<SwapRepository>((ref) {
+  ref.watch(paperFillWatcherProvider);
   return SwapRepositoryImpl(
     SwapLocalDataSource(),
     feed: ref.watch(marketFeedProvider),
@@ -378,8 +389,9 @@ final swapCubitProvider = Provider<SwapCubit>((ref) {
   final session = RequireSession(auth);
   final eligibility = GetEligibility(auth);
   final cubit = SwapCubit(
-    getWallets: GetSwapWallets(session, swap),
     searchAssets: SearchSwapAssets(session, swap),
+    getOrderTypes: GetSwapOrderTypes(session),
+    watchRate: WatchSwapRate(session, swap),
     getQuote: GetSwapQuote(session, eligibility, swap),
     submit: SubmitSwap(session, eligibility, swap),
   );
@@ -390,6 +402,7 @@ final swapCubitProvider = Provider<SwapCubit>((ref) {
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepositoryImpl(
     OrdersLocalDataSource(store: ref.watch(paperOrderStoreProvider)),
+    ledger: ref.watch(paperLedgerProvider),
   );
 });
 

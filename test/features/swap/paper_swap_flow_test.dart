@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/swap_flow.dart';
+
 void main() {
   testWidgets('live quote swap confirms a paper fill', (tester) async {
     final store = InMemorySecureStore();
@@ -31,19 +33,99 @@ void main() {
     await tester.tap(find.byKey(const Key('nav_exchange')));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byKey(const Key('swap_amount')), '10');
+    await enterSwapDigits(tester, '10');
+    await tester.ensureVisible(find.byKey(const Key('swap_preview')));
     await tester.tap(find.byKey(const Key('swap_preview')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('swap_confirm')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1'));
-    await tester.tap(find.text('2'));
-    await tester.tap(find.text('3'));
-    await tester.tap(find.text('4'));
+    await enterStepUpPin(tester);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('swap_result')), findsOneWidget);
     expect(find.textContaining('confirmed'), findsWidgets);
+  });
+
+  testWidgets('limit and trigger fields appear from the order type sheet', (
+    tester,
+  ) async {
+    final store = InMemorySecureStore();
+    await store.write(AuthStoreKeys.sessionToken, 'token');
+    await store.write(AuthStoreKeys.sessionPhone, '6912345678');
+    await store.write(AuthStoreKeys.biometricEnabled, '0');
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          secureStoreProvider.overrideWith((ref) => store),
+          marketFeedProvider.overrideWith(
+            (ref) => InMemoryMarketFeed(connection: QuoteFreshness.live),
+          ),
+        ],
+        child: const FintechApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('nav_exchange')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('swap_order_type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('swap_type_limit')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('swap_limit_price')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('swap_order_type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('swap_type_trigger')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('swap_take_profit')), findsOneWidget);
+    expect(find.byKey(const Key('swap_stop_loss')), findsOneWidget);
+  });
+
+  testWidgets('live limit order is placed not filled', (tester) async {
+    final store = InMemorySecureStore();
+    await store.write(AuthStoreKeys.sessionToken, 'token');
+    await store.write(AuthStoreKeys.sessionPhone, '6912345678');
+    await store.write(AuthStoreKeys.biometricEnabled, '0');
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          secureStoreProvider.overrideWith((ref) => store),
+          marketFeedProvider.overrideWith(
+            (ref) => InMemoryMarketFeed(connection: QuoteFreshness.live),
+          ),
+        ],
+        child: const FintechApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('nav_exchange')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('swap_order_type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('swap_type_limit')));
+    await tester.pumpAndSettle();
+
+    await enterSwapDigits(tester, '10');
+    await tester.tap(find.byKey(const Key('swap_limit_price')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('swap_key_dot')));
+    await tester.pump();
+    await enterSwapDigits(tester, '0001');
+
+    await tester.ensureVisible(find.byKey(const Key('swap_preview')));
+    await tester.tap(find.byKey(const Key('swap_preview')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('swap_confirm')));
+    await tester.pumpAndSettle();
+    await enterStepUpPin(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('swap_result')), findsOneWidget);
+    expect(find.textContaining('Order placed'), findsWidgets);
   });
 }

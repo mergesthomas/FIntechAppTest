@@ -46,6 +46,8 @@ void main() {
           to: Money.parse('1', Currency.eurx),
           wallet: SwapWallet.savings,
           freshness: QuoteFreshness.stale,
+          type: SwapOrderType.instant,
+          rateFromPerTo: Money.parse('1', Currency.nexo),
         ),
       ),
     );

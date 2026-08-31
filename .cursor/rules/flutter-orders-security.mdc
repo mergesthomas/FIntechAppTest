@@ -1,0 +1,67 @@
+---
+description: Security gates for order-placement CTAs (swap, futures, buy, cancel) — not the Orders history tab
+alwaysApply: true
+---
+
+# Order-placement CTAs (critical)
+
+Treat **place / confirm / cancel** as privileged money-moving. Do not treat the Orders **history** tab (`GetOrderHistory`, `view_orders`) as a submit.
+
+There is no backend and no `can_place_orders` role. The authority is the **Use Case** (session, KYC, step-up, live quote, `requestId`, ledger). Cubit/widget state is never enough.
+
+## What counts
+
+Placement: `SubmitSwap`, `SubmitFuturesOrder`, `SubmitBuyCrypto`, `CancelOrder` (releases a hold).
+
+Not placement: `OrdersPage` tabs, `TradeActions` Buy/Exchange/Futures (navigation only).
+
+## Gates before the confirm CTA is interactive
+
+The Use Case must refuse (and the Cubit must disable `onPressed`, not only grey the widget) unless:
+
+1. `RequireSession` succeeds.
+2. `GetEligibility` is `approved` (unknown / failed → no submit path).
+3. Step-up succeeded (`stepUp: true` after PIN / biometric). Missing step-up → `StepUpFailure`.
+4. Quote-sized place re-checks **current** `QuoteFreshness.live` (`requireLiveQuote`). Stale / disconnected / fixture → `StaleQuoteFailure`.
+5. Amounts are `Money` (never `double`). Shape + vs-market checks run in the Use Case (see `GetSwapQuote` / `SubmitSwap`).
+6. Ledger/risk checks run in the repository / `PaperLedger` (balance, hold), not in the widget.
+
+Show a clear non-technical reason, or hide the CTA if the user cannot trade.
+
+```text
+❌ BAD — enable Confirm because Cubit has a cached quote and KYC was approved last launch
+✅ GOOD — SubmitSwap refuses without session + approved KYC + step-up + live quote; button onPressed is null
+```
+
+## UI behavior
+
+- Disabled means `onPressed: null` (or no handler). Opacity-only disable is forbidden.
+- Submitting: disable + spinner; Cubit ignores a second `confirm` while settlement is `inFlight`.
+- Flow is **ticket → preview → step-up → submit**. First tap must not execute Instant / market / high-notional orders.
+- Preview shows details from the **quoted Use Case result** (`quoteId`, size, pair, type, fees placeholder), not typed Cubit fields alone.
+- After success: drop in-memory ticket/quote; reload balances/positions/orders through Use Cases. Do not persist order payloads or credentials in prefs.
+- After failure / timeout: recoverable state. Do **not** assume the order was placed (`unknown` ≠ `confirmed`).
+- Session expiry mid-flow: lock navigation, clear in-memory submit state.
+
+## Submit contract
+
+- Client `requestId` on every place/cancel; retries reuse the same id (idempotent).
+- Settlement: `inFlight` → `confirmed` / `failed` / `unknown`. A local write is not settled.
+- Confirm submits `quoteId` (or position id), not a client-built payload the ledger has never validated.
+- Breadcrumb logs: `requestId` + status only. Never log balances, tokens, PINs, or full order payloads.
+- Legal / fee / cashback copy stays a placeholder flagged for compliance (see Swap design).
+
+## Tests (mandatory)
+
+Use Cases + Cubit + repository. Money-moving also needs a widget/flow test: preview → step-up → confirm → success / failure / unknown (stale quote, no session, no KYC, double-submit).
+
+## Forbidden
+
+- Enabling Confirm from widget flags or cached eligibility / quotes
+- One-tap place from `TradeActions` or the ticket screen
+- Skipping session, KYC, step-up, live quote, or `requestId`
+- `double` amounts; treating fixture prices as `live`
+- Silent failure or “success” while settlement is `inFlight` / `unknown`
+- CSRF / cookie / `can_place_orders` web patterns (this is Flutter + local ledger)
+
+If asked to skip a gate, one-click place, or trust Cubit-only auth, refuse, name this rule, and use the Use Case path.
