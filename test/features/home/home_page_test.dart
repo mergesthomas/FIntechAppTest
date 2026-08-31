@@ -6,6 +6,7 @@ import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
 import 'package:fintech_app_test/core/widgets/asset_list_row.dart';
 import 'package:fintech_app_test/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -92,17 +93,38 @@ void main() {
     expect(find.textContaining('10,000 USDC'), findsOneWidget);
   });
 
-  testWidgets('tapping the portfolio chart shows the sample date', (
-    tester,
-  ) async {
-    await pumpDashboard(tester);
+  testWidgets(
+    'hovering the portfolio chart previews a sample and leaving restores current',
+    (tester) async {
+      await pumpDashboard(tester);
 
-    expect(find.byKey(const Key('chart_scrub_label')), findsNothing);
-    await tester.tap(find.byKey(const Key('portfolio_chart')));
-    await tester.pump();
+      final liveWorth =
+          tester.widget<Text>(find.byKey(const Key('net_worth'))).data;
+      expect(find.byKey(const Key('chart_scrub_label')), findsNothing);
+      expect(find.byKey(const Key('chart_scrub_marker')), findsNothing);
 
-    expect(find.byKey(const Key('chart_scrub_label')), findsOneWidget);
-  });
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+
+      final box = tester.getRect(find.byKey(const Key('portfolio_chart')));
+      await gesture.moveTo(box.centerLeft + const Offset(12, 0));
+      await tester.pump();
+
+      expect(find.byKey(const Key('chart_scrub_label')), findsOneWidget);
+      expect(find.byKey(const Key('chart_scrub_marker')), findsOneWidget);
+
+      await gesture.moveTo(box.bottomRight + const Offset(24, 24));
+      await tester.pump();
+
+      expect(find.byKey(const Key('chart_scrub_label')), findsNothing);
+      expect(find.byKey(const Key('chart_scrub_marker')), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('net_worth'))).data,
+        liveWorth,
+      );
+    },
+  );
 
   testWidgets('ALL chip reloads the chart without a full-screen reload', (
     tester,

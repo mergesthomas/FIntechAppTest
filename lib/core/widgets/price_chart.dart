@@ -1,9 +1,14 @@
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../chart/chart_layout.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+
+const _markerRadius = 5.0;
+const _chartPad = 5.0;
 
 class PriceChart extends StatefulWidget {
   const PriceChart({
@@ -31,7 +36,8 @@ class _PriceChartState extends State<PriceChart> {
   @override
   void didUpdateWidget(covariant PriceChart oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.points != widget.points || oldWidget.times != widget.times) {
+    if (!listEquals(oldWidget.points, widget.points) ||
+        !listEquals(oldWidget.times, widget.times)) {
       _index = null;
     }
   }
@@ -49,8 +55,20 @@ class _PriceChartState extends State<PriceChart> {
       return;
     }
     _setIndex(
-      chartIndexAt(count: widget.points.length, width: size.width, dx: local.dx),
+      chartIndexAt(
+        count: widget.points.length,
+        width: size.width,
+        dx: local.dx,
+      ),
     );
+  }
+
+  void _clear() => _setIndex(null);
+
+  void _clearIfNotMouse(PointerEvent event) {
+    if (event.kind != PointerDeviceKind.mouse) {
+      _clear();
+    }
   }
 
   @override
@@ -61,7 +79,6 @@ class _PriceChartState extends State<PriceChart> {
     final scheme = Theme.of(context).colorScheme;
     final up = widget.points.last >= widget.points.first;
     final line = up ? scheme.tertiary : scheme.error;
-    final interactive = widget.onScrub != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -80,28 +97,48 @@ class _PriceChartState extends State<PriceChart> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final size = Size(constraints.maxWidth, widget.height);
-              final chart = CustomPaint(
-                size: size,
-                painter: _PriceChartPainter(
-                  points: widget.points,
-                  line: line,
-                  fill: line.withValues(alpha: 0.08),
-                  selectedIndex: _index,
-                  marker: scheme.onSurface,
-                ),
-              );
-              if (!interactive) {
-                return chart;
-              }
+              final ys = chartUnitYs(widget.points);
+              final selected = _index;
+              final point =
+                  selected == null || selected < 0 || selected >= ys.length
+                      ? null
+                      : _pointOnChart(ys, size, selected);
               return MouseRegion(
                 onHover: (event) => _selectAt(event.localPosition, size),
-                child: GestureDetector(
-                  onTapDown: (details) => _selectAt(details.localPosition, size),
-                  onHorizontalDragStart: (details) =>
-                      _selectAt(details.localPosition, size),
-                  onHorizontalDragUpdate: (details) =>
-                      _selectAt(details.localPosition, size),
-                  child: chart,
+                onExit: (_) => _clear(),
+                child: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown:
+                      (event) => _selectAt(event.localPosition, size),
+                  onPointerMove: (event) {
+                    if (event.down) {
+                      _selectAt(event.localPosition, size);
+                    }
+                  },
+                  onPointerUp: _clearIfNotMouse,
+                  onPointerCancel: (_) => _clear(),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CustomPaint(
+                        size: size,
+                        painter: _PriceChartPainter(
+                          points: widget.points,
+                          ys: ys,
+                          line: line,
+                          fill: line.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      if (point != null)
+                        Positioned.fill(
+                          child: _ChartScrubMarker(
+                            point: point,
+                            height: size.height,
+                            line: line,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -112,41 +149,86 @@ class _PriceChartState extends State<PriceChart> {
   }
 }
 
+class _ChartScrubMarker extends StatelessWidget {
+  const _ChartScrubMarker({
+    required this.point,
+    required this.height,
+    required this.line,
+  });
+
+  final Offset point;
+  final double height;
+  final Color line;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Stack(
+      key: const Key('chart_scrub_marker'),
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: point.dx - 0.5,
+          top: 0,
+          width: 1,
+          height: height,
+          child: ColoredBox(color: scheme.onSurface.withValues(alpha: 0.45)),
+        ),
+        Positioned(
+          left: point.dx - _markerRadius,
+          top: point.dy - _markerRadius,
+          width: _markerRadius * 2,
+          height: _markerRadius * 2,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: scheme.surface,
+              border: Border.all(color: line, width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+Offset _pointOnChart(List<double> ys, Size size, int index) {
+  final last = ys.length - 1;
+  final x = last <= 0 ? 0.0 : size.width * index / last;
+  final y = _chartPad + (size.height - 2 * _chartPad) * (1 - ys[index]);
+  return Offset(x, y);
+}
+
 class _PriceChartPainter extends CustomPainter {
   _PriceChartPainter({
     required this.points,
+    required this.ys,
     required this.line,
     required this.fill,
-    required this.selectedIndex,
-    required this.marker,
   });
 
   final List<Decimal> points;
+  final List<double> ys;
   final Color line;
   final Color fill;
-  final int? selectedIndex;
-  final Color marker;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final ys = chartUnitYs(points);
     if (ys.length < 2) {
       return;
     }
-    Offset at(int i) {
-      final x = size.width * i / (ys.length - 1);
-      final y = size.height * (1 - ys[i]);
-      return Offset(x, y);
-    }
+    Offset at(int i) => _pointOnChart(ys, size, i);
 
     final path = Path()..moveTo(at(0).dx, at(0).dy);
     for (var i = 1; i < ys.length; i++) {
       path.lineTo(at(i).dx, at(i).dy);
     }
-    final area = Path.from(path)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final area =
+        Path.from(path)
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(area, Paint()..color = fill);
     canvas.drawPath(
       path,
@@ -157,33 +239,9 @@ class _PriceChartPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..strokeCap = StrokeCap.round,
     );
-    final selected = selectedIndex;
-    if (selected == null || selected < 0 || selected >= ys.length) {
-      return;
-    }
-    final point = at(selected);
-    canvas.drawLine(
-      Offset(point.dx, 0),
-      Offset(point.dx, size.height),
-      Paint()
-        ..color = marker.withValues(alpha: 0.35)
-        ..strokeWidth = 1,
-    );
-    canvas.drawCircle(point, 3.5, Paint()..color = line);
-    canvas.drawCircle(
-      point,
-      3.5,
-      Paint()
-        ..color = marker
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
-    );
   }
 
   @override
   bool shouldRepaint(covariant _PriceChartPainter oldDelegate) =>
-      oldDelegate.points != points ||
-      oldDelegate.line != line ||
-      oldDelegate.selectedIndex != selectedIndex ||
-      oldDelegate.marker != marker;
+      oldDelegate.points != points || oldDelegate.line != line;
 }
