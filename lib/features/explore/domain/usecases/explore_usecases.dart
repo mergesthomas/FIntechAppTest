@@ -48,25 +48,6 @@ final class SearchExploreAssets implements UseCase<List<ExploreAsset>, String> {
   }
 }
 
-final class GetTopEarningAssets
-    implements UseCase<List<ExploreEarningAsset>, NoParams> {
-  GetTopEarningAssets(this._session, this._repo);
-
-  final RequireSession _session;
-  final ExploreRepository _repo;
-
-  @override
-  Future<Either<Failure, List<ExploreEarningAsset>>> call(
-    NoParams params,
-  ) async {
-    final session = await _session(params);
-    return session.fold(Either.left, (_) async {
-      final feed = await _repo.getFeed();
-      return feed.map((value) => value.topEarning);
-    });
-  }
-}
-
 final class GetTrendingPerpetuals
     implements UseCase<List<ExplorePerpetual>, NoParams> {
   GetTrendingPerpetuals(this._session, this._repo);
@@ -80,25 +61,6 @@ final class GetTrendingPerpetuals
     return session.fold(Either.left, (_) async {
       final feed = await _repo.getFeed();
       return feed.map((value) => value.perpetuals);
-    });
-  }
-}
-
-final class GetExploreOpportunities
-    implements UseCase<List<ExploreOpportunity>, NoParams> {
-  GetExploreOpportunities(this._session, this._repo);
-
-  final RequireSession _session;
-  final ExploreRepository _repo;
-
-  @override
-  Future<Either<Failure, List<ExploreOpportunity>>> call(
-    NoParams params,
-  ) async {
-    final session = await _session(params);
-    return session.fold(Either.left, (_) async {
-      final feed = await _repo.getFeed();
-      return feed.map((value) => value.opportunities);
     });
   }
 }

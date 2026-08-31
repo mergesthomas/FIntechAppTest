@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_route.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/pending_auth.dart';
 import '../cubit/phone_auth_cubit.dart';
@@ -32,7 +33,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: BlocConsumer<PhoneAuthCubit, PhoneAuthState>(
             listener: (context, state) {
               if (state is PhoneAuthSuccess) {
@@ -50,12 +51,12 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
                     'Enter your mobile number',
                     style: AppTextStyles.headline,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     'Local emulator. SMS code is 123456.',
                     style: AppTextStyles.secondary,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   TextField(
                     key: const Key('phone_field'),
                     controller: _controller,

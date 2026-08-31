@@ -24,6 +24,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('net_worth')), findsOneWidget);
+    expect(find.byKey(const Key('credit_hub')), findsNothing);
+    expect(find.byKey(const Key('savings_hub')), findsNothing);
     expect(find.textContaining('stale'), findsWidgets);
     expect(find.byKey(const Key('trade_buy')), findsOneWidget);
     expect(find.byKey(const Key('add_funds')), findsOneWidget);

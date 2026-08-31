@@ -29,8 +29,6 @@ void main() {
     final requireSession = RequireSession(auth);
     cubit = HomeCubit(
       getOverview: GetDashboardOverview(requireSession, home),
-      getCredit: GetCreditHubTeaser(requireSession, home),
-      getSavings: GetSavingsHubTeaser(requireSession, home),
       getWatchlist: GetWatchlist(requireSession, home),
       getAlerts: GetDashboardAlerts(requireSession, home),
       dismissAlert: DismissDashboardAlert(requireSession, home),
@@ -57,16 +55,6 @@ void main() {
           freshness: QuoteFreshness.stale,
           initials: '78',
         ),
-      ),
-    );
-    when(() => home.getCreditHub()).thenAnswer(
-      (_) async => Either.right(
-        CreditHubTeaser(availableToBorrow: Money.zero(Currency.usd)),
-      ),
-    );
-    when(() => home.getSavingsHub()).thenAnswer(
-      (_) async => Either.right(
-        SavingsHubTeaser(interestEarned: Money.parse('2479.74', Currency.usd)),
       ),
     );
     when(() => home.getWatchlist()).thenAnswer((_) async => Either.right([]));

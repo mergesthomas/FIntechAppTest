@@ -20,11 +20,11 @@ These are not a feature. They apply wherever a submit moves money or changes cre
 |---|---|
 | Money | Domain `Money` (decimal + currency). Never `double` for balances, prices, amounts, rates, fees. |
 | Session | Use Case refuses if session is missing or expired. |
-| Eligibility | Earn / borrow / trade / funding submits require KYC known + approved. Unknown or failed → do not open submit. |
+| Eligibility | Trade / funding submits require KYC known + approved. Unknown or failed → do not open submit. |
 | Step-up | Money-moving submits require PIN / biometric / re-auth when the product requires it. |
 | Idempotency | Every submit carries client `requestId`. Retries reuse the same id. |
 | Settlement | After submit: `inFlight` → `confirmed` / `failed` / `unknown`. HTTP 200 is not settled. |
-| Quotes | Trade / buy / borrow-size quotes must be `live`. `stale` or `disconnected` → Use Case rejects submit. |
+| Quotes | Trade / buy quotes must be `live`. `stale` or `disconnected` → Use Case rejects submit. |
 | Local-first | No backend. Emulate features on a local ledger. Fixture prices are not `live`. Trading waits for a remote price feed. |
 | Logging | Breadcrumb `requestId` + settlement only. Never log balances, tokens, addresses, PANs, IBANs, PII. |
 
@@ -71,8 +71,8 @@ Profile / Products / Security & Settings / Inbox / News
 | 7 | `news` | Content | no | news | yes |
 | 8 | `explore` | Markets | no | explore, explore_assets | yes |
 | 9 | `funding` | Deposit / buy | **yes** | add_funds, bank, receive, buy | yes (preview/result missing — improvise) |
-| 10 | `borrow` | Credit | **yes** | all_loans, credit_line, 0%, booster, collateral, settings | yes (detail/repay missing — improvise) |
-| 11 | `earn` | Savings | **yes** | savings_hub | hub only (product flows missing) |
+| 10 | `borrow` | Credit | — | — | **dropped** |
+| 11 | `earn` | Savings | — | — | **dropped** |
 | 12 | `card` | Spend | **yes** | nexo_card_product, card_frozen | frozen + marketing; active card missing |
 | 13 | `swap` | Trade | **yes** | swap, swap_asset_picker | yes (preview/result missing — improvise) |
 | 14 | `orders` | Trade history | no (read) | order_history | yes |
@@ -155,10 +155,7 @@ Visible data:
 
 - Header: avatar initials, logo, gift, bell
 - Portfolio: total **$35,862.41**, **−4.92% / 1W**, line chart, **Wallet >**
-- Credit Hub: **$0.00** available to borrow
-- Savings Hub: **$2,479.74** interest earned
 - Banner: EURx below zero — Learn more / dismiss
-- Promo: Zero-interest Credit
 - Watchlist: BTC, DOGE, PEPE, BONK, NEXO — price + 24h + sparkline
 - Promo cards + News teaser
 - CTAs: **Send crypto** | **Add funds**
@@ -167,14 +164,12 @@ Visible data:
 ### Use Cases
 
 - `GetDashboardOverview` — net worth as `Money`, period change, chart series + freshness
-- `GetCreditHubTeaser` — available to borrow
-- `GetSavingsHubTeaser` — interest earned
 - `GetWatchlist` — assets + live/stale/disconnected prices
 - `GetDashboardAlerts` — e.g. negative FIATx; dismiss is local + server ack
 - `GetDashboardPromos` — server cards only
 - `GetNewsPreview`
 
-Navigation only (no Domain submit): Wallet, Send crypto, Add funds, Credit Hub, Savings Hub, tabs, avatar, gift, bell.
+Navigation only (no Domain submit): Wallet, Send crypto, Add funds, tabs, avatar, gift, bell.
 
 ### Gates
 
@@ -212,7 +207,7 @@ Catalog of product entry points (not a submit).
 |---|---|---|
 | Products grid | `products` | yes |
 
-Groups: **Earn** (Savings Hub, Fixed-term, Wealth Vaults) · **Borrow & spend** (Credit Hub, Card, Zero-interest) · **Trade** (Swap, Limit Order, Futures, Booster, Dual Investment, Recurring Buy, Crypto Baskets) · **Information** (Explore, News).
+Groups: **Spend** (Card) · **Trade** (Swap, Futures) · **Information** (Explore, News).
 
 ### Use Cases
 
@@ -300,7 +295,7 @@ Source, headline, age, category, thumbnail. Header: avatar, logo, gift, bell. Ta
 | Explore discovery | `explore` | yes (3) |
 | Explore assets + products | `explore_assets` | yes |
 
-Visible: For-you promo, Top gainers / losers, Top earning assets (APY teasers), Opportunity cards (Fixed Term, Earn in NEXO), Trending perpetuals (up to 100x), Quick wins, product tile row, All assets / News tabs, filters (All / Top gainers / losers / New), search.
+Visible: For-you promo, Top gainers / losers, Trending perpetuals, product tile row, All assets / News tabs, filters (All / Top gainers / losers / New), search.
 
 Prices and APY from server. Freshness on every tick.
 
@@ -309,9 +304,7 @@ Prices and APY from server. Freshness on every tick.
 - `GetExploreFeed` — sections from server (do not hard-code gainers)
 - `GetMarketAssets` — filter + sort; price + 24h + sparkline + freshness
 - `SearchExploreAssets`
-- `GetTopEarningAssets` — APY from server
 - `GetTrendingPerpetuals`
-- `GetExploreOpportunities`
 
 No trade submit on this feature. Tapping a pair opens `futures` or asset detail (**missing**).
 
@@ -367,7 +360,6 @@ Add funds
 
 - `GetReceivableAssets` / `SearchReceivableAssets`
 - `GetReceiveAddress` — address + QR URI + network. Never log address
-- `GetAssetFundingTeasers` — earn / borrow badges from server
 
 **Buy**
 
@@ -385,68 +377,13 @@ Inbound bank and on-chain: showing details ≠ credited. Deposit stays `inFlight
 
 ## 10. `borrow`
 
-Credit catalog + outstanding + product marketing + collateral + optimization.
-
-### Screens
-
-| Screen | Folder | Have |
-|---|---|---|
-| All loans (available / outstanding) | `all_loans` | yes (3) |
-| Collateral assets | `collateral_assets` | yes |
-| Credit Line optimization | `credit_line_optimization` | yes (2) |
-| Classic Credit Line | `credit_line` | yes (3) |
-| Zero-interest Credit | `zero_interest_credit` | yes (2) |
-| Booster | `booster` | yes |
-| Nexo Card product (borrow teaser) | `nexo_card_product` | yes |
-| Loan detail / borrow review / repay | those folders | **missing — improvise** |
-
-All loans tabs: Available (max **0.00 xUSD**) · Outstanding (total **14,694.96 xUSD**).  
-Products: Classic, Card, Zero-interest (Active), Booster (Available).  
-Overflow: Check LTV → collateral · Credit line settings → optimization.
-
-Classic ticket: available 0.00, outstanding 14,625.44 GOOD, min borrow USDC 50, collateral BTC 50% LTV.  
-0% ticket: USDC amount, collateral chips BTC/ETH/SOL/XRP, 50% LTV.  
-Card product: spend in EUR, collateral BTC 50% LTV, outstanding 69.52 GOOD.  
-Booster: 100+ collateral, from 1.9%, up to 3x; Boost / Open Booster Credit Line.
-
-Optimization: per Classic | Card. Flags: automatic collateral transfer; Fixed-term unlock and Low-interest borrowing **require** automatic transfer.
-
-### Use Cases
-
-- `GetBorrowEligibility`
-- `GetAllLoansOverview` — available vs outstanding, `Money` in xUSD
-- `GetLoanProducts` — catalog metadata from server
-- `GetCreditLineOverview` — available, outstanding, health badge
-- `GetBorrowQuote` — live LTV + `Money` + `quoteId` + freshness
-- `SubmitBorrow` — `requestId` + `quoteId` + product + `Money` + step-up
-- `SubmitRepay` — `requestId` + loan id + `Money` + step-up
-- `GetCollateralAssets` / `GetCollateralFilter` / `GetAssetLtvSchedule`
-- `GetCreditLineOptimization` / `UpdateCreditLineOptimization` — `requestId` + step-up; turning off auto-transfer must clear or refuse dependent flags
-- `GetLoanMarketingContent` — benefits / FAQ keys; do not invent body copy
-
-Empty available **0.00** still lists products. Do not hide the catalog.
+Status: **dropped**. Credit / loans are out of product scope. Do not implement.
 
 ---
 
 ## 11. `earn`
 
-### Screens
-
-| Screen | Folder | Have |
-|---|---|---|
-| Savings Hub | `savings_hub` | yes (2) |
-
-Interest earned **$2,477.10**. Advanced: Dual Investment (up to 117.05% placeholder). Passive: Fixed-term, Wealth Vaults, Recurring buys. Optimize: Earn in NEXO Enabled (+2% placeholder), Stop earning.
-
-Product flows (subscribe, lock, vault, recurring editor) have no screens.
-
-### Use Cases
-
-- `GetSavingsHubOverview` — interest earned as `Money`
-- `GetEarnProducts` — dual / fixed-term / vaults / recurring teasers from server
-- `GetEarnInNexoPreference` / `SetEarnInNexo` — eligibility + step-up if it changes payout asset
-- `StopEarning` — `requestId` + step-up + confirmation (improvise confirm)
-- `SubscribeFixedTerm` / `OpenWealthVault` / `CreateRecurringBuy` / `OpenDualInvestment` — **do not implement** until those screens exist
+Status: **dropped**. Savings / earn-in-token are out of product scope. Do not implement.
 
 ---
 
@@ -487,18 +424,20 @@ Exchange tab.
 | Swap asset picker | `swap_asset_picker` | yes |
 | Preview / result | `swap_preview`, `swap_result` | **missing — improvise** |
 
-Ticket: Savings | Credit wallet · Instant order · From NEXO (balance shown) → To EURx · Preview order.  
-Picker: Pay with | Receive · search · supported assets with balances.
+Ticket: Instant / Limit / Trigger · From NEXO → To DOGE · live rate · Preview order.  
+Savings / Credit hidden (savings book). Limit price and Trigger TP/SL as `Money`.  
+Picker: Pay with | Receive · supported assets with balances.
 
 Send crypto is a dashboard CTA with **no** screens (`send_crypto` empty). Out of scope here.
 
 ### Use Cases
 
-- `GetSwapWallets` — Savings vs Credit
-- `GetSwapQuote` — from/to `Money`, `quoteId`, freshness, order type
 - `SearchSwapAssets`
-- `SubmitSwap` — `requestId` + `quoteId` + wallet + step-up. Refuse stale quote. Settlement
-- `GetSwapOrderTypes` — Instant (Limit is a different product on Products grid)
+- `GetSwapOrderTypes` — Instant, Limit, Trigger
+- `WatchSwapRate` — live `from`/`to` rate + freshness
+- `GetSwapQuote` — from/to `Money`, order type, optional limit / TP / SL, `quoteId`, freshness
+- `SubmitSwap` — `requestId` + `quoteId` + step-up. Refuse stale. Instant fills; Limit/Trigger hold `from` until live price hits
+- `CancelOrder` — existing; releases a resting hold
 
 ---
 
@@ -564,18 +503,13 @@ Do not invent a portfolio feature. When shots arrive: balances, asset detail, tr
 | From | To |
 |---|---|
 | Dashboard Add funds / Send | `funding` / send (blocked) |
-| Dashboard Credit Hub / All loans | `borrow` |
-| Dashboard Savings Hub | `earn` |
 | Dashboard Wallet | `wallet` (blocked) |
 | Card Restore balance | `funding` or `swap` |
-| Frozen card overflow | `swap`, `borrow` (booster), `earn` (dual) |
-| Receive crypto Earn / Borrow pills | `earn` / `borrow` |
+| Frozen card overflow | `swap` |
 | Explore perpetuals | `futures` |
 | Products tiles | matching feature |
 | Profile Security & Settings | `security_settings` |
-| Settings → Credit Line settings | `borrow` optimization |
 | Settings → Payment methods | `funding` methods |
-| Settings → Savings / Futures settings | `earn` / `futures` prefs (screens missing) |
 
 ---
 

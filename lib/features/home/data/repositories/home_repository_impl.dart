@@ -29,7 +29,10 @@ final class HomeRepositoryImpl implements HomeRepository {
     DashboardPeriod period = DashboardPeriod.oneWeek,
   }) async {
     final fixture = _local.overview(initials: initials, period: period);
-    final series = _feed.seriesFor(Currency.btc, chartPeriodOf(period));
+    final series = await _feed.refreshSeries(
+      Currency.btc,
+      chartPeriodOf(period),
+    );
     final chart = series.closes.length >= 2 ? series.closes : fixture.chart;
     return Either.right(
       DashboardOverview(
@@ -78,27 +81,23 @@ final class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, CreditHubTeaser>> getCreditHub() async {
-    return Either.right(_local.creditHub());
-  }
-
-  @override
-  Future<Either<Failure, SavingsHubTeaser>> getSavingsHub() async {
-    return Either.right(_local.savingsHub());
-  }
-
-  @override
   Future<Either<Failure, List<WatchlistItem>>> getWatchlist() async {
+    final items = _local.watchlist();
+    final series = await Future.wait([
+      for (final item in items)
+        _feed.refreshSeries(item.currency, ChartPeriod.oneDay),
+    ]);
     return Either.right([
-      for (final item in _local.watchlist())
+      for (var i = 0; i < items.length; i++)
         WatchlistItem(
-          currency: item.currency,
-          displayName: item.displayName,
-          price: _feed.usdPrice(item.currency) ?? item.price,
-          change24hRatio:
-              _feed.quoteFor(item.currency)?.change24h ?? item.change24hRatio,
-          sparkline: _feed.seriesFor(item.currency).closes,
-          freshness: _feed.quoteFor(item.currency)?.freshness ?? item.freshness,
+          currency: items[i].currency,
+          displayName: items[i].displayName,
+          price: _feed.usdPrice(items[i].currency) ?? items[i].price,
+          change24hRatio: _feed.quoteFor(items[i].currency)?.change24h ??
+              items[i].change24hRatio,
+          sparkline: series[i].closes,
+          freshness: _feed.quoteFor(items[i].currency)?.freshness ??
+              items[i].freshness,
         ),
     ]);
   }

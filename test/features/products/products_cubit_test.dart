@@ -38,7 +38,9 @@ void main() {
     await cubit.load();
     expect(cubit.state, isA<ProductsSuccess>());
     final tiles = (cubit.state as ProductsSuccess).tiles;
-    expect(tiles.any((t) => t.id == 'credit' && t.enabled), isTrue);
+    expect(tiles.any((t) => t.id == 'swap' && t.enabled), isTrue);
+    expect(tiles.any((t) => t.id == 'credit'), isFalse);
+    expect(tiles.any((t) => t.id == 'savings'), isFalse);
   });
 
   test('load emits failure without session', () async {

@@ -132,41 +132,6 @@ final class ExploreLocalDataSource {
       ),
       gainers: all.where((a) => a.change24h > Decimal.zero).take(5).toList(),
       losers: all.where((a) => a.change24h < Decimal.zero).take(5).toList(),
-      topEarning: [
-        ExploreEarningAsset(
-          currency: Currency.usdc,
-          name: 'USDC',
-          change24h: Decimal.zero,
-          apyTeaser: 'UP TO —% P.A. placeholder',
-          freshness: QuoteFreshness.stale,
-        ),
-        ExploreEarningAsset(
-          currency: Currency.nexo,
-          name: 'NEXO',
-          change24h: Decimal.parse('0.0499'),
-          apyTeaser: 'UP TO —% P.A. placeholder',
-          freshness: QuoteFreshness.stale,
-        ),
-        ExploreEarningAsset(
-          currency: Currency.xrp,
-          name: 'XRP',
-          change24h: Decimal.parse('0.0096'),
-          apyTeaser: 'UP TO —% P.A. placeholder',
-          freshness: QuoteFreshness.stale,
-        ),
-      ],
-      opportunities: const [
-        ExploreOpportunity(
-          id: 'fixed_term',
-          title: 'Create a Fixed Term',
-          subtitleTeaser: 'Interest teaser placeholder — compliance review',
-        ),
-        ExploreOpportunity(
-          id: 'earn_nexo',
-          title: 'Receive interest in NEXO Tokens',
-          subtitleTeaser: 'Earn in NEXO teaser placeholder',
-        ),
-      ],
       perpetuals: [
         ExplorePerpetual(
           pair: 'BTCUSDT',
@@ -191,8 +156,6 @@ final class ExploreLocalDataSource {
         ),
       ],
       products: const [
-        ExploreProductTile(id: 'credit', label: 'Credit Hub'),
-        ExploreProductTile(id: 'savings', label: 'Savings Hub'),
         ExploreProductTile(id: 'futures', label: 'Futures'),
         ExploreProductTile(id: 'card', label: 'Nexo Card'),
         ExploreProductTile(id: 'recurring', label: 'Recurring Buy'),

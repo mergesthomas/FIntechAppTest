@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_route.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../domain/entities/pending_auth.dart';
 import '../copy/onboarding_copy.dart';
 import '../cubit/onboarding_cubit.dart';
@@ -22,9 +23,9 @@ class OnboardingPage extends StatelessWidget {
               OnboardingLoading() => const Center(
                   child: CircularProgressIndicator(),
                 ),
-              OnboardingEmpty() => const Center(child: Text('No slides')),
-              OnboardingFailure(:final failure) => Center(
-                  child: Text(failure.toString()),
+              OnboardingEmpty() => const AppEmptyState(message: 'No slides'),
+              OnboardingFailure(:final failure) => AppEmptyState(
+                  message: failure.toString(),
                 ),
               OnboardingSuccess() => _OnboardingBody(state: state),
             };
@@ -43,8 +44,14 @@ class _OnboardingBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final slide = state.current;
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       child: Column(
         children: [
           Align(
@@ -54,63 +61,58 @@ class _OnboardingBody extends StatelessWidget {
               onPressed: () => context.read<OnboardingCubit>().setLocale(
                     state.locale == 'en' ? 'el' : 'en',
                   ),
-              icon: const Icon(Icons.public, color: AppColors.textPrimary),
+              icon: Icon(Icons.public, color: scheme.onSurfaceVariant),
             ),
           ),
-          const Spacer(),
+          const Spacer(flex: 2),
           Text(
             OnboardingCopy.title(slide.titleKey),
             style: AppTextStyles.title,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(
             OnboardingCopy.body(slide.bodyKey),
-            style: AppTextStyles.secondary,
+            style: AppTextStyles.secondary.copyWith(
+              color: scheme.onSurfaceVariant,
+              height: 1.5,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               for (var i = 0; i < state.slides.length; i++)
                 Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: i == state.index ? 16 : 6,
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(3),
                     color: i == state.index
-                        ? AppColors.accent
-                        : AppColors.surfaceMuted,
+                        ? scheme.onSurface
+                        : scheme.outline,
                   ),
                 ),
             ],
           ),
-          const Spacer(),
+          const Spacer(flex: 3),
           if (slide.showAuthActions) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => context.push(
-                      AppRoute.login.path,
-                      extra: AuthIntent.login,
-                    ),
-                    child: const Text('Log in'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => context.push(
-                      AppRoute.signUp.path,
-                      extra: AuthIntent.signUp,
-                    ),
-                    child: const Text('Sign up'),
-                  ),
-                ),
-              ],
+            ElevatedButton(
+              onPressed: () => context.push(
+                AppRoute.signUp.path,
+                extra: AuthIntent.signUp,
+              ),
+              child: const Text('Sign up'),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            OutlinedButton(
+              onPressed: () => context.push(
+                AppRoute.login.path,
+                extra: AuthIntent.login,
+              ),
+              child: const Text('Log in'),
             ),
           ] else
             Row(
@@ -129,9 +131,7 @@ class _OnboardingBody extends StatelessWidget {
                       ? () => context
                           .read<OnboardingCubit>()
                           .pageChanged(state.index + 1)
-                      : () => context
-                          .read<OnboardingCubit>()
-                          .pageChanged(0),
+                      : () => context.read<OnboardingCubit>().pageChanged(0),
                   child: const Text('Next'),
                 ),
               ],

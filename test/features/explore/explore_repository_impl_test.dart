@@ -33,5 +33,9 @@ void main() {
       ),
       isTrue,
     );
+    expect(
+      assets.getRight().toNullable()?.every((a) => a.sparkline.length >= 2),
+      isTrue,
+    );
   });
 }

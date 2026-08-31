@@ -15,8 +15,6 @@ final class ProfileLocalDataSource {
 
   List<ProfileShortcut> shortcuts() {
     return const [
-      ProfileShortcut(id: 'credit', label: 'Credit'),
-      ProfileShortcut(id: 'savings', label: 'Savings'),
       ProfileShortcut(id: 'futures', label: 'Futures'),
       ProfileShortcut(id: 'card', label: 'Card'),
       ProfileShortcut(id: 'security', label: 'Security & Settings'),

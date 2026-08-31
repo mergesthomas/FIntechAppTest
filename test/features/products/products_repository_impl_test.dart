@@ -10,7 +10,7 @@ void main() {
     final denied = await repo.getCatalog(eligibility: EligibilityStatus.denied);
     final tiles = denied.getRight().toNullable()!;
 
-    expect(tiles.firstWhere((t) => t.id == 'credit').enabled, isFalse);
+    expect(tiles.firstWhere((t) => t.id == 'swap').enabled, isFalse);
     expect(tiles.firstWhere((t) => t.id == 'explore').enabled, isTrue);
   });
 }

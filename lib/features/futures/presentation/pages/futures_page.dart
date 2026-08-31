@@ -6,8 +6,11 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/settlement/settlement_status.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/detail_row.dart';
 import '../../../../core/widgets/freshness_chip.dart';
 import '../../../../core/widgets/price_chart.dart';
 import '../../../auth/presentation/widgets/step_up_pin_dialog.dart';
@@ -49,8 +52,8 @@ class _FuturesPageState extends State<FuturesPage> {
         builder: (context, state) {
           return switch (state) {
             FuturesLoading() => const Center(child: CircularProgressIndicator()),
-            FuturesEmpty() => const Center(child: Text('No futures data')),
-            FuturesFailure(:final failure) => Center(child: Text('$failure')),
+            FuturesEmpty() => const AppEmptyState(message: 'No futures data'),
+            FuturesFailure(:final failure) => AppEmptyState(message: '$failure'),
             FuturesReady() => switch (state.surface) {
                 FuturesSurface.ticket => _Ticket(state: state),
                 FuturesSurface.preview => _Preview(state: state),
@@ -73,7 +76,12 @@ class _Ticket extends StatelessWidget {
   Widget build(BuildContext context) {
     final instrument = state.instrument;
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.md,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         Row(
           children: [
@@ -83,38 +91,34 @@ class _Ticket extends StatelessWidget {
             FreshnessChip(freshness: instrument.freshness),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           'Bid ${formatMoney(instrument.bid, withCode: true)} · Ask ${formatMoney(instrument.ask, withCode: true)}',
           style: AppTextStyles.secondary,
         ),
-        const SizedBox(height: 12),
-        PriceChart(points: instrument.chart, height: 160),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.md),
+        PriceChart(points: instrument.chart, height: 140),
+        const SizedBox(height: AppSpacing.sm),
         Text(instrument.leverageTeasers.join(' · '), style: AppTextStyles.secondary),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
                 key: const Key('futures_preview'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: AppColors.onAccent,
-                ),
                 onPressed: () => context.read<FuturesCubit>().preview(
                       side: FuturesSide.long,
                     ),
                 child: const Text('Long'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: ElevatedButton(
+              child: OutlinedButton(
                 key: const Key('futures_short'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.danger,
-                  foregroundColor: AppColors.textPrimary,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(color: Theme.of(context).colorScheme.error),
                 ),
                 onPressed: () => context.read<FuturesCubit>().preview(
                       side: FuturesSide.short,
@@ -124,15 +128,15 @@ class _Ticket extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           'Available ${formatMoney(state.account.availableMargin, withCode: true)}',
           style: AppTextStyles.body,
         ),
+        const SizedBox(height: AppSpacing.xxs),
         Text(state.account.riskTeaser, style: AppTextStyles.secondary),
         Text(state.account.bonusTeaser, style: AppTextStyles.secondary),
-        const SizedBox(height: 16),
-        Text('Open positions', style: AppTextStyles.headline),
+        const AppSectionHeader('Open positions'),
         for (final position in state.positions)
           ListTile(
             key: Key('position_${position.id}'),
@@ -144,7 +148,7 @@ class _Ticket extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.read<FuturesCubit>().openPosition(position.id),
           ),
-        Text('Last trades', style: AppTextStyles.headline),
+        const AppSectionHeader('Last trades'),
         for (final trade in state.trades)
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -167,15 +171,21 @@ class _Preview extends StatelessWidget {
   Widget build(BuildContext context) {
     final quote = state.quote!;
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         Text(
           '${quote.side.name.toUpperCase()} ${formatMoney(quote.size, withCode: true)}',
           style: AppTextStyles.headline,
         ),
-        Text(quote.leverageTeaser),
-        Text('Freshness ${quote.freshness.name}'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.md),
+        DetailRow(label: 'Leverage', value: quote.leverageTeaser),
+        DetailRow(label: 'Freshness', value: quote.freshness.name),
+        const SizedBox(height: AppSpacing.lg),
         ElevatedButton(
           key: const Key('futures_confirm'),
           onPressed: () async {
@@ -205,26 +215,41 @@ class _Position extends StatelessWidget {
     final details = state.details!;
     final position = details.position;
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         Text(
           '${position.pair} ${position.side.name.toUpperCase()}',
           style: AppTextStyles.headline,
         ),
-        Text('P/L ${formatMoney(details.pnl, withCode: true)}'),
-        Text('Entry ${formatMoney(details.entry, withCode: true)}'),
-        Text(
-          'Mark ${formatMoney(details.mark, withCode: true)} · ${details.markFreshness.name}',
+        const SizedBox(height: AppSpacing.md),
+        DetailRow(label: 'P/L', value: formatMoney(details.pnl, withCode: true)),
+        DetailRow(label: 'Entry', value: formatMoney(details.entry, withCode: true)),
+        DetailRow(
+          label: 'Mark',
+          value:
+              '${formatMoney(details.mark, withCode: true)} · ${details.markFreshness.name}',
         ),
-        Text('Liq ${formatMoney(details.liquidation, withCode: true)}'),
-        Text(
-          'Locked ${formatMoney(details.lockedCollateral, withCode: true)}',
+        DetailRow(
+          label: 'Liq',
+          value: formatMoney(details.liquidation, withCode: true),
         ),
-        Text(
-          'Maintenance ${formatMoney(details.maintenanceMargin, withCode: true)}',
+        DetailRow(
+          label: 'Locked',
+          value: formatMoney(details.lockedCollateral, withCode: true),
         ),
-        Text(details.fundingTeaser),
-        Text('Order ${details.orderId}'),
+        DetailRow(
+          label: 'Maintenance',
+          value: formatMoney(details.maintenanceMargin, withCode: true),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(details.fundingTeaser, style: AppTextStyles.secondary),
+        Text('Order ${details.orderId}', style: AppTextStyles.meta),
+        const SizedBox(height: AppSpacing.lg),
         ElevatedButton(
           key: const Key('futures_tpsl'),
           onPressed: () async {

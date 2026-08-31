@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../cubit/home_cubit.dart';
 import '../../../card/presentation/pages/card_page.dart';
@@ -59,36 +58,32 @@ class _HomeTabsState extends State<_HomeTabs> {
     ];
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (i) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) {
           setState(() => _index = i);
           if (i == 0) {
             context.read<HomeCubit>().load();
           }
         },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.accent,
-        unselectedItemColor: AppColors.textSecondary,
-        items: const [
-          BottomNavigationBarItem(
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            label: 'Dashboard',
+            label: 'Home',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.explore_outlined),
             label: 'Explore',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.show_chart, key: Key('nav_futures')),
             label: 'Futures',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.credit_card),
+          NavigationDestination(
+            icon: Icon(Icons.credit_card_outlined),
             label: 'Card',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.swap_horiz, key: Key('nav_exchange')),
             label: 'Exchange',
           ),

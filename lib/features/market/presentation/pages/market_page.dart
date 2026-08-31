@@ -8,7 +8,9 @@ import '../../../../core/di/providers.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/freshness_chip.dart';
 import '../../../../core/widgets/period_chips.dart';
 import '../../../../core/widgets/price_chart.dart';
@@ -48,9 +50,9 @@ class _MarketPageState extends ConsumerState<MarketPage> {
             return switch (state) {
               MarketLoading() =>
                 const Center(child: CircularProgressIndicator()),
-              MarketEmpty() => const Center(child: Text('No market data')),
+              MarketEmpty() => const AppEmptyState(message: 'No market data'),
               MarketFailure(:final failure) =>
-                Center(child: Text('$failure')),
+                AppEmptyState(message: '$failure'),
               MarketSuccess(:final asset) => _Body(asset: asset),
             };
           },
@@ -68,41 +70,52 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final up = asset.change24h >= Decimal.zero;
+    final scheme = Theme.of(context).colorScheme;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.md,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
-        Text(asset.name, style: AppTextStyles.secondary),
-        const SizedBox(height: 4),
+        Text(
+          asset.name,
+          style: AppTextStyles.secondary.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          formatMoney(asset.price, withCode: true),
+          key: const Key('market_price'),
+          style: AppTextStyles.balance,
+        ),
+        const SizedBox(height: AppSpacing.xs),
         Row(
           children: [
-            Expanded(
-              child: Text(
-                formatMoney(asset.price, withCode: true),
-                key: const Key('market_price'),
-                style: AppTextStyles.title,
+            Text(
+              '${up ? '+' : ''}${(asset.change24h * Decimal.fromInt(100)).toString()}%',
+              style: AppTextStyles.secondary.copyWith(
+                color: AppSemanticColors.change(scheme, up: up),
               ),
             ),
+            const SizedBox(width: AppSpacing.xs),
             FreshnessChip(freshness: asset.freshness),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          '${up ? '+' : ''}${(asset.change24h * Decimal.fromInt(100)).toString()}%',
-          style: AppTextStyles.secondary.copyWith(
-            color: up ? AppColors.accent : AppColors.danger,
-          ),
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         PriceChart(
           key: const Key('market_chart'),
           points: asset.chart.closes,
+          height: 160,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.sm),
         PeriodChips(
           selected: asset.chart.period,
           onSelected: context.read<MarketCubit>().selectPeriod,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xl),
         TradeActions(
           onBuy: () => context.push(
             '${AppRoute.funding.path}?action=buy&asset=${asset.currency.code}',

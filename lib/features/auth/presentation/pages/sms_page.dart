@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_route.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../cubit/sms_cubit.dart';
 import '../widgets/code_dots.dart';
@@ -63,7 +64,7 @@ class _SmsPageState extends State<SmsPage> {
             return LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
                     child: Column(

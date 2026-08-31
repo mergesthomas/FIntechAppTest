@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/money/money_format.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../domain/entities/order.dart';
 import '../cubit/orders_cubit.dart';
 
@@ -29,7 +33,7 @@ class _OrdersPageState extends State<OrdersPage> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Order History'),
+          title: const Text('Orders'),
           bottom: TabBar(
             onTap: (index) => context.read<OrdersCubit>().load(
                   switch (index) {
@@ -39,8 +43,8 @@ class _OrdersPageState extends State<OrdersPage> {
                   },
                 ),
             tabs: const [
-              Tab(text: 'Trigger Orders'),
-              Tab(text: 'Limit Orders'),
+              Tab(text: 'Trigger'),
+              Tab(text: 'Limit'),
               Tab(text: 'Market'),
             ],
           ),
@@ -50,24 +54,80 @@ class _OrdersPageState extends State<OrdersPage> {
             return switch (state) {
               OrdersLoading() =>
                 const Center(child: CircularProgressIndicator()),
-              OrdersEmpty() => const Center(child: Text('No orders')),
-              OrdersFailure(:final failure) => Center(child: Text('$failure')),
-              OrdersSuccess(:final orders) => ListView(
-                  children: [
-                    for (final order in orders)
-                      ListTile(
-                        title: Text('${order.pair} ${order.side.name.toUpperCase()}'),
-                        subtitle: Text(
-                          '${order.status.name.toUpperCase()} · ${order.wallet}',
-                        ),
-                        trailing: Text(formatMoney(order.amount, withCode: true)),
-                      ),
-                  ],
-                ),
+              OrdersEmpty() => const AppEmptyState(message: 'No orders'),
+              OrdersFailure(:final failure) => AppEmptyState(message: '$failure'),
+              OrdersSuccess(:final orders) => _OrderList(orders: orders),
             };
           },
         ),
       ),
     );
+  }
+}
+
+class _OrderList extends StatelessWidget {
+  const _OrderList({required this.orders});
+
+  final List<TradeOrder> orders;
+
+  @override
+  Widget build(BuildContext context) {
+    final grouped = <OrderStatus, List<TradeOrder>>{};
+    for (final order in orders) {
+      grouped.putIfAbsent(order.status, () => []).add(order);
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
+      children: [
+        for (final status in OrderStatus.values)
+          if (grouped[status] case final rows?) ...[
+            AppSectionHeader(_statusLabel(status)),
+            for (final order in rows)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${order.pair} ${order.side.name.toUpperCase()}',
+                            style: AppTextStyles.body,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            order.wallet,
+                            style: AppTextStyles.meta.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      formatMoney(order.amount, withCode: true),
+                      style: AppTextStyles.numeric,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+      ],
+    );
+  }
+
+  String _statusLabel(OrderStatus status) {
+    return switch (status) {
+      OrderStatus.open => 'Open',
+      OrderStatus.filled => 'Filled',
+      OrderStatus.canceled => 'Canceled',
+    };
   }
 }

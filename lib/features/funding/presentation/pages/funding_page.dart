@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money_format.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/detail_row.dart';
 import '../../../auth/presentation/widgets/pin_keypad.dart';
 import '../../domain/entities/funding.dart';
 import '../cubit/funding_cubit.dart';
@@ -64,8 +66,8 @@ class _FundingPageState extends State<FundingPage> {
         builder: (context, state) {
           return switch (state) {
             FundingLoading() => const Center(child: CircularProgressIndicator()),
-            FundingEmpty() => const Center(child: Text('No funding methods')),
-            FundingFailure(:final failure) => Center(child: Text('$failure')),
+            FundingEmpty() => const AppEmptyState(message: 'No funding methods'),
+            FundingFailure(:final failure) => AppEmptyState(message: '$failure'),
             FundingReady() => _FundingBody(state: state),
           };
         },
@@ -104,29 +106,29 @@ class _Hub extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.md,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         for (final method in state.methods)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Material(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              child: ListTile(
-                key: Key('funding_${method.rail.name}'),
-                title: Text(method.label),
-                subtitle: Text(method.subtitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => switch (method.rail) {
-                  FundingRail.bank => context.read<FundingCubit>().openBank(),
-                  FundingRail.receiveCrypto =>
-                    context.read<FundingCubit>().openReceiveCrypto(),
-                  FundingRail.buyCrypto =>
-                    context.read<FundingCubit>().openBuy(),
-                },
-              ),
-            ),
+          ListTile(
+            key: Key('funding_${method.rail.name}'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(method.label),
+            subtitle: Text(method.subtitle),
+            trailing: Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+            onTap: () => switch (method.rail) {
+              FundingRail.bank => context.read<FundingCubit>().openBank(),
+              FundingRail.receiveCrypto =>
+                context.read<FundingCubit>().openReceiveCrypto(),
+              FundingRail.buyCrypto =>
+                context.read<FundingCubit>().openBuy(),
+            },
           ),
       ],
     );
@@ -141,6 +143,12 @@ class _Fiatx extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         for (final asset in state.fiatx)
           ListTile(
@@ -161,6 +169,12 @@ class _Rails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         if (state.feeSchedule != null)
           ListTile(title: Text(state.feeSchedule!, style: AppTextStyles.secondary)),
@@ -188,7 +202,12 @@ class _OpenUsd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         Text('Account status: ${state.accountStatus.name}'),
         if (state.usdJob != null) Text('Job: ${state.usdJob!.name}'),
@@ -221,6 +240,12 @@ class _ReceiveFiat extends StatelessWidget {
   Widget build(BuildContext context) {
     final details = state.receiveDetails!;
     return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         ListTile(title: Text('${details.asset.code} ${details.rail}')),
         ListTile(title: Text('Beneficiary ${details.beneficiary}')),
@@ -242,6 +267,12 @@ class _ReceiveAssets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         for (final asset in state.receivable)
           ListTile(
@@ -264,6 +295,12 @@ class _ReceiveCrypto extends StatelessWidget {
   Widget build(BuildContext context) {
     final address = state.receiveAddress!;
     return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         ListTile(title: Text('${address.currency.code} · ${address.network}')),
         ListTile(title: Text(address.address)),
@@ -281,6 +318,12 @@ class _BuyAssets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xs,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
         const ListTile(title: Text('Prices are stale fixtures')),
         for (final asset in state.purchasable)
@@ -304,16 +347,24 @@ class _BuyAmount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
-        Text('Buy ${state.selectedBuyAsset?.currency.code}', style: AppTextStyles.headline),
+        Text(
+          'Buy ${state.selectedBuyAsset?.currency.code}',
+          style: AppTextStyles.headline,
+        ),
         TextField(
           key: const Key('buy_amount'),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(labelText: 'Spend USD'),
           onChanged: context.read<FundingCubit>().typeSpend,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         for (final method in state.paymentMethods)
           RadioListTile<String>(
             title: Text(method.label),
@@ -348,13 +399,22 @@ class _BuyPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final quote = state.quote!;
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
+      ),
       children: [
-        Text('Spend ${formatMoney(quote.spend)}'),
-        Text('Receive ${formatMoney(quote.receive, withCode: true)}'),
-        Text('Freshness ${quote.freshness.name}'),
+        DetailRow(label: 'Spend', value: formatMoney(quote.spend)),
+        DetailRow(
+          label: 'Receive',
+          value: formatMoney(quote.receive, withCode: true),
+        ),
+        DetailRow(label: 'Freshness', value: quote.freshness.name),
+        const SizedBox(height: AppSpacing.xs),
         Text(quote.cashbackTeaser, style: AppTextStyles.secondary),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         ElevatedButton(
           key: const Key('buy_confirm'),
           onPressed: () async {

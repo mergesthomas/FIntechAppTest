@@ -24,8 +24,6 @@ final class HomeEmpty extends HomeState {
 final class HomeSuccess extends HomeState {
   const HomeSuccess({
     required this.overview,
-    required this.credit,
-    required this.savings,
     required this.watchlist,
     required this.alerts,
     required this.promos,
@@ -33,16 +31,13 @@ final class HomeSuccess extends HomeState {
   });
 
   final DashboardOverview overview;
-  final CreditHubTeaser credit;
-  final SavingsHubTeaser savings;
   final List<WatchlistItem> watchlist;
   final List<DashboardAlert> alerts;
   final List<DashboardPromo> promos;
   final List<NewsPreview> news;
 
   @override
-  List<Object?> get props =>
-      [overview, credit, savings, watchlist, alerts, promos, news];
+  List<Object?> get props => [overview, watchlist, alerts, promos, news];
 }
 
 final class HomeFailure extends HomeState {
@@ -57,16 +52,12 @@ final class HomeFailure extends HomeState {
 final class HomeCubit extends Cubit<HomeState> {
   HomeCubit({
     required GetDashboardOverview getOverview,
-    required GetCreditHubTeaser getCredit,
-    required GetSavingsHubTeaser getSavings,
     required GetWatchlist getWatchlist,
     required GetDashboardAlerts getAlerts,
     required DismissDashboardAlert dismissAlert,
     required GetDashboardPromos getPromos,
     required GetNewsPreview getNews,
   })  : _getOverview = getOverview,
-        _getCredit = getCredit,
-        _getSavings = getSavings,
         _getWatchlist = getWatchlist,
         _getAlerts = getAlerts,
         _dismissAlert = dismissAlert,
@@ -75,8 +66,6 @@ final class HomeCubit extends Cubit<HomeState> {
         super(const HomeLoading());
 
   final GetDashboardOverview _getOverview;
-  final GetCreditHubTeaser _getCredit;
-  final GetSavingsHubTeaser _getSavings;
   final GetWatchlist _getWatchlist;
   final GetDashboardAlerts _getAlerts;
   final DismissDashboardAlert _dismissAlert;
@@ -92,22 +81,17 @@ final class HomeCubit extends Cubit<HomeState> {
     emit(const HomeLoading());
     final overview = await _getOverview(_period);
     await overview.fold((failure) async => emit(HomeFailure(failure)), (o) async {
-      final credit = await _getCredit(const NoParams());
-      final savings = await _getSavings(const NoParams());
       final watchlist = await _getWatchlist(const NoParams());
       final alerts = await _getAlerts(const NoParams());
       final promos = await _getPromos(const NoParams());
       final news = await _getNews(const NoParams());
-      if ([credit, savings, watchlist, alerts, promos, news]
-          .any((e) => e.isLeft())) {
+      if ([watchlist, alerts, promos, news].any((e) => e.isLeft())) {
         emit(const HomeFailure(ServerFailure('dashboard_partial_failure')));
         return;
       }
       emit(
         HomeSuccess(
           overview: o,
-          credit: credit.getRight().toNullable()!,
-          savings: savings.getRight().toNullable()!,
           watchlist: watchlist.getRight().toNullable()!,
           alerts: alerts.getRight().toNullable()!,
           promos: promos.getRight().toNullable()!,
