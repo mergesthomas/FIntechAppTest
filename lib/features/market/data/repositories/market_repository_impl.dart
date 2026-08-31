@@ -11,6 +11,7 @@ import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 import '../../domain/entities/market_asset.dart';
 import '../../domain/entities/market_tick.dart';
+import '../../domain/entities/order_book.dart';
 import '../../domain/repositories/market_repository.dart';
 import '../datasources/market_local_datasource.dart';
 
@@ -82,5 +83,29 @@ final class MarketRepositoryImpl implements MarketRepository {
         at: tick.updatedAt,
       );
     }).where((tick) => tick != null).cast<MarketTick>();
+  }
+
+  @override
+  Future<Either<Failure, OrderBook>> getOrderBook(
+    Currency currency, {
+    int depth = orderBookDefaultDepth,
+  }) async {
+    final book = _local.bookFor(currency, depth: depth);
+    if (book == null) {
+      return Either.left(const ValidationFailure('order_book_unavailable'));
+    }
+    return Either.right(book);
+  }
+
+  @override
+  Stream<OrderBook> watchOrderBook(
+    Currency currency, {
+    int depth = orderBookDefaultDepth,
+  }) {
+    final book = _local.bookFor(currency, depth: depth);
+    if (book == null) {
+      return const Stream.empty();
+    }
+    return Stream<OrderBook>.value(book);
   }
 }

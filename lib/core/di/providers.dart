@@ -440,6 +440,9 @@ final marketCubitProvider = Provider.autoDispose.family<MarketCubit, String>((
     getAsset: GetMarketAsset(session, market),
     getCandles: GetCandleChart(session, market),
     watchTicks: WatchMarketTicks(session, market),
+    getOrderBook: GetOrderBook(session, market),
+    watchOrderBook: WatchOrderBook(session, market),
+    selectOrderBookLevel: SelectOrderBookLevel(session, market),
     code: code,
   );
   ref.onDispose(cubit.close);

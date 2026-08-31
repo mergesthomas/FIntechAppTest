@@ -77,6 +77,7 @@ Profile / Products / Security & Settings / Inbox / News
 | 14 | `orders` | Trade history | no (read) | order_history | yes |
 | 15 | `futures` | Trade | — | — | **dropped** |
 | 16 | `wallet` | Portfolio | no | — | **blocked** (Wallet CTA on dashboard; no screens) |
+| 17 | `order_book` | Markets | no (read + Limit draft) | none | **Use Cases approved** on `feature/order-book` — see [`order-book.md`](order-book.md) |
 
 Approve **one** row. Approving one does not approve the others.
 
@@ -468,6 +469,37 @@ Tabs: Trigger Orders | Limit Orders. Past orders: pair, SELL, CANCELED, amount, 
 Dashboard **Wallet >** has no screens (`wallet`, `asset_detail`, `transaction_detail` empty).
 
 Do not invent a portfolio feature. When shots arrive: balances, asset detail, transaction detail.
+
+---
+
+## 17. `order_book`
+
+Lives in `features/market` (same `MarketPage`). Design: [`order-book.md`](order-book.md).
+
+Display-only depth + a Limit **draft** for existing Swap. Not money-moving. No new submit.
+
+### Screens
+
+| Screen | Folder | Have |
+|---|---|---|
+| Market detail + book | `market` | charts + book (Phase 1 UI) |
+
+### Flow
+
+```text
+Market detail
+  → GetOrderBook + WatchOrderBook
+  → tap level → SelectOrderBookLevel
+  → Swap Limit (existing GetSwapQuote → preview → step-up → SubmitSwap)
+```
+
+### Use Cases
+
+- `GetOrderBook` — session; depth 1–20; last cache `stale` / `disconnected`; fixture is never `live`
+- `WatchOrderBook` — session on each emit; same freshness contract as ticks
+- `SelectOrderBookLevel` — session; level must be on the book; `disconnected` refuses; `stale` returns a draft with the stale flag. No KYC, step-up, ledger, or `quoteId`
+
+Reconnect / live Binance depth are Data (Phases 2–3). `SubmitOrderFromBook` is forbidden.
 
 ---
 

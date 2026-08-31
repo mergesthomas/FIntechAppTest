@@ -64,4 +64,21 @@ void main() {
     final ready = cubit.state as SwapReady;
     expect(ready.orderType, SwapOrderType.limit);
   });
+
+  test('applyRouteSeed sets Limit without quoting', () async {
+    await cubit.load();
+    cubit.applyRouteSeed(
+      toCode: 'BTC',
+      quoteCode: 'USDT',
+      type: 'limit',
+      limitPrice: '78898.13',
+    );
+    final ready = cubit.state as SwapReady;
+    expect(ready.orderType, SwapOrderType.limit);
+    expect(ready.to.code, 'BTC');
+    expect(ready.from.code, 'USDC');
+    expect(ready.limitInput, '78898.13');
+    expect(ready.quote, isNull);
+    expect(ready.surface, SwapSurface.ticket);
+  });
 }

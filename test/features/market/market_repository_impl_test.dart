@@ -1,10 +1,13 @@
+import 'package:fintech_app_test/core/error/failure.dart';
 import 'package:fintech_app_test/core/market/candle_interval.dart';
 import 'package:fintech_app_test/core/market/price_series.dart';
 import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
 import 'package:fintech_app_test/features/market/data/datasources/market_local_datasource.dart';
 import 'package:fintech_app_test/features/market/data/repositories/market_repository_impl.dart';
+import 'package:fintech_app_test/features/market/domain/entities/order_book.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 
 import '../../helpers/paper_harness.dart';
 
@@ -32,5 +35,41 @@ void main() {
     expect(series?.interval, CandleInterval.h1);
     expect(series?.candles.length, greaterThan(1));
     expect(series?.freshness, QuoteFreshness.stale);
+  });
+
+  test('fixture order book is stale and sorted', () async {
+    final paper = PaperHarness();
+    final repo = MarketRepositoryImpl(
+      const MarketLocalDataSource(),
+      feed: paper.feed,
+    );
+    final book = (await repo.getOrderBook(Currency.btc)).getRight().toNullable();
+    expect(book?.freshness, QuoteFreshness.stale);
+    expect(book?.quote, Currency.usdt);
+    expect(book?.bids, hasLength(orderBookDefaultDepth));
+    expect(book?.asks, hasLength(orderBookDefaultDepth));
+    expect(
+      book!.bids.first.price.amount > book.bids.last.price.amount,
+      isTrue,
+    );
+    expect(
+      book.asks.first.price.amount < book.asks.last.price.amount,
+      isTrue,
+    );
+    expect(book.bids.first.price.amount < book.asks.first.price.amount, isTrue);
+  });
+
+  test('unsupported pairs have no order book', () async {
+    final paper = PaperHarness();
+    final repo = MarketRepositoryImpl(
+      const MarketLocalDataSource(),
+      feed: paper.feed,
+    );
+    final result = await repo.getOrderBook(Currency.usd);
+    expect(
+      result.getLeft().toNullable(),
+      const ValidationFailure('order_book_unavailable'),
+    );
+    expect(await repo.watchOrderBook(Currency.usd).isEmpty, isTrue);
   });
 }

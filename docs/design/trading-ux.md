@@ -22,6 +22,10 @@ Interactive OHLCV candlesticks render **only** on `MarketPage` (`/market/:code`)
 
 Buy / Exchange / Add funds only **route** to funding and swap. Session, KYC, PIN, and live-quote gates stay in those features.
 
+## Order book
+
+Display-only L2 on `MarketPage`, isolated via `BlocSelector`. Specified in [`order-book.md`](order-book.md). Fixture books stay `stale`. Tap seeds existing Swap Limit (`to` + `limitPrice`); it does not submit. Disconnected levels have `onTap: null`.
+
 ## Out of scope
 
 Wallet, send crypto, real exchange routing. Asset page is a **market** view, not a wallet.

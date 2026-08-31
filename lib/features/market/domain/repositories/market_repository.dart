@@ -7,6 +7,7 @@ import '../../../../core/market/price_series.dart';
 import '../../../../core/money/currency.dart';
 import '../entities/market_asset.dart';
 import '../entities/market_tick.dart';
+import '../entities/order_book.dart';
 
 abstract class MarketRepository {
   Future<Either<Failure, MarketAsset>> getAsset(
@@ -25,4 +26,14 @@ abstract class MarketRepository {
   );
 
   Stream<MarketTick> watchTicks(Currency currency);
+
+  Future<Either<Failure, OrderBook>> getOrderBook(
+    Currency currency, {
+    int depth = orderBookDefaultDepth,
+  });
+
+  Stream<OrderBook> watchOrderBook(
+    Currency currency, {
+    int depth = orderBookDefaultDepth,
+  });
 }
