@@ -44,7 +44,7 @@ void main() {
         NewsItem(
           id: '1',
           source: 'Fixture',
-          headline: 'Markets wrap — placeholder',
+          headline: 'Dogecoin logs strongest month of 2026 with a 21% August gain',
           age: '2h',
         ),
       ]),

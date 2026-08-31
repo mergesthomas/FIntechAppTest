@@ -33,15 +33,25 @@ void main() {
 
   tearDown(() => cubit.close());
 
-  test('load emits success', () async {
+  test('load emits four Dogecoin fixture stories', () async {
     await cubit.load();
     expect(cubit.state, isA<NewsSuccess>());
+    final items = (cubit.state as NewsSuccess).items;
+    expect(items, hasLength(4));
+    expect(
+      items.every(
+        (item) =>
+            item.headline.contains('Dogecoin') ||
+            item.headline.contains('DOGE'),
+      ),
+      isTrue,
+    );
   });
 
   test('load emits failure without session', () async {
-    when(() => auth.restoreSession()).thenAnswer(
-      (_) async => Either.left(const SessionFailure()),
-    );
+    when(
+      () => auth.restoreSession(),
+    ).thenAnswer((_) async => Either.left(const SessionFailure()));
     await cubit.load();
     expect(cubit.state, isA<NewsFailure>());
   });
