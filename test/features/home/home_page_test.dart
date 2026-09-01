@@ -44,7 +44,8 @@ void main() {
     expect(find.textContaining('stale'), findsWidgets);
     expect(find.byKey(const Key('trade_buy')), findsNothing);
     expect(find.byKey(const Key('add_funds')), findsNothing);
-    expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
+    expect(find.byKey(const Key('trade_exchange')), findsNothing);
+    expect(find.byKey(const Key('nav_exchange')), findsOneWidget);
     expect(find.byKey(const Key('nav_futures')), findsNothing);
     expect(find.byKey(const Key('trade_futures')), findsNothing);
     expect(find.text('Futures'), findsNothing);
@@ -65,7 +66,7 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byKey(const Key('net_worth')), findsOneWidget);
-    expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
+    expect(find.byKey(const Key('nav_exchange')), findsOneWidget);
     expect(find.byKey(const Key('period_oneDay')), findsOneWidget);
 
     await tester.pumpAndSettle();

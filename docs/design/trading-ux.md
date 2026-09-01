@@ -20,7 +20,7 @@ Interactive OHLCV candlesticks render **only** on `MarketPage` (`/market/:code`)
 
 ## Actions
 
-Exchange only **routes** to swap. Session, KYC, PIN, and live-quote gates stay in that feature. Buy and Add funds are dropped.
+Exchange on market detail **routes** to swap. The dashboard has no Exchange CTA; the shell tab is the entry. Session, KYC, PIN, and live-quote gates stay in swap. Buy and Add funds are dropped.
 
 ## Order book
 
