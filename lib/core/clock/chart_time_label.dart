@@ -20,7 +20,13 @@ String chartTimeLabel(DateTime at, {required bool includeTime}) {
   if (!includeTime) {
     return date;
   }
+  return '$date ${clockTimeLabel(t)}';
+}
+
+/// UTC `HH:mm` for activity rows.
+String clockTimeLabel(DateTime at) {
+  final t = at.toUtc();
   final hour = t.hour.toString().padLeft(2, '0');
   final minute = t.minute.toString().padLeft(2, '0');
-  return '$date $hour:$minute';
+  return '$hour:$minute';
 }

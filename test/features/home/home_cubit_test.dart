@@ -96,7 +96,7 @@ void main() {
       return Either.right(_overview(period));
     });
     when(() => home.getWatchlist()).thenAnswer((_) async => Either.right([]));
-    when(() => home.getHoldings()).thenAnswer((_) async => Either.right([]));
+    when(() => home.getHoldings(any())).thenAnswer((_) async => Either.right([]));
     when(
       () => home.getWatchlistCandidates(),
     ).thenAnswer((_) async => Either.right([_item(Currency.sol)]));
@@ -108,7 +108,7 @@ void main() {
   tearDown(() => cubit.close());
 
   test('load emits success with holdings from the use case', () async {
-    when(() => home.getHoldings()).thenAnswer(
+    when(() => home.getHoldings(any())).thenAnswer(
       (_) async => Either.right([
         HoldingItem(
           currency: Currency.btc,
@@ -154,6 +154,7 @@ void main() {
     verify(
       () => home.getOverview(initials: '78', period: DashboardPeriod.oneDay),
     ).called(1);
+    verify(() => home.getHoldings(DashboardPeriod.oneDay)).called(1);
     await sub.cancel();
   });
 

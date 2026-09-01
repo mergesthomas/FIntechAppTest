@@ -113,10 +113,10 @@ void main() {
     ).thenAnswer((_) async => Either.left(const SessionFailure()));
     final holdings = GetHoldings(RequireSession(auth), home);
 
-    final result = await holdings(const NoParams());
+    final result = await holdings(DashboardPeriod.oneWeek);
 
     expect(result.getLeft().toNullable(), isA<SessionFailure>());
-    verifyNever(() => home.getHoldings());
+    verifyNever(() => home.getHoldings(any()));
   });
 
   test('GetHoldings loads when session exists', () async {
@@ -126,14 +126,14 @@ void main() {
       ),
     );
     when(
-      () => home.getHoldings(),
+      () => home.getHoldings(any()),
     ).thenAnswer((_) async => Either.right(<HoldingItem>[]));
     final holdings = GetHoldings(RequireSession(auth), home);
 
-    final result = await holdings(const NoParams());
+    final result = await holdings(DashboardPeriod.oneWeek);
 
     expect(result.getRight().toNullable(), isEmpty);
-    verify(() => home.getHoldings()).called(1);
+    verify(() => home.getHoldings(DashboardPeriod.oneWeek)).called(1);
   });
 
   test('GetWatchlistCandidates refuses without a session', () async {

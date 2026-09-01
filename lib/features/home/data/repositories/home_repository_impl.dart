@@ -124,32 +124,64 @@ final class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, List<HoldingItem>>> getHoldings() async {
+  Future<Either<Failure, List<HoldingItem>>> getHoldings([
+    DashboardPeriod period = DashboardPeriod.oneWeek,
+  ]) async {
+    final chartPeriod = chartPeriodOf(period);
+    final now = _clock.now().toUtc();
+    final lots = _ledger.lots;
+    DateTime? firstActivity;
+    for (final lot in lots) {
+      final at = lot.at.toUtc();
+      if (firstActivity == null || at.isBefore(firstActivity)) {
+        firstActivity = at;
+      }
+    }
+    final start = chartWindowStart(
+      period: chartPeriod,
+      end: now,
+      firstActivity: firstActivity,
+    );
     final held = [
       for (final money in _ledger.balances(LedgerBook.savings))
         if (_isHolding(money)) money,
     ];
     final items = <HoldingItem>[];
     for (final money in held) {
-      final series = await _feed.refreshSeries(money.currency, ChartPeriod.oneDay);
+      final series = await _feed.refreshSeries(money.currency, chartPeriod);
       final quote = _feed.quoteFor(money.currency);
       final rate = _feed.usdPrice(money.currency);
       if (rate == null) {
         continue;
       }
+      final qtyStart = quantityAt(current: money, lots: lots, at: start);
+      final rateStart = seriesRateAt(
+        closes: series.closes,
+        start: start,
+        end: now,
+        at: start,
+        fallback: rate.amount,
+      );
+      final valueNow = money.amount * rate.amount;
+      final valueStart = qtyStart * rateStart;
+      final change = valueStart == Decimal.zero
+          ? Decimal.zero
+          : ((valueNow - valueStart) / valueStart).toDecimal(
+            scaleOnInfinitePrecision: 8,
+          );
       items.add(
         HoldingItem(
           currency: money.currency,
           displayName: _displayName(money.currency),
           quantity: money,
-          value: Money.fromDecimal(money.amount * rate.amount, Currency.usd),
-          change24hRatio: quote?.change24h ?? Decimal.zero,
+          value: Money.fromDecimal(valueNow, Currency.usd),
+          change24hRatio: change,
           sparkline:
               series.closes.length >= 2
                   ? series.closes
                   : syntheticCloses(
                     last: rate.amount,
-                    period: ChartPeriod.oneDay,
+                    period: chartPeriod,
                     seedKey: money.currency.code,
                     changeRatio: quote?.change24h,
                   ),

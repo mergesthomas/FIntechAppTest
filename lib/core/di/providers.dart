@@ -46,6 +46,7 @@ import '../../features/orders/data/datasources/orders_local_datasource.dart';
 import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
 import '../../features/orders/domain/usecases/orders_usecases.dart';
+import '../../features/orders/presentation/cubit/open_orders_cubit.dart';
 import '../../features/orders/presentation/cubit/orders_cubit.dart';
 import '../../features/market/data/datasources/market_local_datasource.dart';
 import '../../features/market/data/repositories/market_repository_impl.dart';
@@ -344,6 +345,8 @@ final cardCubitProvider = Provider<CardCubit>((ref) {
     getStatus: GetCardStatus(session, card),
     restore: RestoreCardBalance(session),
     unfreeze: UnfreezeCard(session, card),
+    freeze: FreezeCard(session, card),
+    revealPin: RevealCardPin(session, card),
   );
   ref.onDispose(cubit.close);
   return cubit;
@@ -386,6 +389,21 @@ final ordersCubitProvider = Provider<OrdersCubit>((ref) {
   final auth = ref.watch(authRepositoryProvider);
   final orders = ref.watch(ordersRepositoryProvider);
   final cubit = OrdersCubit(GetOrderHistory(RequireSession(auth), orders));
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final openOrdersCubitProvider =
+    Provider.autoDispose.family<OpenOrdersCubit, String>((ref, code) {
+  final auth = ref.watch(authRepositoryProvider);
+  final orders = ref.watch(ordersRepositoryProvider);
+  final session = RequireSession(auth);
+  final cubit = OpenOrdersCubit(
+    getOpen: GetOpenOrdersForAsset(session, orders),
+    cancel: CancelOrder(session, GetEligibility(auth), orders),
+    requestIds: ref.watch(requestIdFactoryProvider),
+    code: code,
+  );
   ref.onDispose(cubit.close);
   return cubit;
 });

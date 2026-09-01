@@ -19,4 +19,14 @@ final class CardRepositoryImpl implements CardRepository {
   Future<Either<Failure, CardSnapshot>> unfreeze() async {
     return Either.right(_local.unfreeze());
   }
+
+  @override
+  Future<Either<Failure, CardSnapshot>> freeze() async {
+    return Either.right(_local.freeze());
+  }
+
+  @override
+  Future<Either<Failure, String>> revealPin() async {
+    return Either.right(CardLocalDataSource.fixturePin);
+  }
 }

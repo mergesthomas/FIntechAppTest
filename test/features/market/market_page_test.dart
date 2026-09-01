@@ -2,12 +2,15 @@ import 'package:candlesticks/candlesticks.dart';
 import 'package:fintech_app_test/app.dart';
 import 'package:fintech_app_test/core/di/providers.dart';
 import 'package:fintech_app_test/core/error/failure.dart';
+import 'package:fintech_app_test/core/ledger/paper_ledger.dart';
+import 'package:fintech_app_test/core/ledger/paper_order.dart';
 import 'package:fintech_app_test/core/market/candle_interval.dart';
 import 'package:fintech_app_test/core/market/candle_series.dart';
 import 'package:fintech_app_test/core/market/in_memory_market_feed.dart';
 import 'package:fintech_app_test/core/market/price_series.dart';
 import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
+import 'package:fintech_app_test/core/money/money.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
 import 'package:fintech_app_test/core/theme/app_colors.dart';
 import 'package:fintech_app_test/core/widgets/price_chart.dart';
@@ -25,6 +28,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 
 import '../../helpers/paper_harness.dart';
+import '../../helpers/swap_flow.dart';
 
 void main() {
   testWidgets(
@@ -79,6 +83,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('market_order_book')), findsOneWidget);
       expect(find.byKey(const Key('market_order_book_spread')), findsOneWidget);
+      expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
     },
   );
 
@@ -227,6 +232,153 @@ void main() {
     expect(find.byKey(const Key('swap_limit_price')), findsNothing);
     expect(find.byKey(const Key('market_order_book')), findsOneWidget);
   });
+
+  testWidgets('Exchange stays pinned and opens Instant for that coin', (
+    tester,
+  ) async {
+    await _pumpSignedIn(tester);
+    await _openBtcMarket(tester);
+
+    expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
+    await tester.drag(
+      find.byKey(const Key('market_scroll')),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('trade_exchange')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('swap_to_asset')),
+        matching: find.text('BTC'),
+      ),
+      findsAtLeastNWidgets(1),
+    );
+    expect(find.text(SwapCopy.instantOrder), findsWidgets);
+    expect(find.byKey(const Key('swap_limit_price')), findsNothing);
+    expect(find.byKey(const Key('swap_confirm')), findsNothing);
+  });
+
+  testWidgets('cancel open order requires PIN then releases the hold', (
+    tester,
+  ) async {
+    final paper = await _seedOpenBtcLimit();
+    final store = await _sessionStore();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          secureStoreProvider.overrideWith((ref) => store),
+          paperOrderStoreProvider.overrideWith((ref) => paper.store),
+          paperLedgerProvider.overrideWith((ref) => paper.ledger),
+          marketFeedProvider.overrideWith((ref) => paper.feed),
+        ],
+        child: const FintechApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openBtcMarket(tester);
+
+    final cancel = find.byKey(const Key('open_order_cancel_ord-open-btc'));
+    expect(cancel, findsOneWidget);
+    await tester.tap(cancel);
+    await tester.pumpAndSettle();
+    expect(find.text('Confirm with PIN'), findsOneWidget);
+    await enterStepUpPin(tester);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('open_order_cancel_ord-open-btc')),
+      findsNothing,
+    );
+    expect(paper.store.byId('ord-open-btc')?.status, PaperOrderStatus.canceled);
+  });
+
+  testWidgets('dismissing PIN does not cancel the open order', (tester) async {
+    final paper = await _seedOpenBtcLimit();
+    final store = await _sessionStore();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          secureStoreProvider.overrideWith((ref) => store),
+          paperOrderStoreProvider.overrideWith((ref) => paper.store),
+          paperLedgerProvider.overrideWith((ref) => paper.ledger),
+          marketFeedProvider.overrideWith((ref) => paper.feed),
+        ],
+        child: const FintechApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openBtcMarket(tester);
+
+    final cancel = find.byKey(const Key('open_order_cancel_ord-open-btc'));
+    expect(cancel, findsOneWidget);
+    await tester.tap(cancel);
+    await tester.pumpAndSettle();
+    expect(find.text('Confirm with PIN'), findsOneWidget);
+    Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('open_order_cancel_ord-open-btc')),
+      findsOneWidget,
+    );
+    expect(paper.store.byId('ord-open-btc')?.status, PaperOrderStatus.open);
+  });
+}
+
+Future<InMemorySecureStore> _sessionStore() async {
+  final store = InMemorySecureStore();
+  await store.write(AuthStoreKeys.sessionToken, 'token');
+  await store.write(AuthStoreKeys.sessionPhone, '6912345678');
+  await store.write(AuthStoreKeys.biometricEnabled, '0');
+  return store;
+}
+
+Future<void> _pumpSignedIn(WidgetTester tester) async {
+  final store = await _sessionStore();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [secureStoreProvider.overrideWith((ref) => store)],
+      child: const FintechApp(),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _openBtcMarket(WidgetTester tester) async {
+  await tester.drag(
+    find.byKey(const Key('dashboard_scroll')),
+    const Offset(0, -800),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('watchlist_BTC')));
+  await tester.pumpAndSettle();
+}
+
+Future<PaperHarness> _seedOpenBtcLimit() async {
+  final paper = PaperHarness();
+  await paper.ledger.placeHold(
+    requestId: 'hold-btc',
+    hold: Money.parse('100', Currency.usdc),
+    book: LedgerBook.savings,
+    order: PaperOrder(
+      id: 'ord-open-btc',
+      requestId: 'hold-btc',
+      pair: 'USDC/BTC',
+      side: PaperSide.sell,
+      status: PaperOrderStatus.open,
+      amount: Money.parse('100', Currency.usdc),
+      wallet: 'savings',
+      venue: PaperVenue.limit,
+      pay: Currency.usdc,
+      receive: Currency.btc,
+      limitPrice: Money.parse('50000', Currency.usdc),
+    ),
+  );
+  return paper;
 }
 
 final class _DisconnectedBookRepo implements MarketRepository {

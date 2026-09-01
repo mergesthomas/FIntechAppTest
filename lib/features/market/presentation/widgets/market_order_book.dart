@@ -88,7 +88,7 @@ class _Spread extends StatelessWidget {
     final spread = ask - bid;
     return Text(
       key: const Key('market_order_book_spread'),
-      '${MarketCopy.spread} ${formatQuantity(spread)}',
+      '${MarketCopy.spread} ${formatMoney(spread, withCode: true)}',
       style: AppTextStyles.meta.copyWith(
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
@@ -234,7 +234,11 @@ class _LevelTile extends StatelessWidget {
       fontFeatures: const [FontFeature.tabularFigures()],
     );
     final size = formatQuantity(level.size, withCode: false);
-    final price = formatQuantity(level.price, withCode: false);
+    final price = formatMoney(
+      level.price,
+      withCode: false,
+      kind: MoneyFormat.price,
+    );
     final enabled = onSelected != null;
     return InkWell(
       key: Key('order_book_${level.side.name}_${level.price.amount}'),

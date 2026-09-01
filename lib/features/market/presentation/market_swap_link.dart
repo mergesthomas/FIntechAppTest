@@ -2,6 +2,13 @@ import '../../../core/router/app_route.dart';
 import '../domain/entities/order_book.dart';
 
 abstract final class MarketSwapLink {
+  static String instantFor(String code) {
+    return Uri(
+      path: AppRoute.swap.path,
+      queryParameters: {'to': code, 'type': 'instant'},
+    ).toString();
+  }
+
   static String limitFromDraft(BookTicketDraft draft) {
     return Uri(
       path: AppRoute.swap.path,

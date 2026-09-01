@@ -21,8 +21,7 @@ class WatchlistAssetRow extends StatelessWidget {
       symbol: item.currency.code,
       subtitle: item.freshness.labeled(item.displayName),
       priceLabel: formatMoney(item.price),
-      changeLabel:
-          '${item.change24hRatio >= Decimal.zero ? '+' : ''}${(item.change24hRatio * Decimal.fromInt(100)).toString()}%',
+      changeLabel: formatPercent(item.change24hRatio),
       change: item.change24hRatio,
       leadingTrail: ExploreSparkline(
         key: Key('watchlist_sparkline_${item.currency.code}'),

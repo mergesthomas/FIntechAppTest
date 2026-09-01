@@ -36,9 +36,9 @@ void main() {
 
   tearDown(() => cubit.close());
 
-  test('load emits trigger orders', () async {
+  test('load emits empty when there are no paper orders', () async {
     await cubit.load();
-    expect(cubit.state, isA<OrdersSuccess>());
+    expect(cubit.state, isA<OrdersEmpty>());
   });
 
   test('load emits failure without session', () async {

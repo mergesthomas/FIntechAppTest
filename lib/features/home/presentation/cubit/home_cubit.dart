@@ -134,7 +134,7 @@ final class HomeCubit extends Cubit<HomeState> {
     await overview.fold((failure) async => emit(HomeFailure(failure)), (
       o,
     ) async {
-      final holdings = await _getHoldings(const NoParams());
+      final holdings = await _getHoldings(_period);
       final watchlist = await _getWatchlist(const NoParams());
       final candidates = await _getWatchlistCandidates(const NoParams());
       final alerts = await _getAlerts(const NoParams());
@@ -168,6 +168,7 @@ final class HomeCubit extends Cubit<HomeState> {
     }
     _period = period;
     final overview = await _getOverview(_period);
+    final holdings = await _getHoldings(_period);
     if (isClosed || _period != period) {
       return;
     }
@@ -175,7 +176,12 @@ final class HomeCubit extends Cubit<HomeState> {
     if (current is! HomeSuccess) {
       return;
     }
-    overview.fold((_) {}, (o) => emit(current.copyWith(overview: o)));
+    overview.fold((_) {}, (o) {
+      holdings.fold(
+        (_) {},
+        (h) => emit(current.copyWith(overview: o, holdings: h)),
+      );
+    });
   }
 
   Future<void> searchWatchlistCandidates(String query) async {

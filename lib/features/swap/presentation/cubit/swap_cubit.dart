@@ -214,19 +214,58 @@ class SwapCubit extends Cubit<SwapState> {
     });
   }
 
-  /// Seeds Limit from a book tap. Does not quote or submit.
+  /// Seeds Instant / Limit / Trigger from market. Does not quote or submit.
   void applyRouteSeed({
     String? toCode,
     String? quoteCode,
     String? type,
     String? limitPrice,
+    String? takeProfit,
+    String? stopLoss,
   }) {
     final current = _ready;
-    if (current == null || type != 'limit') {
+    if (current == null) {
       return;
     }
     final to = Currency.tryParse(toCode);
-    if (to == null || limitPrice == null || limitPrice.isEmpty) {
+    if (to == null) {
+      return;
+    }
+    final kind = type ?? 'instant';
+    if (kind == 'instant') {
+      final from = _fromFor(to, current);
+      final next = current.copyWith(
+        orderType: SwapOrderType.instant,
+        from: from,
+        to: to,
+        clearQuote: true,
+        clearRate: true,
+      );
+      emit(next);
+      _listenRate(next);
+      return;
+    }
+    if (kind == 'trigger') {
+      final quote = Currency.tryParse(quoteCode) ?? Currency.usdt;
+      final from = _payCurrencyFor(quote, current.assets);
+      if (from == to) {
+        return;
+      }
+      final next = current.copyWith(
+        orderType: SwapOrderType.trigger,
+        from: from,
+        to: to,
+        tpInput: takeProfit ?? current.tpInput,
+        slInput: stopLoss ?? current.slInput,
+        inputField: SwapInputField.takeProfit,
+        clearQuote: true,
+        clearRate: true,
+      );
+      emit(next);
+      _listenRate(next);
+      return;
+    }
+    if (kind != 'limit' || limitPrice == null || limitPrice.isEmpty) {
       return;
     }
     final quote = Currency.tryParse(quoteCode) ?? Currency.usdt;
@@ -249,6 +288,22 @@ class SwapCubit extends Cubit<SwapState> {
     );
     emit(next);
     _listenRate(next);
+  }
+
+  Currency _fromFor(Currency to, SwapReady current) {
+    if (current.from != to) {
+      return current.from;
+    }
+    final usdc = _payCurrencyFor(Currency.usdt, current.assets);
+    if (usdc != to) {
+      return usdc;
+    }
+    for (final asset in current.assets) {
+      if (asset.currency != to) {
+        return asset.currency;
+      }
+    }
+    return current.from;
   }
 
   Currency _payCurrencyFor(Currency quote, List<SwapAsset> assets) {

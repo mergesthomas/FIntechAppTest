@@ -49,6 +49,7 @@ class _Action extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 22, color: scheme.onSurface),
               const SizedBox(height: AppSpacing.xxs),

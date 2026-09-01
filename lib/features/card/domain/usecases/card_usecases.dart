@@ -70,3 +70,33 @@ final class UnfreezeCard implements UseCase<CardSnapshot, NoParams> {
     });
   }
 }
+
+final class FreezeCard implements UseCase<CardSnapshot, NoParams> {
+  FreezeCard(this._session, this._repo);
+
+  final RequireSession _session;
+  final CardRepository _repo;
+
+  @override
+  Future<Either<Failure, CardSnapshot>> call(NoParams params) async {
+    final session = await _session(params);
+    return session.fold(Either.left, (_) => _repo.freeze());
+  }
+}
+
+final class RevealCardPin
+    implements UseCase<String, ({bool stepUp})> {
+  RevealCardPin(this._session, this._repo);
+
+  final RequireSession _session;
+  final CardRepository _repo;
+
+  @override
+  Future<Either<Failure, String>> call(({bool stepUp}) params) async {
+    if (!params.stepUp) {
+      return Either.left(const StepUpFailure());
+    }
+    final session = await _session(const NoParams());
+    return session.fold(Either.left, (_) => _repo.revealPin());
+  }
+}

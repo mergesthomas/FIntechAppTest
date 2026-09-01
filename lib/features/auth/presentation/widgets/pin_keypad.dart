@@ -25,13 +25,14 @@ class PinKeypad extends StatelessWidget {
       children: [
         for (final row in keys)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               for (final key in row)
-                _Key(
-                  label: key,
-                  onDigit: onDigit,
-                  onBackspace: onBackspace,
+                Expanded(
+                  child: _Key(
+                    label: key,
+                    onDigit: onDigit,
+                    onBackspace: onBackspace,
+                  ),
                 ),
             ],
           ),
@@ -54,7 +55,7 @@ class _Key extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (label.isEmpty) {
-      return const SizedBox(width: 72, height: 64);
+      return const SizedBox(height: 64);
     }
     final scheme = Theme.of(context).colorScheme;
     return Padding(

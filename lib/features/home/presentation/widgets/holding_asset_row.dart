@@ -21,8 +21,7 @@ class HoldingAssetRow extends StatelessWidget {
       symbol: item.currency.code,
       subtitle: item.freshness.labeled(formatQuantity(item.quantity)),
       priceLabel: formatMoney(item.value),
-      changeLabel:
-          '${item.change24hRatio >= Decimal.zero ? '+' : ''}${(item.change24hRatio * Decimal.fromInt(100)).toString()}%',
+      changeLabel: formatPercent(item.change24hRatio),
       change: item.change24hRatio,
       leadingTrail: ExploreSparkline(
         key: Key('holding_sparkline_${item.currency.code}'),

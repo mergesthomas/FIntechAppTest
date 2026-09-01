@@ -19,11 +19,32 @@ final class CardBalances extends Equatable {
 }
 
 final class CardSnapshot extends Equatable {
-  const CardSnapshot({required this.status, required this.balances});
+  const CardSnapshot({
+    required this.status,
+    required this.balances,
+    this.last4 = '4036',
+    this.network = 'Mastercard',
+    this.modeLabel = 'Debit',
+    this.applePayAdded = true,
+    this.cashbackEarned,
+  });
 
   final CardStatus status;
   final CardBalances balances;
+  final String last4;
+  final String network;
+  final String modeLabel;
+  final bool applePayAdded;
+  final Money? cashbackEarned;
 
   @override
-  List<Object?> get props => [status, balances];
+  List<Object?> get props => [
+        status,
+        balances,
+        last4,
+        network,
+        modeLabel,
+        applePayAdded,
+        cashbackEarned,
+      ];
 }
