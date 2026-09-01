@@ -49,16 +49,18 @@ final class GetWatchlist implements UseCase<List<WatchlistItem>, NoParams> {
   }
 }
 
-final class GetHoldings implements UseCase<List<HoldingItem>, NoParams> {
+final class GetHoldings implements UseCase<List<HoldingItem>, DashboardPeriod> {
   GetHoldings(this._requireSession, this._home);
 
   final RequireSession _requireSession;
   final HomeRepository _home;
 
   @override
-  Future<Either<Failure, List<HoldingItem>>> call(NoParams params) async {
-    final session = await _requireSession(params);
-    return session.fold(Either.left, (_) => _home.getHoldings());
+  Future<Either<Failure, List<HoldingItem>>> call(
+    DashboardPeriod period,
+  ) async {
+    final session = await _requireSession(const NoParams());
+    return session.fold(Either.left, (_) => _home.getHoldings(period));
   }
 }
 

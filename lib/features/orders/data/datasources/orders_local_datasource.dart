@@ -1,6 +1,5 @@
 import '../../../../core/ledger/paper_order.dart';
 import '../../../../core/money/currency.dart';
-import '../../../../core/money/money.dart';
 import '../../../../core/observe/settlement_breadcrumb.dart';
 import '../../../../core/settlement/settlement_status.dart';
 import '../../domain/entities/order.dart';
@@ -12,28 +11,14 @@ final class OrdersLocalDataSource {
   final Set<String> cancelRequests = {};
 
   List<TradeOrder> history(OrderTab tab) {
-    final fixtures = [
-      TradeOrder(
-        id: 'ord-1',
-        pair: 'BTCUSDT',
-        side: OrderSide.sell,
-        status: OrderStatus.canceled,
-        amount: Money.parse('0.01', Currency.btc),
-        wallet: 'Credit Wallet',
-        tab: OrderTab.trigger,
-      ),
-      TradeOrder(
-        id: 'ord-2',
-        pair: 'ETHUSDT',
-        side: OrderSide.buy,
-        status: OrderStatus.canceled,
-        amount: Money.parse('0.50', Currency.eth),
-        wallet: 'Credit Wallet',
-        tab: OrderTab.limit,
-      ),
+    return _store.byVenue(_venue(tab)).map(_map).toList();
+  }
+
+  List<TradeOrder> openForAsset(Currency asset) {
+    return [
+      for (final order in _store.openResting)
+        if (_matches(order, asset)) _map(order),
     ];
-    final paper = _store.byVenue(_venue(tab)).map(_map).toList();
-    return [...paper, ...fixtures.where((o) => o.tab == tab)];
   }
 
   TradeOrder? detail(String id) {
@@ -70,6 +55,12 @@ final class OrdersLocalDataSource {
     };
   }
 
+  bool _matches(PaperOrder order, Currency asset) {
+    return order.pair.contains(asset.code) ||
+        order.pay == asset ||
+        order.receive == asset;
+  }
+
   TradeOrder _map(PaperOrder order) {
     return TradeOrder(
       id: order.id,
@@ -81,12 +72,17 @@ final class OrdersLocalDataSource {
         PaperOrderStatus.canceled => OrderStatus.canceled,
       },
       amount: order.amount,
-      wallet: order.wallet,
       tab: switch (order.venue) {
         PaperVenue.market => OrderTab.market,
         PaperVenue.trigger => OrderTab.trigger,
         PaperVenue.limit => OrderTab.limit,
       },
+      occurredAt: order.occurredAt,
+      limitPrice: order.limitPrice,
+      takeProfit: order.takeProfit,
+      stopLoss: order.stopLoss,
+      pay: order.pay,
+      receive: order.receive,
     );
   }
 }

@@ -62,27 +62,6 @@ class _ProfileBody extends StatelessWidget {
         AppSpacing.lg,
       ),
       children: [
-        Text(state.overview.greeting, style: AppTextStyles.title),
-        const SizedBox(height: AppSpacing.xxs),
-        Text(
-          'Loyalty ${state.overview.loyaltyTier}',
-          style: AppTextStyles.secondary.copyWith(
-            color: scheme.onSurfaceVariant,
-          ),
-        ),
-        if (state.overview.isPrivate)
-          const Padding(
-            padding: EdgeInsets.only(top: AppSpacing.xs),
-            child: Text('Private'),
-          ),
-        if (state.rewards.isNotEmpty) ...[
-          const AppSectionHeader('Rewards'),
-          for (final reward in state.rewards)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(reward),
-            ),
-        ],
         const AppSectionHeader('Account'),
         for (final item in state.shortcuts)
           ListTile(
@@ -97,6 +76,15 @@ class _ProfileBody extends StatelessWidget {
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('Lock session'),
+          onTap: () => context.read<SessionCubit>().lock(),
+        ),
+        ListTile(
+          key: const Key('profile_logout'),
+          contentPadding: EdgeInsets.zero,
+          title: Text(
+            'Log out',
+            style: AppTextStyles.body.copyWith(color: scheme.error),
+          ),
           onTap: () => context.read<SessionCubit>().lock(),
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -123,17 +111,6 @@ class _ProfileBody extends StatelessWidget {
     if (route == null) {
       return;
     }
-    if (route == AppRoute.security ||
-        route == AppRoute.products ||
-        route == AppRoute.explore ||
-        route == AppRoute.news ||
-        route == AppRoute.card ||
-        route == AppRoute.swap) {
-      context.push(route.path);
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${route.path} — next feature')),
-    );
+    context.push(route.path);
   }
 }

@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/ledger/paper_ledger.dart';
+import '../../../../core/money/currency.dart';
 import '../../../../core/settlement/settlement_status.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/repositories/orders_repository.dart';
@@ -16,6 +17,13 @@ final class OrdersRepositoryImpl implements OrdersRepository {
   @override
   Future<Either<Failure, List<TradeOrder>>> getHistory(OrderTab tab) async {
     return Either.right(_local.history(tab));
+  }
+
+  @override
+  Future<Either<Failure, List<TradeOrder>>> getOpenForAsset(
+    Currency asset,
+  ) async {
+    return Either.right(_local.openForAsset(asset));
   }
 
   @override

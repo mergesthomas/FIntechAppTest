@@ -6,5 +6,6 @@ void main() {
     final at = DateTime.utc(2025, 3, 12, 14, 5);
     expect(chartTimeLabel(at, includeTime: false), 'Mar 12, 2025');
     expect(chartTimeLabel(at, includeTime: true), 'Mar 12, 2025 14:05');
+    expect(clockTimeLabel(at), '14:05');
   });
 }

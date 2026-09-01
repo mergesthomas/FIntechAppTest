@@ -12,7 +12,9 @@ abstract class HomeRepository {
 
   Future<Either<Failure, List<WatchlistItem>>> getWatchlist();
 
-  Future<Either<Failure, List<HoldingItem>>> getHoldings();
+  Future<Either<Failure, List<HoldingItem>>> getHoldings([
+    DashboardPeriod period = DashboardPeriod.oneWeek,
+  ]);
 
   Future<Either<Failure, List<WatchlistItem>>> getWatchlistCandidates();
 

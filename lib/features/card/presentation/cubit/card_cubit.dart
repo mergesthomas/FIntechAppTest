@@ -45,14 +45,20 @@ class CardCubit extends Cubit<CardUiState> {
     required GetCardStatus getStatus,
     required RestoreCardBalance restore,
     required UnfreezeCard unfreeze,
+    required FreezeCard freeze,
+    required RevealCardPin revealPin,
   })  : _getStatus = getStatus,
         _restore = restore,
         _unfreeze = unfreeze,
+        _freeze = freeze,
+        _revealPin = revealPin,
         super(const CardLoading());
 
   final GetCardStatus _getStatus;
   final RestoreCardBalance _restore;
   final UnfreezeCard _unfreeze;
+  final FreezeCard _freeze;
+  final RevealCardPin _revealPin;
 
   Future<void> load() async {
     emit(const CardLoading());
@@ -74,5 +80,14 @@ class CardCubit extends Cubit<CardUiState> {
   Future<void> unfreeze() async {
     final result = await _unfreeze(const NoParams());
     result.fold((failure) => emit(CardFailure(failure)), (_) => load());
+  }
+
+  Future<void> freeze() async {
+    final result = await _freeze(const NoParams());
+    result.fold((failure) => emit(CardFailure(failure)), (_) => load());
+  }
+
+  Future<Either<Failure, String>> revealPin({required bool stepUp}) {
+    return _revealPin((stepUp: stepUp));
   }
 }

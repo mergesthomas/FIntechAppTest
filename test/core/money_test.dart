@@ -15,6 +15,45 @@ void main() {
     expect(formatMoney(Money.parse('0.00000282', Currency.usd)), r'$0.0000028');
     expect(formatMoney(Money.parse('0.00000353', Currency.usd)), r'$0.0000035');
     expect(formatMoney(Money.parse('0.08', Currency.usd)), r'$0.08');
+    expect(formatMoney(Money.parse('0.0824', Currency.usd)), r'$0.0824');
+  });
+
+  test('caps everyday crypto quantities and trims zeros', () {
+    expect(
+      formatQuantity(Money.parse('10000.000000', Currency.usdc)),
+      '10,000 USDC',
+    );
+    expect(
+      formatQuantity(Money.parse('10000.00000000', Currency.doge)),
+      '10,000 DOGE',
+    );
+    expect(
+      formatMoney(Money.parse('12122.77299721', Currency.doge), withCode: false),
+      '12,122.773',
+    );
+    expect(
+      formatRate(Money.parse('12.11971404', Currency.doge)),
+      '12.119714 DOGE',
+    );
+  });
+
+  test('keeps PEPE and BONK dust precision', () {
+    expect(
+      formatQuantity(Money.parse('80000000.00000000', Currency.pepe)),
+      '80,000,000 PEPE',
+    );
+    expect(formatMoney(Money.parse('0.00000282', Currency.usd)), r'$0.0000028');
+  });
+
+  test('formats percents to two fraction digits', () {
+    expect(formatPercent(Decimal.parse('-0.0150755')), '-1.51%');
+    expect(formatPercent(Decimal.parse('0.012')), '+1.20%');
+    expect(formatPercent(Decimal.zero), '0.00%');
+  });
+
+  test('formats OHLC decimals with a stable scale', () {
+    expect(formatMarketDecimal(Decimal.parse('157.96999')), '157.97');
+    expect(formatMarketDecimal(Decimal.parse('78052.64')), '78,052.64');
   });
 
   test('adds subtracts and converts without double', () {

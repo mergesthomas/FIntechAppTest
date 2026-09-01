@@ -14,6 +14,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_header_action.dart';
 import '../../../../core/widgets/app_page_body.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/freshness_chip.dart';
@@ -108,7 +109,7 @@ class _DashboardHeader extends StatelessWidget {
           },
         ),
         const Spacer(),
-        IconButton(
+        AppHeaderAction(
           key: const Key('inbox'),
           tooltip: 'Inbox',
           onPressed: () => _go(context, AppRoute.inbox),
@@ -244,7 +245,7 @@ class _PeriodChangeRow extends StatelessWidget {
         return Row(
           children: [
             Text(
-              '${negative ? '' : '+'}${(view.ratio * Decimal.fromInt(100)).toString()}% · ${ChartPeriodLabel.of(chartPeriodOf(view.period))}',
+              '${negative ? '' : '+'}${formatPercent(view.ratio, signed: false)} · ${ChartPeriodLabel.of(chartPeriodOf(view.period))}',
               style: AppTextStyles.secondary.copyWith(
                 color: AppSemanticColors.change(scheme, up: !negative),
               ),

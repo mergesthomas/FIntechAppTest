@@ -97,6 +97,16 @@ void main() {
     expect(ready.surface, SwapSurface.ticket);
   });
 
+  test('applyRouteSeed selects Instant to the market asset', () async {
+    await cubit.load();
+    cubit.applyRouteSeed(toCode: 'BTC', type: 'instant');
+    final ready = cubit.state as SwapReady;
+    expect(ready.orderType, SwapOrderType.instant);
+    expect(ready.to.code, 'BTC');
+    expect(ready.from.code, 'USDC');
+    expect(ready.quote, isNull);
+  });
+
   test('ticket has no request id until preview forms the intent', () async {
     await cubit.load();
     expect((cubit.state as SwapReady).requestId, isNull);

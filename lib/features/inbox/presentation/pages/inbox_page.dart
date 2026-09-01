@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/clock/chart_time_label.dart';
 import '../../../../core/money/money_format.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -80,6 +81,12 @@ class _InboxList extends StatelessWidget {
                       children: [
                         Text(item.title, style: AppTextStyles.body),
                         const SizedBox(height: 2),
+                        Text(
+                          clockTimeLabel(item.occurredAt),
+                          style: AppTextStyles.meta.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
                         Text(
                           formatQuantity(item.amount),
                           style: AppTextStyles.meta.copyWith(

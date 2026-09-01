@@ -47,6 +47,8 @@ class _SwapPageState extends State<SwapPage> {
         quoteCode: params['quote'],
         type: params['type'],
         limitPrice: params['limitPrice'],
+        takeProfit: params['takeProfit'],
+        stopLoss: params['stopLoss'],
       );
     });
   }
@@ -236,7 +238,7 @@ class _Ticket extends StatelessWidget {
       return '+ 0';
     }
     final receive = amount.convert(rate.toPerFrom.amount, state.to);
-    return '+ ${formatMoney(receive, withCode: false)}';
+    return '+ ${formatQuantity(receive, withCode: false)}';
   }
 }
 
@@ -276,58 +278,81 @@ class _AssetCard extends StatelessWidget {
           selected: selected,
           child: Row(
             children: [
-              GestureDetector(
-                onTap: onSelectAsset,
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: scheme.surfaceContainerHighest,
-                      foregroundColor: scheme.onSurface,
-                      child: Text(
-                        code.substring(0, 1),
-                        style: AppTextStyles.meta.copyWith(
-                          fontWeight: FontWeight.w600,
+              Flexible(
+                child: GestureDetector(
+                  onTap: onSelectAsset,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: scheme.surfaceContainerHighest,
+                        foregroundColor: scheme.onSurface,
+                        child: Text(
+                          code.substring(0, 1),
+                          style: AppTextStyles.meta.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(code, style: AppTextStyles.body),
-                            Icon(
-                              Icons.expand_more,
-                              size: 18,
-                              color: scheme.onSurfaceVariant,
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    code,
+                                    style: AppTextStyles.body,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.expand_more,
+                                  size: 18,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ],
                             ),
+                            if (balance != null)
+                              Text(
+                                formatQuantity(balance!, withCode: false),
+                                style: AppTextStyles.secondary,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                           ],
                         ),
-                        if (balance != null)
-                          Text(
-                            formatMoney(balance!, withCode: false),
-                            style: AppTextStyles.secondary,
-                          ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(amountLabel, style: AppTextStyles.headline),
-                  if (cashback)
+              const SizedBox(width: AppSpacing.xs),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      SwapCopy.cashbackLabel.split(' (').first,
-                      style: AppTextStyles.meta.copyWith(
-                        color: scheme.tertiary,
-                      ),
+                      amountLabel,
+                      style: AppTextStyles.headline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
                     ),
-                ],
+                    if (cashback)
+                      Text(
+                        SwapCopy.cashbackLabel.split(' (').first,
+                        style: AppTextStyles.meta.copyWith(
+                          color: scheme.tertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -391,7 +416,7 @@ class _RateLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text =
-        '1 ${from.code} = ${formatMoney(rate.toPerFrom, withCode: true)}';
+        '1 ${from.code} = ${formatRate(rate.toPerFrom)}';
     final status = rate.freshness.statusLabel;
     final freshness = status == null ? '' : ' · $status';
     return Text(
@@ -430,14 +455,16 @@ class _Preview extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          '+ ${formatMoney(quote.to, withCode: true)}',
+          '+ ${formatQuantity(quote.to)}',
           style: AppTextStyles.balance,
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: AppSpacing.lg),
         DetailRow(
           label: SwapCopy.payWith,
-          value: '- ${formatMoney(quote.from, withCode: true)}',
+          value: '- ${formatQuantity(quote.from)}',
         ),
         const SizedBox(height: AppSpacing.md),
         DetailRow(
@@ -447,12 +474,12 @@ class _Preview extends StatelessWidget {
         DetailRow(
           label: SwapCopy.exchangeRate,
           value:
-              '1 ${quote.from.currency.code} = ${formatMoney(Money.fromDecimal((quote.to.amount / quote.from.amount).toDecimal(scaleOnInfinitePrecision: 18), quote.to.currency), withCode: true)}',
+              '1 ${quote.from.currency.code} = ${formatRate(Money.fromDecimal((quote.to.amount / quote.from.amount).toDecimal(scaleOnInfinitePrecision: 18), quote.to.currency))}',
         ),
         DetailRow(label: SwapCopy.feeApplied, value: SwapCopy.feeValue),
         DetailRow(
           label: SwapCopy.cashbackLabel,
-          value: formatMoney(cashback, withCode: true),
+          value: formatQuantity(cashback),
           emphasize: true,
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -553,11 +580,11 @@ class _Result extends StatelessWidget {
               children: [
                 DetailRow(
                   label: SwapCopy.payWith,
-                  value: '- ${formatMoney(quote.from, withCode: true)}',
+                  value: '- ${formatQuantity(quote.from)}',
                 ),
                 DetailRow(
                   label: SwapCopy.receive,
-                  value: '+ ${formatMoney(quote.to, withCode: true)}',
+                  value: '+ ${formatQuantity(quote.to)}',
                 ),
                 if (submit != null)
                   DetailRow(
@@ -656,7 +683,7 @@ Future<void> _pickAsset(BuildContext context, {required bool pay}) async {
                 ListTile(
                   key: Key('swap_pick_${asset.currency.code}'),
                   title: Text(asset.currency.code),
-                  subtitle: Text(formatMoney(asset.balance, withCode: true)),
+                  subtitle: Text(formatQuantity(asset.balance)),
                   onTap: () => Navigator.pop(sheet, asset.currency),
                 ),
           ],

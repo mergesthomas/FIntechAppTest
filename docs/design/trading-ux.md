@@ -20,7 +20,9 @@ Interactive OHLCV candlesticks render **only** on `MarketPage` (`/market/:code`)
 
 ## Actions
 
-Exchange on market detail **routes** to swap. The dashboard has no Exchange CTA; the shell tab is the entry. Session, KYC, PIN, and live-quote gates stay in swap. Buy and Add funds are dropped.
+Exchange on market detail **routes** to swap with `to` set to that coin. The CTA is pinned to the bottom of the screen (navigation only). Dashboard has no Exchange CTA; the shell tab is the other entry. Session, KYC, PIN, and live-quote gates stay in swap. Buy and Add funds are dropped.
+
+Open Limit / Trigger orders for that coin show as cards under the price header (`GetOpenOrdersForAsset`), above the chart and order book. Edit reopens the existing Swap ticket as a seed. Cancel uses `CancelOrder` (session, KYC, step-up, `requestId`).
 
 ## Order book
 

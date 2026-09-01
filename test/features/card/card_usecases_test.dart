@@ -1,4 +1,6 @@
 import 'package:fintech_app_test/core/error/failure.dart';
+import 'package:fintech_app_test/core/money/currency.dart';
+import 'package:fintech_app_test/core/money/money.dart';
 import 'package:fintech_app_test/core/usecase/use_case.dart';
 import 'package:fintech_app_test/features/auth/domain/entities/session.dart';
 import 'package:fintech_app_test/features/auth/domain/repositories/auth_repository.dart';
@@ -41,6 +43,29 @@ void main() {
       const NoParams(),
     );
     expect(result.getLeft().toNullable(), isA<ValidationFailure>());
+  });
+
+  test('reveal pin requires step-up', () async {
+    final result = await RevealCardPin(RequireSession(auth), repo)(
+      (stepUp: false),
+    );
+    expect(result.getLeft().toNullable(), isA<StepUpFailure>());
+  });
+
+  test('freeze marks the card frozen', () async {
+    final local = CardLocalDataSource();
+    local.snapshot = CardSnapshot(
+      status: CardStatus.active,
+      balances: CardBalances(
+        eurx: Money.parse('10', Currency.eurx),
+        usdApprox: Money.parse('11', Currency.usd),
+      ),
+    );
+    final active = CardRepositoryImpl(local);
+    final result = await FreezeCard(RequireSession(auth), active)(
+      const NoParams(),
+    );
+    expect(result.getRight().toNullable()?.status, CardStatus.frozen);
   });
 
   test('restore returns the chosen existing rail', () async {

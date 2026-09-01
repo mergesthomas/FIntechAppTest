@@ -14,6 +14,8 @@ import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
 import 'package:fintech_app_test/core/money/money.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
+import 'package:fintech_app_test/core/ledger/paper_ledger.dart';
+import 'package:fintech_app_test/core/ledger/paper_order.dart';
 import 'package:fintech_app_test/features/home/data/datasources/home_local_datasource.dart';
 import 'package:fintech_app_test/features/home/data/repositories/home_repository_impl.dart';
 import 'package:fintech_app_test/features/home/domain/entities/dashboard.dart';
@@ -112,6 +114,45 @@ void main() {
       items.every((item) => item.freshness == QuoteFreshness.stale),
       isTrue,
     );
+  });
+
+  test('holdings percent is position P&L not the coin 24h ticker', () async {
+    final clock = MutableClock(DateTime.utc(2026, 8, 31));
+    final paper = PaperHarness(clock: clock);
+    await paper.ledger.post(
+      requestId: 'extra-btc',
+      lines: [
+        LedgerLine(
+          book: LedgerBook.savings,
+          delta: Money.parse('1', Currency.btc),
+        ),
+      ],
+      order: PaperOrder(
+        id: 'ord-extra-btc',
+        requestId: 'extra-btc',
+        pair: 'BTC/USD',
+        side: PaperSide.buy,
+        status: PaperOrderStatus.open,
+        amount: Money.parse('1', Currency.btc),
+        wallet: 'savings',
+        venue: PaperVenue.market,
+        receive: Currency.btc,
+        createdAt: clock.now(),
+      ),
+    );
+    final repo = HomeRepositoryImpl(
+      HomeLocalDataSource(InMemorySecureStore()),
+      feed: paper.feed,
+      ledger: paper.ledger,
+      clock: clock,
+    );
+
+    final holdings = await repo.getHoldings(DashboardPeriod.oneWeek);
+    final btc = holdings.getRight().toNullable()!.firstWhere(
+      (item) => item.currency == Currency.btc,
+    );
+    final quote = paper.feed.quoteFor(Currency.btc)!;
+    expect(btc.change24hRatio, isNot(quote.change24h));
   });
 
   test('watchlist charts come from refreshSeries', () async {

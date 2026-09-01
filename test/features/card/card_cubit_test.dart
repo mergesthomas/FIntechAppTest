@@ -25,6 +25,8 @@ void main() {
       getStatus: GetCardStatus(session, repo),
       restore: RestoreCardBalance(session),
       unfreeze: UnfreezeCard(session, repo),
+      freeze: FreezeCard(session, repo),
+      revealPin: RevealCardPin(session, repo),
     );
     when(() => auth.restoreSession()).thenAnswer(
       (_) async => Either.right(

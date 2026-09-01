@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_header_action.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/asset_list_row.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
@@ -65,25 +66,30 @@ class _ExplorePageState extends State<ExplorePage> {
                 onChanged: context.read<ExploreCubit>().search,
               )
             : const Text('Explore'),
+        leadingWidth: 56,
         leading: context.canPop()
             ? const BackButton()
-            : IconButton(
-                tooltip: 'Profile',
-                onPressed: () => context.push(AppRoute.profile.path),
-                icon: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: scheme.surfaceContainerHighest,
-                  foregroundColor: scheme.onSurface,
-                  child: Text(
-                    _initials(context),
-                    style: AppTextStyles.meta.copyWith(
-                      fontWeight: FontWeight.w600,
+            : Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: AppHeaderAction(
+                  tooltip: 'Profile',
+                  onPressed: () => context.push(AppRoute.profile.path),
+                  icon: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: scheme.surfaceContainerHighest,
+                    foregroundColor: scheme.onSurface,
+                    child: Text(
+                      _initials(context),
+                      style: AppTextStyles.meta.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
+        actionsPadding: const EdgeInsets.only(right: 8),
         actions: [
-          IconButton(
+          AppHeaderAction(
             key: const Key('explore_search_toggle'),
             tooltip: 'Search',
             onPressed: () {
@@ -141,23 +147,9 @@ class _Feed extends StatelessWidget {
         AppSpacing.lg,
       ),
       children: [
-        _Promo(promo: feed.promo),
         const AppSectionHeader('Top movers'),
         for (final asset in [...feed.gainers.take(3), ...feed.losers.take(3)])
           _assetRow(context, asset, keyed: false),
-        const AppSectionHeader('Products'),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            for (final tile in feed.products)
-              TextButton(
-                key: Key('explore_product_${tile.id}'),
-                onPressed: () => _openProduct(context, tile.id),
-                child: Text(tile.label),
-              ),
-          ],
-        ),
         AppSectionHeader(
           'All assets',
           trailing: TextButton(
@@ -200,7 +192,7 @@ class _Feed extends StatelessWidget {
       symbol: asset.currency.code,
       subtitle: asset.freshness.labeled(asset.name),
       priceLabel: formatMoney(asset.price),
-      changeLabel: _pct(asset.change24h),
+      changeLabel: formatPercent(asset.change24h),
       change: asset.change24h,
       leadingTrail: ExploreSparkline(
         points: asset.sparkline,
@@ -213,53 +205,6 @@ class _Feed extends StatelessWidget {
           context.push('${AppRoute.market.path}/${asset.currency.code}'),
     );
   }
-
-  void _openProduct(BuildContext context, String id) {
-    final route = switch (id) {
-      'card' => AppRoute.card,
-      'more' => AppRoute.products,
-      _ => null,
-    };
-    if (route == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Recurring Buy — screens missing')),
-      );
-      return;
-    }
-    context.push(route.path);
-  }
-}
-
-class _Promo extends StatelessWidget {
-  const _Promo({required this.promo});
-
-  final ExplorePromo promo;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm, top: AppSpacing.xs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            promo.badge,
-            style: AppTextStyles.meta.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(promo.body, style: AppTextStyles.body),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => context.push(AppRoute.news.path),
-              child: Text(promo.ctaLabel),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 String _filterLabel(ExploreAssetFilter filter) {
@@ -269,15 +214,4 @@ String _filterLabel(ExploreAssetFilter filter) {
     ExploreAssetFilter.losers => 'Top losers',
     ExploreAssetFilter.newest => 'New assets',
   };
-}
-
-String _pct(Decimal change) {
-  final value = (change * Decimal.fromInt(100)).toString();
-  if (change > Decimal.zero) {
-    return '+ $value%';
-  }
-  if (change < Decimal.zero) {
-    return value.startsWith('-') ? '$value%' : '- $value%';
-  }
-  return '0.00%';
 }
