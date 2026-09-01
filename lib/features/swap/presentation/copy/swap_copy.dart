@@ -1,3 +1,5 @@
+import '../../../../core/settlement/settlement_status.dart';
+
 /// Swap copy. Fee and cashback are screenshot placeholders — COMPLIANCE review.
 abstract final class SwapCopy {
   static const title = 'Swap';
@@ -23,11 +25,20 @@ abstract final class SwapCopy {
   static const stopLoss = 'Stop loss price';
   static const setPrice = '+ Set';
   static const orders = 'Orders';
+  static const viewOrders = 'View orders';
+  static const done = 'Done';
+  static const status = 'Status';
   static const info = 'Paper swap using public prices. Not a broker.';
   static const feeInfo = 'COMPLIANCE: fee schedule pending review.';
   static const cashbackInfo = 'COMPLIANCE: cashback pending review.';
+  static const confirmed = 'Swap confirmed';
   static const placed = 'Order placed';
+  static const inProgress = 'Settlement in progress';
+  static const failed = 'Swap failed';
+  static const unknownStatus = 'Status unknown';
   static const noAssets = 'No swap assets';
+  static const staleQuote = 'Quote is stale — swap rejected';
+  static const stepUpRequired = 'Step-up required';
   static const pct10 = '10%';
   static const pct20 = '20%';
   static const pct30 = '30%';
@@ -40,6 +51,27 @@ abstract final class SwapCopy {
       'limit' => limitOrder,
       'trigger' => triggerOrder,
       _ => name,
+    };
+  }
+
+  static String settlementHeadline({
+    required SettlementStatus settlement,
+    required bool resting,
+  }) {
+    return switch (settlement) {
+      SettlementStatus.confirmed => resting ? placed : confirmed,
+      SettlementStatus.inFlight => inProgress,
+      SettlementStatus.failed => failed,
+      SettlementStatus.unknown => unknownStatus,
+    };
+  }
+
+  static String settlementStatus(SettlementStatus settlement) {
+    return switch (settlement) {
+      SettlementStatus.confirmed => 'Confirmed',
+      SettlementStatus.inFlight => 'In progress',
+      SettlementStatus.failed => 'Failed',
+      SettlementStatus.unknown => 'Unknown',
     };
   }
 }

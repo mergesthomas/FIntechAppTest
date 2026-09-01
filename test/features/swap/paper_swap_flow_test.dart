@@ -4,6 +4,7 @@ import 'package:fintech_app_test/core/market/in_memory_market_feed.dart';
 import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
 import 'package:fintech_app_test/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:fintech_app_test/features/swap/presentation/copy/swap_copy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +45,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('swap_result')), findsOneWidget);
-    expect(find.textContaining('confirmed'), findsWidgets);
+    expect(find.text(SwapCopy.confirmed), findsOneWidget);
+    expect(find.byKey(const Key('view_orders')), findsOneWidget);
+    expect(find.byKey(const Key('swap_done')), findsOneWidget);
+    expect(find.text(SwapCopy.viewOrders), findsOneWidget);
   });
 
   testWidgets('limit and trigger fields appear from the order type sheet', (
@@ -126,6 +130,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('swap_result')), findsOneWidget);
-    expect(find.textContaining('Order placed'), findsWidgets);
+    expect(find.text(SwapCopy.placed), findsOneWidget);
+    expect(find.byKey(const Key('view_orders')), findsOneWidget);
+    expect(find.byKey(const Key('swap_done')), findsOneWidget);
   });
 }

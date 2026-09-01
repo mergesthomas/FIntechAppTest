@@ -9,6 +9,7 @@ import 'package:fintech_app_test/core/market/price_series.dart';
 import 'package:fintech_app_test/core/market/quote_freshness.dart';
 import 'package:fintech_app_test/core/money/currency.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
+import 'package:fintech_app_test/core/theme/app_colors.dart';
 import 'package:fintech_app_test/core/widgets/price_chart.dart';
 import 'package:fintech_app_test/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:fintech_app_test/features/market/data/datasources/market_local_datasource.dart';
@@ -26,54 +27,60 @@ import 'package:fpdart/fpdart.dart';
 import '../../helpers/paper_harness.dart';
 
 void main() {
-  testWidgets('watchlist opens market with candlestick chart and trade actions', (
-    tester,
-  ) async {
-    final store = InMemorySecureStore();
-    await store.write(AuthStoreKeys.sessionToken, 'token');
-    await store.write(AuthStoreKeys.sessionPhone, '6912345678');
-    await store.write(AuthStoreKeys.biometricEnabled, '0');
+  testWidgets(
+    'watchlist opens market with candlestick chart and trade actions',
+    (tester) async {
+      final store = InMemorySecureStore();
+      await store.write(AuthStoreKeys.sessionToken, 'token');
+      await store.write(AuthStoreKeys.sessionPhone, '6912345678');
+      await store.write(AuthStoreKeys.biometricEnabled, '0');
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          secureStoreProvider.overrideWith((ref) => store),
-        ],
-        child: const FintechApp(),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [secureStoreProvider.overrideWith((ref) => store)],
+          child: const FintechApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.byType(PriceChart), findsWidgets);
-    expect(find.byType(Candlesticks), findsNothing);
+      expect(find.byType(PriceChart), findsWidgets);
+      expect(find.byType(Candlesticks), findsNothing);
 
-    await tester.drag(
-      find.byKey(const Key('dashboard_scroll')),
-      const Offset(0, -800),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('watchlist_BTC')));
-    await tester.pumpAndSettle();
+      await tester.drag(
+        find.byKey(const Key('dashboard_scroll')),
+        const Offset(0, -800),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('watchlist_BTC')));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('market_price')), findsOneWidget);
-    expect(find.byKey(const Key('market_candlestick_chart')), findsOneWidget);
-    expect(find.byType(Candlesticks), findsOneWidget);
-    expect(find.byType(PriceChart), findsNothing);
-    expect(find.byKey(const Key('candle_interval_m15')), findsOneWidget);
-    expect(find.byKey(const Key('market_volume_toggle')), findsOneWidget);
-    expect(find.byKey(const Key('market_zoom_reset')), findsOneWidget);
-    expect(find.byKey(const Key('market_ohlc_stats')), findsOneWidget);
-    expect(find.byKey(const Key('trade_buy')), findsNothing);
-    expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
-    expect(find.byKey(const Key('trade_futures')), findsNothing);
-    await tester.drag(
-      find.byKey(const Key('market_scroll')),
-      const Offset(0, -400),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('market_order_book')), findsOneWidget);
-    expect(find.byKey(const Key('market_order_book_spread')), findsOneWidget);
-  });
+      expect(find.byKey(const Key('market_price')), findsOneWidget);
+      expect(find.byKey(const Key('market_candlestick_chart')), findsOneWidget);
+      expect(find.byType(Candlesticks), findsOneWidget);
+      expect(
+        tester
+            .widget<Candlesticks>(find.byType(Candlesticks))
+            .style
+            ?.chartBackgroundColor,
+        AppColors.background,
+      );
+      expect(find.byType(PriceChart), findsNothing);
+      expect(find.byKey(const Key('candle_interval_m15')), findsOneWidget);
+      expect(find.byKey(const Key('market_volume_toggle')), findsOneWidget);
+      expect(find.byKey(const Key('market_zoom_reset')), findsOneWidget);
+      expect(find.byKey(const Key('market_ohlc_stats')), findsOneWidget);
+      expect(find.byKey(const Key('trade_buy')), findsNothing);
+      expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
+      expect(find.byKey(const Key('trade_futures')), findsNothing);
+      await tester.drag(
+        find.byKey(const Key('market_scroll')),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('market_order_book')), findsOneWidget);
+      expect(find.byKey(const Key('market_order_book_spread')), findsOneWidget);
+    },
+  );
 
   testWidgets('timeframe chip reloads candles on the market page', (
     tester,
@@ -85,9 +92,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          secureStoreProvider.overrideWith((ref) => store),
-        ],
+        overrides: [secureStoreProvider.overrideWith((ref) => store)],
         child: const FintechApp(),
       ),
     );
@@ -161,9 +166,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final book = const MarketLocalDataSource().bookFor(Currency.btc)!;
-    final bidKey = Key(
-      'order_book_bid_${book.bids.first.price.amount}',
-    );
+    final bidKey = Key('order_book_bid_${book.bids.first.price.amount}');
     await tester.drag(
       find.byKey(const Key('market_scroll')),
       const Offset(0, -400),
@@ -189,10 +192,7 @@ void main() {
     await store.write(AuthStoreKeys.biometricEnabled, '0');
     final paper = PaperHarness();
     final repo = _DisconnectedBookRepo(
-      MarketRepositoryImpl(
-        const MarketLocalDataSource(),
-        feed: paper.feed,
-      ),
+      MarketRepositoryImpl(const MarketLocalDataSource(), feed: paper.feed),
     );
 
     await tester.pumpWidget(
@@ -215,9 +215,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final book = const MarketLocalDataSource().bookFor(Currency.btc)!;
-    final bidKey = Key(
-      'order_book_bid_${book.bids.first.price.amount}',
-    );
+    final bidKey = Key('order_book_bid_${book.bids.first.price.amount}');
     await tester.drag(
       find.byKey(const Key('market_scroll')),
       const Offset(0, -400),
@@ -281,8 +279,8 @@ final class _DisconnectedBookRepo implements MarketRepository {
     Currency currency, {
     int depth = orderBookDefaultDepth,
   }) {
-    return _inner.watchOrderBook(currency, depth: depth).map(
-          (book) => book.copyWith(freshness: QuoteFreshness.disconnected),
-        );
+    return _inner
+        .watchOrderBook(currency, depth: depth)
+        .map((book) => book.copyWith(freshness: QuoteFreshness.disconnected));
   }
 }

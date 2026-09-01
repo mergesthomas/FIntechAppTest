@@ -2,8 +2,8 @@ import 'package:decimal/decimal.dart';
 
 import 'money.dart';
 
-/// Quantity with grouping, natural scale, and currency code.
-String formatQuantity(Money money) {
+/// Quantity with grouping, natural scale, and optional currency code.
+String formatQuantity(Money money, {bool withCode = true}) {
   final raw = money.amount.toString();
   final parts = raw.split('.');
   final whole = _commas(
@@ -11,7 +11,8 @@ String formatQuantity(Money money) {
   );
   final sign = raw.startsWith('-') ? '-' : '';
   final fraction = parts.length > 1 ? '.${parts[1]}' : '';
-  return '$sign$whole$fraction ${money.currency.code}';
+  final suffix = withCode ? ' ${money.currency.code}' : '';
+  return '$sign$whole$fraction$suffix';
 }
 
 /// Formats [Money] without converting to [double].
@@ -27,9 +28,10 @@ String formatMoney(Money money, {bool withCode = false}) {
     minScale: money.currency.scale,
     fraction: parts.length > 1 ? parts[1] : '',
   );
-  final fraction = scale == 0
-      ? ''
-      : '.${(parts.length > 1 ? parts[1] : '').padRight(scale, '0').substring(0, scale)}';
+  final fraction =
+      scale == 0
+          ? ''
+          : '.${(parts.length > 1 ? parts[1] : '').padRight(scale, '0').substring(0, scale)}';
   final symbol = money.currency.code == 'USD' ? '\$' : '';
   final suffix = withCode && symbol.isEmpty ? ' ${money.currency.code}' : '';
   return '$sign$symbol$whole$fraction$suffix';
