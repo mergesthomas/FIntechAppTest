@@ -26,7 +26,6 @@ final class CardSnapshot extends Equatable {
     this.network = 'Mastercard',
     this.modeLabel = 'Debit',
     this.applePayAdded = true,
-    this.cashbackEarned,
   });
 
   final CardStatus status;
@@ -35,16 +34,25 @@ final class CardSnapshot extends Equatable {
   final String network;
   final String modeLabel;
   final bool applePayAdded;
-  final Money? cashbackEarned;
+
+  CardSnapshot copyWith({CardStatus? status}) {
+    return CardSnapshot(
+      status: status ?? this.status,
+      balances: balances,
+      last4: last4,
+      network: network,
+      modeLabel: modeLabel,
+      applePayAdded: applePayAdded,
+    );
+  }
 
   @override
   List<Object?> get props => [
-        status,
-        balances,
-        last4,
-        network,
-        modeLabel,
-        applePayAdded,
-        cashbackEarned,
-      ];
+    status,
+    balances,
+    last4,
+    network,
+    modeLabel,
+    applePayAdded,
+  ];
 }

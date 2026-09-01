@@ -71,7 +71,7 @@ class _HomeTabsState extends State<_HomeTabs> {
             label: 'Explore',
           ),
           NavigationDestination(
-            icon: Icon(Icons.credit_card_outlined),
+            icon: Icon(Icons.credit_card_outlined, key: Key('nav_card')),
             label: 'Card',
           ),
           NavigationDestination(

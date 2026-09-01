@@ -72,9 +72,9 @@ class _CardPageState extends State<CardPage> {
             CardLoading() => const Center(child: CircularProgressIndicator()),
             CardEmpty() => const AppEmptyState(message: 'No card'),
             CardFailure(:final failure) => AppEmptyState(
-                message: '$failure',
-                key: const Key('card_failure'),
-              ),
+              message: '$failure',
+              key: const Key('card_failure'),
+            ),
             CardSuccess(:final snapshot) => _Body(snapshot: snapshot),
           };
         },
@@ -128,21 +128,6 @@ class _Body extends StatelessWidget {
             ],
           ),
         const SizedBox(height: AppSpacing.lg),
-        if (snapshot.cashbackEarned != null) ...[
-          Text(
-            'Cashback earned',
-            style: AppTextStyles.meta.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          Text(
-            formatMoney(snapshot.cashbackEarned!),
-            style: AppTextStyles.headline.copyWith(color: scheme.tertiary),
-          ),
-          Text(
-            '[placeholder — compliance review]',
-            style: AppTextStyles.meta.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
         Text(
           frozen ? 'Card frozen' : 'Card ${snapshot.status.name}',
           key: const Key('card_status'),
@@ -164,13 +149,6 @@ class _Body extends StatelessWidget {
         ),
         if (frozen) ...[
           const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Swap to restore. Frozen is a first-class state.',
-            style: AppTextStyles.secondary.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
           ElevatedButton(
             key: const Key('restore_swap'),
             onPressed: () => _restore(context, RestoreRail.swap),
@@ -188,7 +166,11 @@ class _Body extends StatelessWidget {
           icon: Icons.swap_horiz,
           title: 'Card mode',
           trailing: snapshot.modeLabel,
-          onTap: () => _snack(context, 'Debit only. Credit / borrow is out of scope.'),
+          onTap:
+              () => _snack(
+                context,
+                'Debit only. Credit / borrow is out of scope.',
+              ),
         ),
         _Option(
           icon: frozen ? Icons.lock_open_outlined : Icons.ac_unit,
@@ -247,22 +229,25 @@ class _Body extends StatelessWidget {
       (failure) => _snack(context, '$failure'),
       (pin) => showDialog<void>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Card PIN'),
-          content: Text(pin, key: const Key('card_pin_value')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Card PIN'),
+              content: Text(pin, key: const Key('card_pin_value')),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ],
             ),
-          ],
-        ),
       ),
     );
   }
 
   void _snack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -285,7 +270,10 @@ class _CardVisual extends StatelessWidget {
               children: [
                 Text('VIRTUAL', style: AppTextStyles.meta),
                 const Spacer(),
-                Text(snapshot.modeLabel.toUpperCase(), style: AppTextStyles.meta),
+                Text(
+                  snapshot.modeLabel.toUpperCase(),
+                  style: AppTextStyles.meta,
+                ),
               ],
             ),
             const Spacer(),
