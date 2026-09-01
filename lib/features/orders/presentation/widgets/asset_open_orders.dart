@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/clock/chart_time_label.dart';
-import '../../../../core/error/failure.dart';
 import '../../../../core/money/money_format.dart';
+import '../../../../core/notice/failure_message.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -28,8 +30,8 @@ class AssetOpenOrders extends StatelessWidget {
         if (state is! OpenOrdersReady || state.failure == null) {
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_message(state.failure!))),
+        context.showUserNotice(
+          UserNotice.error(FailureMessage.map(state.failure!)),
         );
         context.read<OpenOrdersCubit>().clearFailure();
       },
@@ -42,15 +44,6 @@ class AssetOpenOrders extends StatelessWidget {
         },
       ),
     );
-  }
-
-  String _message(Failure failure) {
-    return switch (failure) {
-      StepUpFailure() => 'Confirm with PIN to cancel.',
-      SessionFailure() => 'Sign in to continue.',
-      EligibilityFailure() => 'Trading is not available on this account.',
-      _ => 'Could not cancel that order.',
-    };
   }
 }
 

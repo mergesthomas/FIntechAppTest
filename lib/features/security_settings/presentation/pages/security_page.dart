@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../../domain/entities/security_settings.dart';
@@ -48,8 +50,10 @@ class _SecurityPageState extends State<SecurityPage> {
               SecurityLoading() =>
                 const Center(child: CircularProgressIndicator()),
               SecurityEmpty() => const AppEmptyState(message: 'No security data'),
-              SecurityFailure(:final failure) =>
-                AppEmptyState(message: '$failure'),
+              SecurityFailure(:final failure) => AppFailureView(
+                failure: failure,
+                onRetry: context.read<SecurityCubit>().load,
+              ),
               SecuritySuccess() => TabBarView(
                   children: [
                     _SecurityTab(state: state),
@@ -87,8 +91,14 @@ class _SecurityTab extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
           title: const Text('Biometric'),
           value: snapshot.biometricEnabled,
-          onChanged: (value) =>
-              context.read<SecurityCubit>().toggleBiometric(value),
+          onChanged: (value) async {
+            final failure = await context.read<SecurityCubit>().toggleBiometric(
+              value,
+            );
+            if (failure != null && context.mounted) {
+              context.showFailureNotice(failure);
+            }
+          },
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
@@ -110,8 +120,13 @@ class _SecurityTab extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
           title: const Text('Address book whitelisting'),
           value: snapshot.whitelistingOn,
-          onChanged: (value) =>
-              context.read<SecurityCubit>().toggleWhitelisting(value),
+          onChanged: (value) async {
+            final failure =
+                await context.read<SecurityCubit>().toggleWhitelisting(value);
+            if (failure != null && context.mounted) {
+              context.showFailureNotice(failure);
+            }
+          },
         ),
         const AppSectionHeader('Session'),
         ListTile(
@@ -225,10 +240,15 @@ class _DocumentsTab extends StatelessWidget {
                 ? 'Generate'
                 : 'Job ${state.documentJob!.name}',
           ),
-          onTap: () => context.read<SecurityCubit>().requestDoc(
-                AccountDocumentKind.accountConfirmation,
-                'doc-account-confirmation',
-              ),
+          onTap: () async {
+            final failure = await context.read<SecurityCubit>().requestDoc(
+                  AccountDocumentKind.accountConfirmation,
+                  'doc-account-confirmation',
+                );
+            if (failure != null && context.mounted) {
+              context.showFailureNotice(failure);
+            }
+          },
         ),
         const ListTile(
           contentPadding: EdgeInsets.zero,

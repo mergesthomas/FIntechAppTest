@@ -79,9 +79,18 @@ void main() {
     await tester.tap(find.byKey(const Key('swap_type_limit')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('swap_limit_price')), findsOneWidget);
+    expect(
+      tester.widget<ElevatedButton>(find.byKey(const Key('swap_preview'))).onPressed,
+      isNull,
+    );
+    expect(find.text('Retry'), findsNothing);
+    expect(find.textContaining('ValidationFailure'), findsNothing);
 
     await tester.tap(find.byKey(const Key('swap_order_type')));
     await tester.pumpAndSettle();
+    expect(find.text(SwapCopy.orderType), findsWidgets);
+    expect(find.text(SwapCopy.instantOrder), findsWidgets);
+    expect(find.text(SwapCopy.limitOrder), findsWidgets);
     await tester.tap(find.byKey(const Key('swap_type_trigger')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('swap_take_profit')), findsOneWidget);

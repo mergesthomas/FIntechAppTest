@@ -78,7 +78,7 @@ class OpenOrdersCubit extends Cubit<OpenOrdersState> {
   final String code;
   final Map<String, String> _cancelIds = {};
 
-  Currency? get _asset => Currency.tryParse(code);
+  Currency? get _asset => Currency.fromCode(code);
 
   Future<void> load() async {
     final asset = _asset;

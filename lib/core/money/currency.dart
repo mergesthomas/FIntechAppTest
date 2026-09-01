@@ -41,6 +41,15 @@ final class Currency extends Equatable {
     };
   }
 
+  /// Known codes keep their scale. Watchlist catalog coins use [scale].
+  static Currency? fromCode(String? code, {int scale = 8}) {
+    final trimmed = code?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return tryParse(trimmed) ?? Currency(code: trimmed, scale: scale);
+  }
+
   @override
   List<Object?> get props => [code, scale];
 }

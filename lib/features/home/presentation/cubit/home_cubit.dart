@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/money/currency.dart';
@@ -99,7 +100,7 @@ final class HomeCubit extends Cubit<HomeState> {
     required DismissDashboardAlert dismissAlert,
     required GetDashboardPromos getPromos,
     required GetNewsPreview getNews,
-  }) :        _getOverview = getOverview,
+  }) : _getOverview = getOverview,
        _getHoldings = getHoldings,
        _getWatchlist = getWatchlist,
        _getWatchlistCandidates = getWatchlistCandidates,
@@ -205,47 +206,64 @@ final class HomeCubit extends Cubit<HomeState> {
     );
   }
 
-  Future<bool> addWatchlistItem(Currency currency) async {
+  Future<Either<Failure, Unit>> addWatchlistItem(Currency currency) async {
     final current = state;
     if (current is! HomeSuccess || _addingWatchlist) {
-      return false;
+      return Either<Failure, Unit>.left(
+        const ServerFailure('watchlist_add_busy'),
+      );
     }
     _addingWatchlist = true;
     try {
       final result = await _addWatchlistItem(currency);
       if (isClosed) {
-        return false;
+        return Either<Failure, Unit>.left(
+          const ServerFailure('watchlist_add_busy'),
+        );
       }
       final latest = state;
       if (latest is! HomeSuccess) {
-        return false;
+        return Either<Failure, Unit>.left(
+          const ServerFailure('watchlist_add_busy'),
+        );
       }
-      return await result.fold((_) async => false, (items) async {
-        final candidates = await _searchWatchlistCandidates(
-          latest.watchlistQuery,
-        );
-        if (isClosed) {
-          return false;
-        }
-        final after = state;
-        if (after is! HomeSuccess) {
-          return false;
-        }
-        emit(
-          after.copyWith(
-            watchlist: items,
-            watchlistCandidates: candidates.getRight().toNullable() ?? const [],
-          ),
-        );
-        return true;
-      });
+      return await result.fold(
+        (failure) async => Either<Failure, Unit>.left(failure),
+        (items) async {
+          final candidates = await _searchWatchlistCandidates(
+            latest.watchlistQuery,
+          );
+          if (isClosed) {
+            return Either<Failure, Unit>.left(
+              const ServerFailure('watchlist_add_busy'),
+            );
+          }
+          final after = state;
+          if (after is! HomeSuccess) {
+            return Either<Failure, Unit>.left(
+              const ServerFailure('watchlist_add_busy'),
+            );
+          }
+          emit(
+            after.copyWith(
+              watchlist: items,
+              watchlistCandidates:
+                  candidates.getRight().toNullable() ?? const [],
+            ),
+          );
+          return Either<Failure, Unit>.right(unit);
+        },
+      );
     } finally {
       _addingWatchlist = false;
     }
   }
 
-  Future<void> dismiss(String id) async {
+  Future<Failure?> dismiss(String id) async {
     final result = await _dismissAlert(id);
-    result.fold((_) {}, (_) => load());
+    return result.fold((failure) => failure, (_) {
+      load();
+      return null;
+    });
   }
 }

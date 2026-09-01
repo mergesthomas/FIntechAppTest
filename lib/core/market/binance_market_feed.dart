@@ -281,8 +281,9 @@ final class BinanceMarketFeed implements MarketFeed {
       return;
     }
     _connection = QuoteFreshness.stale;
-    for (final entry in _quotes.entries) {
-      _quotes[entry.key] = entry.value.copyWith(freshness: QuoteFreshness.stale);
+    final quotes = _quotes.values.toList();
+    for (final quote in quotes) {
+      _put(quote.copyWith(freshness: QuoteFreshness.stale));
     }
     for (final entry in _depths.entries) {
       final stale = entry.value.copyWith(freshness: QuoteFreshness.stale);

@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/notice/notice_copy.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../domain/entities/product_tile.dart';
 import '../cubit/products_cubit.dart';
@@ -37,7 +41,10 @@ class _ProductsPageState extends State<ProductsPage> {
           return switch (state) {
             ProductsLoading() => const Center(child: CircularProgressIndicator()),
             ProductsEmpty() => const AppEmptyState(message: 'No products'),
-            ProductsFailure(:final failure) => AppEmptyState(message: '$failure'),
+            ProductsFailure(:final failure) => AppFailureView(
+              failure: failure,
+              onRetry: context.read<ProductsCubit>().load,
+            ),
             ProductsSuccess(:final tiles) => _Catalog(tiles: tiles),
           };
         },
@@ -105,8 +112,6 @@ class _Catalog extends StatelessWidget {
       context.push(route.path);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${route.path} — next feature')),
-    );
+    context.showUserNotice(UserNotice.info(NoticeCopy.unavailable));
   }
 }

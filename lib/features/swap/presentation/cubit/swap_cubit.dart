@@ -17,6 +17,17 @@ enum SwapSurface { ticket, preview, result }
 
 enum SwapInputField { payAmount, limitPrice, takeProfit, stopLoss }
 
+Money? parseSwapInput(String input, Currency currency) {
+  if (input.isEmpty) {
+    return null;
+  }
+  try {
+    return Money.parse(input, currency);
+  } on FormatException {
+    return null;
+  }
+}
+
 sealed class SwapState extends Equatable {
   const SwapState();
 
@@ -59,6 +70,7 @@ final class SwapReady extends SwapState {
     this.result,
     this.requestId,
     this.submitting = false,
+    this.ticketFailure,
   });
 
   final SwapSurface surface;
@@ -81,6 +93,27 @@ final class SwapReady extends SwapState {
 
   /// True while a submit is in flight. Blocks a second confirm.
   final bool submitting;
+
+  /// Ticket/preview validation. Does not replace [SwapReady].
+  final Failure? ticketFailure;
+
+  bool get canPreview {
+    final amount = parseSwapInput(amountInput, from);
+    if (amount == null || !amount.isPositive) {
+      return false;
+    }
+    switch (orderType) {
+      case SwapOrderType.instant:
+        return true;
+      case SwapOrderType.limit:
+        final limit = parseSwapInput(limitInput, from);
+        return limit != null && limit.isPositive;
+      case SwapOrderType.trigger:
+        final tp = parseSwapInput(tpInput, from);
+        final sl = parseSwapInput(slInput, from);
+        return (tp != null && tp.isPositive) || (sl != null && sl.isPositive);
+    }
+  }
 
   Money? get fromBalance {
     for (final asset in assets) {
@@ -117,10 +150,12 @@ final class SwapReady extends SwapState {
     Object? result,
     String? requestId,
     bool? submitting,
+    Failure? ticketFailure,
     bool clearQuote = false,
     bool clearRate = false,
     bool clearResult = false,
     bool clearRequestId = false,
+    bool clearTicketFailure = false,
   }) {
     return SwapReady(
       surface: surface ?? this.surface,
@@ -139,6 +174,8 @@ final class SwapReady extends SwapState {
       result: clearResult ? null : result ?? this.result,
       requestId: clearRequestId ? null : requestId ?? this.requestId,
       submitting: submitting ?? this.submitting,
+      ticketFailure:
+          clearTicketFailure ? null : ticketFailure ?? this.ticketFailure,
     );
   }
 
@@ -160,6 +197,7 @@ final class SwapReady extends SwapState {
         result,
         requestId,
         submitting,
+        ticketFailure,
       ];
 }
 
@@ -257,7 +295,7 @@ class SwapCubit extends Cubit<SwapState> {
         to: to,
         tpInput: takeProfit ?? current.tpInput,
         slInput: stopLoss ?? current.slInput,
-        inputField: SwapInputField.takeProfit,
+        inputField: SwapInputField.payAmount,
         clearQuote: true,
         clearRate: true,
       );
@@ -269,7 +307,7 @@ class SwapCubit extends Cubit<SwapState> {
       return;
     }
     final quote = Currency.tryParse(quoteCode) ?? Currency.usdt;
-    final parsed = _parse(limitPrice, quote);
+    final parsed = parseSwapInput(limitPrice, quote);
     if (parsed == null) {
       return;
     }
@@ -282,7 +320,7 @@ class SwapCubit extends Cubit<SwapState> {
       from: from,
       to: to,
       limitInput: parsed.amount.toString(),
-      inputField: SwapInputField.limitPrice,
+      inputField: SwapInputField.payAmount,
       clearQuote: true,
       clearRate: true,
     );
@@ -330,6 +368,7 @@ class SwapCubit extends Cubit<SwapState> {
         orderType: type,
         inputField: SwapInputField.payAmount,
         clearQuote: true,
+        clearTicketFailure: true,
       ),
     );
   }
@@ -425,6 +464,14 @@ class SwapCubit extends Cubit<SwapState> {
     _listenRate(next);
   }
 
+  void clearTicketFailure() {
+    final current = _ready;
+    if (current == null || current.ticketFailure == null) {
+      return;
+    }
+    emit(current.copyWith(clearTicketFailure: true));
+  }
+
   void selectFrom(Currency currency) {
     final current = _ready;
     if (current == null || currency == current.to) {
@@ -462,9 +509,13 @@ class SwapCubit extends Cubit<SwapState> {
     if (current == null) {
       return;
     }
-    final amount = _parse(current.amountInput, current.from);
-    if (amount == null) {
-      emit(const SwapFailure(ValidationFailure('amount_invalid')));
+    final amount = parseSwapInput(current.amountInput, current.from);
+    if (amount == null || !amount.isPositive) {
+      emit(
+        current.copyWith(
+          ticketFailure: const ValidationFailure('amount_invalid'),
+        ),
+      );
       return;
     }
     final quote = await _getQuote(
@@ -474,13 +525,13 @@ class SwapCubit extends Cubit<SwapState> {
         amount: amount,
         type: current.orderType,
         limitPrice: current.orderType == SwapOrderType.limit
-            ? _parse(current.limitInput, current.from)
+            ? parseSwapInput(current.limitInput, current.from)
             : null,
         takeProfit: current.orderType == SwapOrderType.trigger
-            ? _parse(current.tpInput, current.from)
+            ? parseSwapInput(current.tpInput, current.from)
             : null,
         stopLoss: current.orderType == SwapOrderType.trigger
-            ? _parse(current.slInput, current.from)
+            ? parseSwapInput(current.slInput, current.from)
             : null,
       ),
     );
@@ -488,13 +539,20 @@ class SwapCubit extends Cubit<SwapState> {
       return;
     }
     quote.fold(
-      (failure) => emit(SwapFailure(failure)),
+      (failure) {
+        if (failure is SessionFailure) {
+          emit(SwapFailure(failure));
+          return;
+        }
+        emit(current.copyWith(ticketFailure: failure));
+      },
       (q) => emit(
         current.copyWith(
           surface: SwapSurface.preview,
           quote: q,
           requestId: _requestIds.next('swap'),
           submitting: false,
+          clearTicketFailure: true,
         ),
       ),
     );
@@ -598,16 +656,5 @@ class SwapCubit extends Cubit<SwapState> {
       SwapInputField.stopLoss =>
         current.copyWith(slInput: value, clearQuote: true),
     };
-  }
-
-  Money? _parse(String input, Currency currency) {
-    if (input.isEmpty) {
-      return null;
-    }
-    try {
-      return Money.parse(input, currency);
-    } on FormatException {
-      return null;
-    }
   }
 }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/notice/notice_copy.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -130,17 +133,24 @@ class _AddWatchlistPageState extends State<AddWatchlistPage> {
       return;
     }
     setState(() => _adding = true);
-    final added = await context.read<HomeCubit>().addWatchlistItem(
+    final result = await context.read<HomeCubit>().addWatchlistItem(
       item.currency,
     );
     if (!mounted) {
       return;
     }
-    if (added) {
-      context.pop();
-      return;
-    }
-    setState(() => _adding = false);
+    result.fold(
+      (failure) {
+        context.showFailureNotice(failure);
+        setState(() => _adding = false);
+      },
+      (_) {
+        context.showUserNotice(
+          UserNotice.success(NoticeCopy.watchlistAdded(item.currency.code)),
+        );
+        context.pop();
+      },
+    );
   }
 }
 

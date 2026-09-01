@@ -13,7 +13,11 @@ import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/notice/notice_copy.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_header_action.dart';
 import '../../../../core/widgets/app_page_body.dart';
 import '../../../../core/widgets/app_section_header.dart';
@@ -41,7 +45,10 @@ class DashboardPage extends StatelessWidget {
             return switch (state) {
               HomeLoading() => const Center(child: CircularProgressIndicator()),
               HomeEmpty() => const AppEmptyState(message: 'No dashboard data'),
-              HomeFailure(:final failure) => AppEmptyState(message: '$failure'),
+              HomeFailure(:final failure) => AppFailureView(
+                failure: failure,
+                onRetry: () => context.read<HomeCubit>().load(),
+              ),
               HomeSuccess() => const _DashboardBody(),
             };
           },
@@ -336,7 +343,14 @@ class _AlertList extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               _AlertBanner(
                 text: HomeCopy.alert(alert.copyKey),
-                onDismiss: () => context.read<HomeCubit>().dismiss(alert.id),
+                onDismiss: () async {
+                  final failure = await context.read<HomeCubit>().dismiss(
+                    alert.id,
+                  );
+                  if (failure != null && context.mounted) {
+                    context.showFailureNotice(failure);
+                  }
+                },
                 onLearnMore: () => _go(context, AppRoute.card),
               ),
             ],
@@ -566,7 +580,5 @@ void _go(BuildContext context, AppRoute route) {
     context.push(route.path);
     return;
   }
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text('${route.path} — next feature')));
+  context.showUserNotice(UserNotice.info(NoticeCopy.unavailable));
 }

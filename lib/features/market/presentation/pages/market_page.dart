@@ -12,7 +12,10 @@ import '../../../../core/money/money_format.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/freshness_chip.dart';
 import '../../../../core/widgets/trade_actions.dart';
 import '../../../orders/presentation/widgets/asset_open_orders.dart';
@@ -67,24 +70,31 @@ class _MarketPageState extends ConsumerState<MarketPage> {
                   child: CircularProgressIndicator(),
                 ),
                 MarketEmpty() => const AppEmptyState(message: 'No market data'),
-                MarketFailure(:final failure) => AppEmptyState(
-                  message: '$failure',
+                MarketFailure(:final failure) => AppFailureView(
+                  failure: failure,
+                  onRetry: () => cubit.load(),
                 ),
                 MarketSuccess() => _Body(code: widget.code),
               };
             },
           ),
-          bottomNavigationBar: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.pageHorizontal,
-                AppSpacing.xs,
-                AppSpacing.pageHorizontal,
-                AppSpacing.sm,
-              ),
-              child: TradeActions(
-                onExchange:
-                    () => context.push(MarketSwapLink.instantFor(widget.code)),
+          bottomNavigationBar: Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              minimum: const EdgeInsets.only(bottom: AppSpacing.xxs),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Divider(
+                    height: 1,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  TradeActions(
+                    onExchange: () => context.push(
+                      MarketSwapLink.instantFor(widget.code),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -119,108 +129,110 @@ class _BodyState extends State<_Body> {
         if (state is! MarketSuccess || state.selectionFailure == null) {
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(MarketCopy.bookFailure(state.selectionFailure!)),
-          ),
+        context.showUserNotice(
+          UserNotice.error(MarketCopy.bookFailure(state.selectionFailure!)),
         );
         context.read<MarketCubit>().clearSelectionFailure();
       },
-      child: ListView(
+      child: CustomScrollView(
         key: const Key('market_scroll'),
-        children: [
-          const _Header(),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.pageHorizontal,
-              AppSpacing.sm,
-              AppSpacing.pageHorizontal,
-              0,
-            ),
-            child: AssetOpenOrders(),
-          ),
-          SizedBox(
-            height: 220,
+        slivers: [
+          const SliverToBoxAdapter(child: _Header()),
+          const SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
-              child: BlocSelector<
-                MarketCubit,
-                MarketState,
-                ({CandleSeries? candles, bool showVolume})
-              >(
-                selector: (state) {
-                  if (state is! MarketSuccess) {
-                    return (candles: null, showVolume: true);
-                  }
-                  return (candles: state.candles, showVolume: state.showVolume);
-                },
-                builder: (context, view) {
-                  final series = view.candles;
-                  if (series == null) {
-                    return const SizedBox.shrink();
-                  }
-                  return KeyedSubtree(
-                    key: const Key('market_candlestick_chart'),
-                    child: MarketCandlestickChart(
-                      key: _chartKey,
-                      series: series,
-                      showVolume: view.showVolume,
-                    ),
-                  );
-                },
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.pageHorizontal,
+                AppSpacing.sm,
+                AppSpacing.pageHorizontal,
+                0,
+              ),
+              child: AssetOpenOrders(),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 220,
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: BlocSelector<
+                  MarketCubit,
+                  MarketState,
+                  ({CandleSeries? candles, bool showVolume})
+                >(
+                  selector: (state) {
+                    if (state is! MarketSuccess) {
+                      return (candles: null, showVolume: true);
+                    }
+                    return (
+                      candles: state.candles,
+                      showVolume: state.showVolume,
+                    );
+                  },
+                  builder: (context, view) {
+                    final series = view.candles;
+                    if (series == null) {
+                      return const SizedBox.shrink();
+                    }
+                    return KeyedSubtree(
+                      key: const Key('market_candlestick_chart'),
+                      child: MarketCandlestickChart(
+                        key: _chartKey,
+                        series: series,
+                        showVolume: view.showVolume,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.pageHorizontal,
-              AppSpacing.xs,
-              AppSpacing.pageHorizontal,
-              AppSpacing.lg,
-            ),
-            child: Column(
-              children: [
-                BlocSelector<MarketCubit, MarketState, CandleInterval>(
-                  selector:
-                      (state) =>
-                          state is MarketSuccess
-                              ? state.candles.interval
-                              : CandleInterval.m15,
-                  builder: (context, interval) {
-                    return MarketIntervalChips(
-                      selected: interval,
-                      onSelected: context.read<MarketCubit>().selectInterval,
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                BlocSelector<MarketCubit, MarketState, bool>(
-                  selector:
-                      (state) =>
-                          state is MarketSuccess ? state.showVolume : true,
-                  builder: (context, showVolume) {
-                    return _ChartToolbar(
-                      showVolume: showVolume,
-                      onReset: () => _chartKey.currentState?.resetZoom(),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.md),
-                BlocSelector<MarketCubit, MarketState, OrderBook?>(
-                  selector:
-                      (state) =>
-                          state is MarketSuccess ? state.orderBook : null,
-                  builder: (context, book) {
-                    return MarketOrderBook(
-                      book: book,
-                      onLevelSelected:
-                          book?.freshness == QuoteFreshness.disconnected
-                              ? null
-                              : (level) => _selectLevel(context, level),
-                    );
-                  },
-                ),
-              ],
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.pageHorizontal,
+                AppSpacing.xs,
+                AppSpacing.pageHorizontal,
+                AppSpacing.lg,
+              ),
+              child: Column(
+                children: [
+                  BlocSelector<MarketCubit, MarketState, CandleInterval>(
+                    selector: (state) => state is MarketSuccess
+                        ? state.candles.interval
+                        : CandleInterval.m15,
+                    builder: (context, interval) {
+                      return MarketIntervalChips(
+                        selected: interval,
+                        onSelected: context.read<MarketCubit>().selectInterval,
+                      );
+                    },
+                  ),
+                  BlocSelector<MarketCubit, MarketState, bool>(
+                    selector: (state) =>
+                        state is MarketSuccess ? state.showVolume : true,
+                    builder: (context, showVolume) {
+                      return _ChartToolbar(
+                        showVolume: showVolume,
+                        onReset: () => _chartKey.currentState?.resetZoom(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  BlocSelector<MarketCubit, MarketState, OrderBook?>(
+                    selector: (state) =>
+                        state is MarketSuccess ? state.orderBook : null,
+                    builder: (context, book) {
+                      return MarketOrderBook(
+                        book: book,
+                        onLevelSelected:
+                            book?.freshness == QuoteFreshness.disconnected
+                                ? null
+                                : (level) => _selectLevel(context, level),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -323,6 +335,10 @@ class _ChartToolbar extends StatelessWidget {
       children: [
         TextButton(
           key: const Key('market_volume_toggle'),
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           onPressed: context.read<MarketCubit>().toggleVolume,
           child: Text(
             MarketCopy.volume,
@@ -335,6 +351,10 @@ class _ChartToolbar extends StatelessWidget {
         const Spacer(),
         TextButton(
           key: const Key('market_zoom_reset'),
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           onPressed: onReset,
           child: Text(
             MarketCopy.resetZoom,

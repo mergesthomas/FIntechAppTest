@@ -9,11 +9,16 @@ import '../../../../core/market/quote_freshness.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
 import '../../../../core/money/money_format.dart';
+import '../../../../core/notice/failure_message.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/settlement/settlement_status.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
+import '../../../../core/widgets/app_picker_sheet.dart';
 import '../../../../core/widgets/app_surface.dart';
 import '../../../../core/widgets/detail_row.dart';
 import '../../../auth/presentation/widgets/step_up_pin_dialog.dart';
@@ -55,7 +60,22 @@ class _SwapPageState extends State<SwapPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SwapCubit, SwapState>(
+    return BlocListener<SwapCubit, SwapState>(
+      listenWhen: (previous, current) {
+        final prev = previous is SwapReady ? previous.ticketFailure : null;
+        final next = current is SwapReady ? current.ticketFailure : null;
+        return next != null && next != prev;
+      },
+      listener: (context, state) {
+        if (state is! SwapReady || state.ticketFailure == null) {
+          return;
+        }
+        context.showUserNotice(
+          UserNotice.error(SwapCopy.ticketFailure(state.ticketFailure!)),
+        );
+        context.read<SwapCubit>().clearTicketFailure();
+      },
+      child: BlocBuilder<SwapCubit, SwapState>(
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
@@ -76,8 +96,8 @@ class _SwapPageState extends State<SwapPage> {
                     : IconButton(
                       tooltip: SwapCopy.info,
                       onPressed:
-                          () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(SwapCopy.info)),
+                          () => context.showUserNotice(
+                            UserNotice.info(SwapCopy.info),
                           ),
                       icon: const Icon(Icons.info_outline),
                     ),
@@ -92,10 +112,9 @@ class _SwapPageState extends State<SwapPage> {
           body: switch (state) {
             SwapLoading() => const Center(child: CircularProgressIndicator()),
             SwapEmpty() => const AppEmptyState(message: SwapCopy.noAssets),
-            SwapFailure(:final failure) => AppEmptyState(
-              message: '$failure',
-              actionLabel: 'Retry',
-              onAction: context.read<SwapCubit>().load,
+            SwapFailure(:final failure) => AppFailureView(
+              failure: failure,
+              onRetry: context.read<SwapCubit>().load,
             ),
             SwapReady() => switch (state.surface) {
               SwapSurface.ticket => _Ticket(state: state),
@@ -105,6 +124,7 @@ class _SwapPageState extends State<SwapPage> {
           },
         );
       },
+      ),
     );
   }
 }
@@ -198,7 +218,7 @@ class _Ticket extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           ElevatedButton(
             key: const Key('swap_preview'),
-            onPressed: cubit.preview,
+            onPressed: state.canPreview ? cubit.preview : null,
             child: const Text(SwapCopy.previewCta),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -527,7 +547,7 @@ class _Result extends StatelessWidget {
           settlement: settlement,
           resting: venue != PaperVenue.market,
         ),
-      Failure() => '$result',
+      Failure() => FailureMessage.map(result),
       _ => SwapCopy.unknownStatus,
     };
     final icon = switch (submit?.settlement) {
@@ -633,28 +653,50 @@ Money? _tryParse(String input, Currency currency) {
 
 Future<void> _pickOrderType(BuildContext context) async {
   final cubit = context.read<SwapCubit>();
+  final current = cubit.state;
+  final selectedType =
+      current is SwapReady ? current.orderType : SwapOrderType.instant;
   final selected = await showModalBottomSheet<SwapOrderType>(
     context: context,
+    showDragHandle: false,
     builder: (sheet) {
-      return SafeArea(
+      return AppPickerSheet(
+        title: SwapCopy.orderType,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              key: const Key('swap_type_instant'),
-              title: const Text(SwapCopy.instant),
-              onTap: () => Navigator.pop(sheet, SwapOrderType.instant),
-            ),
-            ListTile(
-              key: const Key('swap_type_limit'),
-              title: const Text(SwapCopy.limitOrder),
-              onTap: () => Navigator.pop(sheet, SwapOrderType.limit),
-            ),
-            ListTile(
-              key: const Key('swap_type_trigger'),
-              title: const Text(SwapCopy.triggerOrder),
-              onTap: () => Navigator.pop(sheet, SwapOrderType.trigger),
-            ),
+            for (final type in SwapOrderType.values)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    key: Key('swap_type_${type.name}'),
+                    onTap: () => Navigator.pop(sheet, type),
+                    borderRadius: AppRadii.card,
+                    child: AppSurface(
+                      selected: type == selectedType,
+                      child: Row(
+                        children: [
+                          Icon(_orderTypeIcon(type)),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              SwapCopy.orderTypeLabel(type.name),
+                              style: AppTextStyles.body,
+                            ),
+                          ),
+                          if (type == selectedType)
+                            Icon(
+                              Icons.check,
+                              color: Theme.of(sheet).colorScheme.primary,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       );
@@ -665,6 +707,14 @@ Future<void> _pickOrderType(BuildContext context) async {
   }
 }
 
+IconData _orderTypeIcon(SwapOrderType type) {
+  return switch (type) {
+    SwapOrderType.instant => Icons.bolt_outlined,
+    SwapOrderType.limit => Icons.tune,
+    SwapOrderType.trigger => Icons.notifications_outlined,
+  };
+}
+
 Future<void> _pickAsset(BuildContext context, {required bool pay}) async {
   final cubit = context.read<SwapCubit>();
   final state = cubit.state;
@@ -673,18 +723,43 @@ Future<void> _pickAsset(BuildContext context, {required bool pay}) async {
   }
   final selected = await showModalBottomSheet<Currency>(
     context: context,
+    showDragHandle: false,
     builder: (sheet) {
       final exclude = pay ? state.to : state.from;
-      return SafeArea(
-        child: ListView(
+      return AppPickerSheet(
+        title: pay ? SwapCopy.payWith : SwapCopy.receive,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             for (final asset in state.assets)
               if (asset.currency != exclude)
-                ListTile(
-                  key: Key('swap_pick_${asset.currency.code}'),
-                  title: Text(asset.currency.code),
-                  subtitle: Text(formatQuantity(asset.balance)),
-                  onTap: () => Navigator.pop(sheet, asset.currency),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: Key('swap_pick_${asset.currency.code}'),
+                      onTap: () => Navigator.pop(sheet, asset.currency),
+                      borderRadius: AppRadii.card,
+                      child: AppSurface(
+                        selected: asset.currency == (pay ? state.from : state.to),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                asset.currency.code,
+                                style: AppTextStyles.body,
+                              ),
+                            ),
+                            Text(
+                              formatQuantity(asset.balance),
+                              style: AppTextStyles.numeric,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
           ],
         ),

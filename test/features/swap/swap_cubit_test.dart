@@ -95,6 +95,7 @@ void main() {
     expect(ready.limitInput, '78898.13');
     expect(ready.quote, isNull);
     expect(ready.surface, SwapSurface.ticket);
+    expect(ready.inputField, SwapInputField.payAmount);
   });
 
   test('applyRouteSeed selects Instant to the market asset', () async {
@@ -105,6 +106,14 @@ void main() {
     expect(ready.to.code, 'BTC');
     expect(ready.from.code, 'USDC');
     expect(ready.quote, isNull);
+  });
+
+  test('preview without an amount stays on the ticket', () async {
+    await cubit.load();
+    await cubit.preview();
+    final ready = cubit.state as SwapReady;
+    expect(ready.surface, SwapSurface.ticket);
+    expect(ready.ticketFailure, isA<ValidationFailure>());
   });
 
   test('ticket has no request id until preview forms the intent', () async {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/di/providers.dart';
+import 'core/notice/app_notice_host.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
@@ -24,6 +25,8 @@ class _FintechAppState extends ConsumerState<FintechApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: sessionCubit),
+        BlocProvider.value(value: ref.watch(userNoticeCubitProvider)),
+        BlocProvider.value(value: ref.watch(marketConnectionCubitProvider)),
         BlocProvider.value(value: ref.watch(onboardingCubitProvider)),
         BlocProvider.value(value: ref.watch(phoneAuthCubitProvider)),
         BlocProvider.value(value: ref.watch(smsCubitProvider)),
@@ -46,6 +49,9 @@ class _FintechAppState extends ConsumerState<FintechApp> {
         darkTheme: AppTheme.dark(),
         themeMode: ThemeMode.light,
         routerConfig: _router,
+        builder: (context, child) {
+          return AppNoticeHost(child: child ?? const SizedBox.shrink());
+        },
       ),
     );
   }
