@@ -19,7 +19,6 @@ import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/freshness_chip.dart';
 import '../../../../core/widgets/period_chips.dart';
 import '../../../../core/widgets/price_chart.dart';
-import '../../../../core/widgets/trade_actions.dart';
 import '../../domain/entities/dashboard.dart';
 import '../copy/home_copy.dart';
 import '../cubit/home_cubit.dart';
@@ -153,10 +152,6 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
           _NetWorthAmount(preview: _scrub?.value),
           const SizedBox(height: AppSpacing.xs),
           _PeriodChangeRow(previewAt: _scrub?.at),
-          const SizedBox(height: AppSpacing.lg),
-          TradeActions(
-            onExchange: () => _go(context, AppRoute.swap),
-          ),
           const SizedBox(height: AppSpacing.lg),
           _PortfolioChart(onScrub: (sample) => setState(() => _scrub = sample)),
           const SizedBox(height: AppSpacing.sm),

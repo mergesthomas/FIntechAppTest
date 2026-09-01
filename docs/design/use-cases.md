@@ -158,7 +158,6 @@ Visible data:
 - Banner: EURx below zero — Learn more / dismiss
 - Watchlist: BTC, DOGE, PEPE, BONK, ETH — price + 24h + sparkline
 - Promo cards + News teaser
-- CTAs: **Exchange**
 - Tabs: Dashboard, Explore, Card, Exchange
 
 ### Use Cases
@@ -169,7 +168,7 @@ Visible data:
 - `GetDashboardPromos` — server cards only
 - `GetNewsPreview`
 
-Navigation only (no Domain submit): Wallet, Send crypto, Exchange, tabs, avatar, gift, bell.
+Navigation only (no Domain submit): Wallet, Send crypto, tabs, avatar, gift, bell.
 
 ### Gates
 
@@ -448,7 +447,7 @@ Reconnect / live Binance depth are Data (Phases 2–3). `SubmitOrderFromBook` is
 
 | From | To |
 |---|---|
-| Dashboard Exchange / Send | `swap` / send (blocked) |
+| Shell Exchange tab / Send | `swap` / send (blocked) |
 | Dashboard Wallet | `wallet` (blocked) |
 | Card Restore balance | `swap` |
 | Frozen card overflow | `swap` |
