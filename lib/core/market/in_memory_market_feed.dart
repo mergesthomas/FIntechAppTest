@@ -40,9 +40,15 @@ final class InMemoryMarketFeed implements MarketFeed {
     _connection = value;
     for (final entry in _quotes.entries) {
       _quotes[entry.key] = entry.value.copyWith(freshness: value);
+      if (!_controller.isClosed) {
+        _controller.add(_quotes[entry.key]!);
+      }
     }
     for (final entry in _depths.entries) {
       _depths[entry.key] = entry.value.copyWith(freshness: value);
+      if (!_depthController.isClosed) {
+        _depthController.add(_depths[entry.key]!);
+      }
     }
   }
 

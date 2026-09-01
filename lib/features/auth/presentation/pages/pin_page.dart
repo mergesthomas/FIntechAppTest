@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/notice/failure_message.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -80,7 +81,7 @@ class _PinPageState extends State<PinPage> {
                         CodeDots(length: 4, filled: _pin.length),
                         if (state is PinFailure) ...[
                           const SizedBox(height: 16),
-                          Text(state.failure.toString()),
+                          Text(FailureMessage.map(state.failure)),
                         ],
                         const SizedBox(height: 16),
                         if (widget.confirm)

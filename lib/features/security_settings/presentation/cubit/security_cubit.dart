@@ -85,29 +85,31 @@ class SecurityCubit extends Cubit<SecurityState> {
     });
   }
 
-  Future<void> toggleBiometric(bool enabled) async {
+  Future<Failure?> toggleBiometric(bool enabled) async {
     final result = await _setBiometric(enabled);
-    result.fold((failure) => emit(SecurityFailure(failure)), (snapshot) {
+    return result.fold((failure) => failure, (snapshot) {
       final current = state;
       if (current is SecuritySuccess) {
         emit(SecuritySuccess(snapshot: snapshot, preferences: current.preferences));
       }
+      return null;
     });
   }
 
-  Future<void> toggleWhitelisting(bool enabled) async {
+  Future<Failure?> toggleWhitelisting(bool enabled) async {
     final result = await _setWhitelisting(enabled);
-    result.fold((failure) => emit(SecurityFailure(failure)), (snapshot) {
+    return result.fold((failure) => failure, (snapshot) {
       final current = state;
       if (current is SecuritySuccess) {
         emit(SecuritySuccess(snapshot: snapshot, preferences: current.preferences));
       }
+      return null;
     });
   }
 
-  Future<void> requestDoc(AccountDocumentKind kind, String requestId) async {
+  Future<Failure?> requestDoc(AccountDocumentKind kind, String requestId) async {
     final result = await _requestDocument((kind: kind, requestId: requestId));
-    result.fold((failure) => emit(SecurityFailure(failure)), (status) {
+    return result.fold((failure) => failure, (status) {
       final current = state;
       if (current is SecuritySuccess) {
         emit(
@@ -118,6 +120,7 @@ class SecurityCubit extends Cubit<SecurityState> {
           ),
         );
       }
+      return null;
     });
   }
 

@@ -6,6 +6,7 @@ import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../domain/entities/pending_auth.dart';
 import '../copy/onboarding_copy.dart';
 import '../cubit/onboarding_cubit.dart';
@@ -24,8 +25,9 @@ class OnboardingPage extends StatelessWidget {
                   child: CircularProgressIndicator(),
                 ),
               OnboardingEmpty() => const AppEmptyState(message: 'No slides'),
-              OnboardingFailure(:final failure) => AppEmptyState(
-                  message: failure.toString(),
+              OnboardingFailure(:final failure) => AppFailureView(
+                  failure: failure,
+                  onRetry: context.read<OnboardingCubit>().load,
                 ),
               OnboardingSuccess() => _OnboardingBody(state: state),
             };

@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_header_action.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/asset_list_row.dart';
@@ -110,7 +111,10 @@ class _ExplorePageState extends State<ExplorePage> {
           return switch (state) {
             ExploreLoading() => const Center(child: CircularProgressIndicator()),
             ExploreEmpty() => const AppEmptyState(message: 'No assets'),
-            ExploreFailure(:final failure) => AppEmptyState(message: '$failure'),
+            ExploreFailure(:final failure) => AppFailureView(
+              failure: failure,
+              onRetry: context.read<ExploreCubit>().load,
+            ),
             ExploreSuccess() => _Feed(state: state),
           };
         },

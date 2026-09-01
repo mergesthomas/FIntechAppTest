@@ -5,6 +5,13 @@ import 'package:fintech_app_test/core/money/money_format.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('fromCode keeps listed scale and accepts catalog tickers', () {
+    expect(Currency.fromCode('BTC'), Currency.btc);
+    expect(Currency.fromCode('ADA')?.code, 'ADA');
+    expect(Currency.fromCode('ADA')?.scale, 8);
+    expect(Currency.fromCode(''), isNull);
+  });
+
   test('parses and formats USD without double', () {
     final money = Money.parse('35862.41', Currency.usd);
     expect(money.amount, Decimal.parse('35862.41'));

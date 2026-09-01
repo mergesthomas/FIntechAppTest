@@ -1,5 +1,6 @@
 import '../../../../core/error/failure.dart';
 import '../../../../core/market/candle_interval.dart';
+import '../../../../core/notice/failure_message.dart';
 
 abstract final class MarketCopy {
   static const volume = 'Vol';
@@ -14,13 +15,11 @@ abstract final class MarketCopy {
   static const bookOffline =
       'The order book is offline. It cannot set a price.';
   static const bookSelectFailed = 'Could not use that price.';
-  static const sessionRequired = 'Sign in to continue.';
 
   static String bookFailure(Failure failure) {
     return switch (failure) {
       StaleQuoteFailure() => bookOffline,
-      SessionFailure() => sessionRequired,
-      _ => bookSelectFailed,
+      _ => FailureMessage.map(failure),
     };
   }
 

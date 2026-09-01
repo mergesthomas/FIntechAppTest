@@ -167,7 +167,7 @@ void main() {
     ).thenAnswer((_) async => Either.right([]));
 
     await cubit.load();
-    expect(await cubit.addWatchlistItem(Currency.sol), isTrue);
+    expect(await cubit.addWatchlistItem(Currency.sol), Either.right(unit));
 
     expect(cubit.state, isA<HomeSuccess>());
     expect((cubit.state as HomeSuccess).watchlist.map((i) => i.currency), [
@@ -177,14 +177,19 @@ void main() {
     expect((cubit.state as HomeSuccess).watchlistCandidates, isEmpty);
   });
 
-  test('addWatchlistItem returns false when the use case refuses', () async {
+  test('addWatchlistItem returns the use case failure when it refuses', () async {
     when(() => home.addWatchlistItem(Currency.sol)).thenAnswer(
       (_) async =>
           Either.left(const ValidationFailure('watchlist_already_contains')),
     );
 
     await cubit.load();
-    expect(await cubit.addWatchlistItem(Currency.sol), isFalse);
+    expect(
+      await cubit.addWatchlistItem(Currency.sol),
+      Either<Failure, Unit>.left(
+        const ValidationFailure('watchlist_already_contains'),
+      ),
+    );
     expect((cubit.state as HomeSuccess).watchlist, isEmpty);
   });
 

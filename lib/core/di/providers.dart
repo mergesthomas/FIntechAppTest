@@ -9,6 +9,9 @@ import '../ledger/paper_order.dart';
 import '../ledger/paper_settler.dart';
 import '../market/in_memory_market_feed.dart';
 import '../market/market_feed.dart';
+import '../market/watch_market_connection.dart';
+import '../notice/market_connection_cubit.dart';
+import '../notice/user_notice_cubit.dart';
 import '../secure/secure_store.dart';
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/auth/data/datasources/onboarding_local_datasource.dart';
@@ -80,6 +83,24 @@ import '../../features/security_settings/data/repositories/security_repository_i
 import '../../features/security_settings/domain/repositories/security_repository.dart';
 import '../../features/security_settings/domain/usecases/security_usecases.dart';
 import '../../features/security_settings/presentation/cubit/security_cubit.dart';
+
+final userNoticeCubitProvider = Provider<UserNoticeCubit>((ref) {
+  final cubit = UserNoticeCubit();
+  ref.onDispose(cubit.close);
+  return cubit;
+});
+
+final watchMarketConnectionProvider = Provider<WatchMarketConnection>((ref) {
+  final watch = WatchMarketConnection(ref.watch(marketFeedProvider));
+  ref.onDispose(watch.dispose);
+  return watch;
+});
+
+final marketConnectionCubitProvider = Provider<MarketConnectionCubit>((ref) {
+  final cubit = MarketConnectionCubit(ref.watch(watchMarketConnectionProvider));
+  ref.onDispose(cubit.close);
+  return cubit;
+});
 
 final flavorConfigProvider = Provider<FlavorConfig>((ref) => FlavorConfig.dev);
 

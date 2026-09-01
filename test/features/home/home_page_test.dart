@@ -3,6 +3,7 @@ import 'package:fintech_app_test/core/di/providers.dart';
 import 'package:fintech_app_test/core/fixtures/news_feed_fixture.dart';
 import 'package:fintech_app_test/core/market/in_memory_market_feed.dart';
 import 'package:fintech_app_test/core/market/quote_freshness.dart';
+import 'package:fintech_app_test/core/notice/notice_copy.dart';
 import 'package:fintech_app_test/core/secure/secure_store.dart';
 import 'package:fintech_app_test/core/widgets/asset_list_row.dart';
 import 'package:fintech_app_test/features/auth/data/datasources/auth_local_datasource.dart';
@@ -201,11 +202,56 @@ void main() {
     expect(find.byKey(const Key('watchlist_SOL')), findsOneWidget);
   });
 
+  testWidgets('added catalog coin opens market without a raw failure', (
+    tester,
+  ) async {
+    await pumpDashboard(tester);
+
+    await tester.dragUntilVisible(
+      find.byKey(const Key('watchlist_add')),
+      find.byKey(const Key('dashboard_scroll')),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('watchlist_add')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('watchlist_search')), 'cardano');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('watchlist_add_ADA')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text(NoticeCopy.watchlistAdded('ADA')), findsOneWidget);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('ValidationFailure'), findsNothing);
+
+    await tester.dragUntilVisible(
+      find.byKey(const Key('watchlist_ADA')),
+      find.byKey(const Key('dashboard_scroll')),
+      const Offset(0, -300),
+    );
+    await tester.tap(find.byKey(const Key('watchlist_ADA')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('ValidationFailure'), findsNothing);
+    expect(find.byKey(const Key('market_price')), findsOneWidget);
+  });
+
   testWidgets('live feed does not print live on home', (tester) async {
     await pumpDashboard(tester, freshness: QuoteFreshness.live);
 
     expect(find.byKey(const Key('net_worth')), findsOneWidget);
     expect(find.text('live'), findsNothing);
+  });
+
+  testWidgets('disconnected feed shows a persistent offline banner', (
+    tester,
+  ) async {
+    await pumpDashboard(tester, freshness: QuoteFreshness.disconnected);
+
+    expect(find.byKey(const Key('feed_offline_banner')), findsOneWidget);
+    expect(find.text(NoticeCopy.feedDisconnected), findsOneWidget);
   });
 
   testWidgets('dashboard and view-all show four Dogecoin stories', (

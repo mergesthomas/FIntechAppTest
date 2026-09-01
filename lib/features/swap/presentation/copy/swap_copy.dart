@@ -1,3 +1,4 @@
+import '../../../../core/error/failure.dart';
 import '../../../../core/settlement/settlement_status.dart';
 
 /// Swap copy. Fee and cashback are screenshot placeholders — COMPLIANCE review.
@@ -44,6 +45,33 @@ abstract final class SwapCopy {
   static const pct30 = '30%';
   static const pct50 = '50%';
   static const pctMax = 'Max';
+  static const enterAmount = 'Enter an amount to preview.';
+  static const enterLimit = 'Enter a limit price.';
+  static const enterTrigger = 'Enter a take-profit or stop-loss.';
+  static const limitNotBetter = 'Limit must be better than the live price.';
+  static const takeProfitNotBetter =
+      'Take-profit must be better than the live price.';
+  static const stopLossNotWorse = 'Stop-loss must be worse than the live price.';
+  static const previewUnavailable = 'Could not preview that order.';
+
+  static String ticketFailure(Failure failure) {
+    return switch (failure) {
+      ValidationFailure(:final reason) => switch (reason) {
+          'amount_invalid' || 'amount_required' => enterAmount,
+          'limit_required' => enterLimit,
+          'trigger_price_required' => enterTrigger,
+          'limit_not_better' => limitNotBetter,
+          'take_profit_not_better' => takeProfitNotBetter,
+          'stop_loss_not_worse' => stopLossNotWorse,
+          _ => previewUnavailable,
+        },
+      StaleQuoteFailure() => staleQuote,
+      StepUpFailure() => stepUpRequired,
+      SessionFailure() => 'Sign in to continue.',
+      EligibilityFailure() => 'Trading is not available on this account.',
+      _ => previewUnavailable,
+    };
+  }
 
   static String orderTypeLabel(String name) {
     return switch (name) {

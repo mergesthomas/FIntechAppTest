@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/money/money_format.dart';
+import '../../../../core/notice/user_notice.dart';
+import '../../../../core/notice/user_notice_cubit.dart';
 import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_header_action.dart';
 import '../../../../core/widgets/app_surface.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
@@ -71,10 +74,11 @@ class _CardPageState extends State<CardPage> {
           return switch (state) {
             CardLoading() => const Center(child: CircularProgressIndicator()),
             CardEmpty() => const AppEmptyState(message: 'No card'),
-            CardFailure(:final failure) => AppEmptyState(
-              message: '$failure',
-              key: const Key('card_failure'),
-            ),
+            CardFailure(:final failure) => AppFailureView(
+                failure: failure,
+                key: const Key('card_failure'),
+                onRetry: context.read<CardCubit>().load,
+              ),
             CardSuccess(:final snapshot) => _Body(snapshot: snapshot),
           };
         },
@@ -160,27 +164,25 @@ class _Body extends StatelessWidget {
           icon: Icons.credit_card_outlined,
           title: 'Card details',
           subtitle: '${snapshot.network} *${snapshot.last4}',
-          onTap: () => _snack(context, 'Card details — last4 only'),
+          onTap: () => context.showUserNotice(UserNotice.info('Card details — last4 only')),
         ),
         _Option(
           icon: Icons.swap_horiz,
           title: 'Card mode',
           trailing: snapshot.modeLabel,
-          onTap:
-              () => _snack(
-                context,
-                'Debit only. Credit / borrow is out of scope.',
-              ),
+          onTap: () => context.showUserNotice(
+            UserNotice.info('Debit only. Credit / borrow is out of scope.'),
+          ),
         ),
         _Option(
           icon: frozen ? Icons.lock_open_outlined : Icons.ac_unit,
           title: frozen ? 'Unfreeze' : 'Freeze card',
           keyName: frozen ? 'unfreeze_card' : 'freeze_card',
-          onTap: () {
-            if (frozen) {
-              context.read<CardCubit>().unfreeze();
-            } else {
-              context.read<CardCubit>().freeze();
+          onTap: () async {
+            final cubit = context.read<CardCubit>();
+            final failure = frozen ? await cubit.unfreeze() : await cubit.freeze();
+            if (failure != null && context.mounted) {
+              context.showFailureNotice(failure);
             }
           },
         ),
@@ -192,12 +194,12 @@ class _Body extends StatelessWidget {
         _Option(
           icon: Icons.receipt_long_outlined,
           title: 'Transactions',
-          onTap: () => _snack(context, 'Transactions — screens missing'),
+          onTap: () => context.showUserNotice(UserNotice.info('Transactions — screens missing')),
         ),
         _Option(
           icon: Icons.settings_outlined,
           title: 'Card settings',
-          onTap: () => _snack(context, 'Card settings — screens missing'),
+          onTap: () => context.showUserNotice(UserNotice.info('Card settings — screens missing')),
         ),
       ],
     );
@@ -208,7 +210,9 @@ class _Body extends StatelessWidget {
     if (!context.mounted) {
       return;
     }
-    result.fold((_) {}, (chosen) {
+    result.fold((failure) {
+      context.showFailureNotice(failure);
+    }, (chosen) {
       final route = switch (chosen) {
         RestoreRail.swap => AppRoute.swap,
       };
@@ -226,7 +230,7 @@ class _Body extends StatelessWidget {
       return;
     }
     result.fold(
-      (failure) => _snack(context, '$failure'),
+      (failure) => context.showFailureNotice(failure),
       (pin) => showDialog<void>(
         context: context,
         builder:
@@ -242,12 +246,6 @@ class _Body extends StatelessWidget {
             ),
       ),
     );
-  }
-
-  void _snack(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 

@@ -6,6 +6,7 @@ import '../../../../core/router/app_route.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../auth/presentation/cubit/session_cubit.dart';
 import '../cubit/profile_cubit.dart';
@@ -37,7 +38,10 @@ class _ProfilePageState extends State<ProfilePage> {
           return switch (state) {
             ProfileLoading() => const Center(child: CircularProgressIndicator()),
             ProfileEmpty() => const AppEmptyState(message: 'No profile shortcuts'),
-            ProfileFailure(:final failure) => AppEmptyState(message: '$failure'),
+            ProfileFailure(:final failure) => AppFailureView(
+              failure: failure,
+              onRetry: context.read<ProfileCubit>().load,
+            ),
             ProfileSuccess() => _ProfileBody(state: state),
           };
         },

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../cubit/news_cubit.dart';
 
 class NewsPage extends StatefulWidget {
@@ -33,7 +34,10 @@ class _NewsPageState extends State<NewsPage> {
           return switch (state) {
             NewsLoading() => const Center(child: CircularProgressIndicator()),
             NewsEmpty() => const AppEmptyState(message: 'No news'),
-            NewsFailure(:final failure) => AppEmptyState(message: '$failure'),
+            NewsFailure(:final failure) => AppFailureView(
+              failure: failure,
+              onRetry: context.read<NewsCubit>().load,
+            ),
             NewsSuccess(:final items) => ListView(
               key: const Key('news_feed_scroll'),
               padding: const EdgeInsets.fromLTRB(

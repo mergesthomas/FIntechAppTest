@@ -66,7 +66,7 @@ void main() {
     expect(success.showVolume, isTrue);
   });
 
-  test('unknown asset emits failure', () async {
+  test('blank asset code emits failure', () async {
     final repo = MarketRepositoryImpl(
       const MarketLocalDataSource(),
       feed: paper.feed,
@@ -79,7 +79,7 @@ void main() {
       getOrderBook: GetOrderBook(session, repo),
       watchOrderBook: WatchOrderBook(session, repo),
       selectOrderBookLevel: SelectOrderBookLevel(session, repo),
-      code: 'NOPE',
+      code: '',
     );
     await bad.load();
     expect(bad.state, isA<MarketFailure>());
@@ -88,6 +88,27 @@ void main() {
       isA<ValidationFailure>(),
     );
     await bad.close();
+  });
+
+  test('catalog coin without a listed Currency still loads', () async {
+    final repo = MarketRepositoryImpl(
+      const MarketLocalDataSource(),
+      feed: paper.feed,
+    );
+    final session = RequireSession(auth);
+    final ada = MarketCubit(
+      getAsset: GetMarketAsset(session, repo),
+      getCandles: GetCandleChart(session, repo),
+      watchTicks: WatchMarketTicks(session, repo),
+      getOrderBook: GetOrderBook(session, repo),
+      watchOrderBook: WatchOrderBook(session, repo),
+      selectOrderBookLevel: SelectOrderBookLevel(session, repo),
+      code: 'ADA',
+    );
+    await ada.load();
+    expect(ada.state, isA<MarketSuccess>());
+    expect((ada.state as MarketSuccess).asset.currency.code, 'ADA');
+    await ada.close();
   });
 
   test('selectInterval keeps the asset and changes candles', () async {

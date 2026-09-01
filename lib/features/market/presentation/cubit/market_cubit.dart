@@ -106,7 +106,7 @@ class MarketCubit extends Cubit<MarketState> {
   StreamSubscription<Either<Failure, MarketTick>>? _ticks;
   StreamSubscription<Either<Failure, OrderBook>>? _book;
 
-  Currency? get _currency => Currency.tryParse(code);
+  Currency? get _currency => Currency.fromCode(code);
 
   Future<void> load({
     CandleInterval interval = CandleInterval.m15,

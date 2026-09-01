@@ -6,6 +6,7 @@ import '../../../../core/money/money_format.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../domain/entities/order.dart';
 import '../cubit/orders_cubit.dart';
@@ -56,7 +57,10 @@ class _OrdersPageState extends State<OrdersPage> {
               OrdersLoading() =>
                 const Center(child: CircularProgressIndicator()),
               OrdersEmpty() => const AppEmptyState(message: 'No orders'),
-              OrdersFailure(:final failure) => AppEmptyState(message: '$failure'),
+              OrdersFailure(:final failure) => AppFailureView(
+                failure: failure,
+                onRetry: () => context.read<OrdersCubit>().load(),
+              ),
               OrdersSuccess(:final orders) => _OrderList(orders: orders),
             };
           },

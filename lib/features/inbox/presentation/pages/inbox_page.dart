@@ -6,6 +6,7 @@ import '../../../../core/money/money_format.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_failure_view.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../domain/entities/inbox_item.dart';
 import '../copy/inbox_copy.dart';
@@ -38,7 +39,10 @@ class _InboxPageState extends State<InboxPage> {
           return switch (state) {
             InboxLoading() => const Center(child: CircularProgressIndicator()),
             InboxEmpty() => const AppEmptyState(message: InboxCopy.empty),
-            InboxFailure(:final failure) => AppEmptyState(message: '$failure'),
+            InboxFailure(:final failure) => AppFailureView(
+              failure: failure,
+              onRetry: context.read<InboxCubit>().load,
+            ),
             InboxSuccess(:final items) => _InboxList(items: items),
           };
         },
