@@ -12,7 +12,6 @@ import '../../features/explore/presentation/pages/explore_page.dart';
 import '../../features/card/presentation/pages/card_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
 import '../../features/swap/presentation/pages/swap_page.dart';
-import '../../features/funding/presentation/pages/funding_page.dart';
 import '../../features/home/presentation/pages/home_shell_page.dart';
 import '../../features/inbox/presentation/pages/inbox_page.dart';
 import '../../features/news/presentation/pages/news_page.dart';
@@ -116,10 +115,6 @@ GoRouter createRouter(SessionCubit sessionCubit) {
       GoRoute(
         path: AppRoute.explore.path,
         builder: (context, state) => const ExplorePage(),
-      ),
-      GoRoute(
-        path: AppRoute.funding.path,
-        builder: (context, state) => const FundingPage(),
       ),
       GoRoute(
         path: AppRoute.card.path,

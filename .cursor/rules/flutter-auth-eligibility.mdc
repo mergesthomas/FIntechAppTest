@@ -8,7 +8,7 @@ alwaysApply: true
 - Tokens and secrets live in secure storage only. Never in prefs, logs, or widgets.
 - Session is required for authenticated surfaces. On expiry, lock navigation and clear in-memory secrets.
 - Money-moving submits require step-up (biometric / PIN / re-auth) when the product requires it.
-- Earn, borrow, trade, and funding are gated on KYC / eligibility. If unknown or failed, do not open the submit path.
+- Earn, borrow, and trade are gated on KYC / eligibility. If unknown or failed, do not open the submit path.
 - Auth and eligibility are Use Cases + Cubits, not widget checks.
 
 ```text

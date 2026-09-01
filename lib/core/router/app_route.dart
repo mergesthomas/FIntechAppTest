@@ -13,7 +13,6 @@ enum AppRoute {
   inbox('/inbox'),
   news('/news'),
   explore('/explore'),
-  funding('/funding'),
   card('/card'),
   swap('/swap'),
   orders('/orders'),

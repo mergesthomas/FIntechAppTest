@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Money-moving flows (critical)
 
-Treat every financial, trading, portfolio, earn, borrow, or funding flow as money-moving.
+Treat every financial, trading, portfolio, earn, or borrow flow as money-moving.
 
 - Prioritize correctness, idempotency, proper error states, and edge cases.
 - Follow Money & ledger, Auth & eligibility, and Market data rules. No `double` amounts.

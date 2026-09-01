@@ -155,9 +155,7 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
           _PeriodChangeRow(previewAt: _scrub?.at),
           const SizedBox(height: AppSpacing.lg),
           TradeActions(
-            onBuy: () => _go(context, AppRoute.funding, query: 'action=buy'),
             onExchange: () => _go(context, AppRoute.swap),
-            onAddFunds: () => _go(context, AppRoute.funding),
           ),
           const SizedBox(height: AppSpacing.lg),
           _PortfolioChart(onScrub: (sample) => setState(() => _scrub = sample)),
@@ -343,7 +341,7 @@ class _AlertList extends StatelessWidget {
               _AlertBanner(
                 text: HomeCopy.alert(alert.copyKey),
                 onDismiss: () => context.read<HomeCubit>().dismiss(alert.id),
-                onLearnMore: () => _go(context, AppRoute.funding),
+                onLearnMore: () => _go(context, AppRoute.card),
               ),
             ],
           ],
@@ -554,7 +552,7 @@ DashboardPeriod _dashboardPeriod(ChartPeriod period) {
   };
 }
 
-void _go(BuildContext context, AppRoute route, {String? query}) {
+void _go(BuildContext context, AppRoute route) {
   const ready = {
     AppRoute.profile,
     AppRoute.products,
@@ -562,7 +560,6 @@ void _go(BuildContext context, AppRoute route, {String? query}) {
     AppRoute.inbox,
     AppRoute.news,
     AppRoute.explore,
-    AppRoute.funding,
     AppRoute.card,
     AppRoute.swap,
     AppRoute.orders,
@@ -570,7 +567,7 @@ void _go(BuildContext context, AppRoute route, {String? query}) {
     AppRoute.watchlistAdd,
   };
   if (ready.contains(route)) {
-    context.push(query == null ? route.path : '${route.path}?$query');
+    context.push(route.path);
     return;
   }
   ScaffoldMessenger.of(

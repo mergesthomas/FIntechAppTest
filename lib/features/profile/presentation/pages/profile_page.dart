@@ -127,7 +127,6 @@ class _ProfileBody extends StatelessWidget {
         route == AppRoute.products ||
         route == AppRoute.explore ||
         route == AppRoute.news ||
-        route == AppRoute.funding ||
         route == AppRoute.card ||
         route == AppRoute.swap) {
       context.push(route.path);

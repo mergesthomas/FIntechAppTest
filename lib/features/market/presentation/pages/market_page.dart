@@ -186,18 +186,8 @@ class _BodyState extends State<_Body> {
                   },
                 ),
                 const SizedBox(height: AppSpacing.md),
-                BlocSelector<MarketCubit, MarketState, String>(
-                  selector: (state) => state is MarketSuccess
-                      ? state.asset.currency.code
-                      : '',
-                  builder: (context, code) {
-                    return TradeActions(
-                      onBuy: () => context.push(
-                        '${AppRoute.funding.path}?action=buy&asset=$code',
-                      ),
-                      onExchange: () => context.push(AppRoute.swap.path),
-                    );
-                  },
+                TradeActions(
+                  onExchange: () => context.push(AppRoute.swap.path),
                 ),
               ],
             ),

@@ -14,11 +14,10 @@ No Bloc, UI, or `lib/features/` until you approve **one** feature from the index
 | Access | `auth` |
 | Shell | `home`, `explore`, `products` |
 | Account | `profile`, `security_settings`, `inbox`, `news` |
-| Funding | `funding` |
 | Spend | `card` |
 | Trade | `swap`, `orders` |
 | Markets | `order_book` (Use Cases on `feature/order-book`; UI later) |
-| Dropped | `borrow`, `earn`, `futures` |
+| Dropped | `borrow`, `earn`, `futures`, `funding` |
 | Blocked | `wallet` (no screens) |
 
 ## Approval

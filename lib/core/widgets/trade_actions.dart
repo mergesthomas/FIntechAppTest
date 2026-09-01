@@ -4,46 +4,24 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
 abstract final class TradeActionLabels {
-  static const buy = 'Buy';
   static const exchange = 'Exchange';
-  static const addFunds = 'Add funds';
 }
 
 class TradeActions extends StatelessWidget {
-  const TradeActions({
-    super.key,
-    required this.onBuy,
-    required this.onExchange,
-    this.onAddFunds,
-  });
+  const TradeActions({super.key, required this.onExchange});
 
-  final VoidCallback onBuy;
   final VoidCallback onExchange;
-  final VoidCallback? onAddFunds;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         _Action(
-          key: const Key('trade_buy'),
-          icon: Icons.add,
-          label: TradeActionLabels.buy,
-          onTap: onBuy,
-        ),
-        _Action(
           key: const Key('trade_exchange'),
           icon: Icons.swap_horiz,
           label: TradeActionLabels.exchange,
           onTap: onExchange,
         ),
-        if (onAddFunds != null)
-          _Action(
-            key: const Key('add_funds'),
-            icon: Icons.south_west,
-            label: TradeActionLabels.addFunds,
-            onTap: onAddFunds!,
-          ),
       ],
     );
   }

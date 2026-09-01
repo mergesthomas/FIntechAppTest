@@ -23,7 +23,7 @@ Market detail
        (existing gates; book tap never submits)
 ```
 
-Buy / Exchange / Add funds stay **navigation only**.
+Exchange stays **navigation only**. Buy and Add funds are dropped.
 
 ## Domain
 
@@ -105,4 +105,4 @@ Wallet, send crypto, real exchange routing, custody, L2 aggregation beyond top N
 | 1 | Cubit + widget/flow (tap → draft → swap; no submit) |
 | 2–3 | Feed parser + freshness + reconnect |
 
-Money-moving still belongs to `swap` / `funding`. This feature must not add a second place path.
+Money-moving still belongs to `swap`. This feature must not add a second place path.

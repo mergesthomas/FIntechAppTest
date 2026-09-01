@@ -100,7 +100,6 @@ class _Catalog extends StatelessWidget {
     }
     if (route == AppRoute.explore ||
         route == AppRoute.news ||
-        route == AppRoute.funding ||
         route == AppRoute.card ||
         route == AppRoute.swap) {
       context.push(route.path);
