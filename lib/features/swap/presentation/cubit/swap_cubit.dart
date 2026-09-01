@@ -539,13 +539,7 @@ class SwapCubit extends Cubit<SwapState> {
       return;
     }
     quote.fold(
-      (failure) {
-        if (failure is SessionFailure) {
-          emit(SwapFailure(failure));
-          return;
-        }
-        emit(current.copyWith(ticketFailure: failure));
-      },
+      (failure) => emit(current.copyWith(ticketFailure: failure)),
       (q) => emit(
         current.copyWith(
           surface: SwapSurface.preview,

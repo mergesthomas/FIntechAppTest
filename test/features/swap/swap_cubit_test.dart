@@ -114,6 +114,7 @@ void main() {
     final ready = cubit.state as SwapReady;
     expect(ready.surface, SwapSurface.ticket);
     expect(ready.ticketFailure, isA<ValidationFailure>());
+    expect(cubit.state, isNot(isA<SwapFailure>()));
   });
 
   test('ticket has no request id until preview forms the intent', () async {

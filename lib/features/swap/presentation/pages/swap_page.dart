@@ -218,7 +218,7 @@ class _Ticket extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           ElevatedButton(
             key: const Key('swap_preview'),
-            onPressed: state.canPreview ? cubit.preview : null,
+            onPressed: cubit.preview,
             child: const Text(SwapCopy.previewCta),
           ),
           const SizedBox(height: AppSpacing.sm),
