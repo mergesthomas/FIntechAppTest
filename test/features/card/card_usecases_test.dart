@@ -45,8 +45,8 @@ void main() {
 
   test('restore returns the chosen existing rail', () async {
     final result = await RestoreCardBalance(RequireSession(auth))(
-      RestoreRail.funding,
+      RestoreRail.swap,
     );
-    expect(result.getRight().toNullable(), RestoreRail.funding);
+    expect(result.getRight().toNullable(), RestoreRail.swap);
   });
 }

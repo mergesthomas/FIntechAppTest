@@ -4,7 +4,7 @@ import '../../../../core/money/money.dart';
 
 enum CardStatus { none, frozen, active }
 
-enum RestoreRail { funding, swap }
+enum RestoreRail { swap }
 
 final class CardBalances extends Equatable {
   const CardBalances({required this.eurx, required this.usdApprox});
@@ -19,10 +19,7 @@ final class CardBalances extends Equatable {
 }
 
 final class CardSnapshot extends Equatable {
-  const CardSnapshot({
-    required this.status,
-    required this.balances,
-  });
+  const CardSnapshot({required this.status, required this.balances});
 
   final CardStatus status;
   final CardBalances balances;

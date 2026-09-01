@@ -20,11 +20,11 @@ These are not a feature. They apply wherever a submit moves money or changes cre
 |---|---|
 | Money | Domain `Money` (decimal + currency). Never `double` for balances, prices, amounts, rates, fees. |
 | Session | Use Case refuses if session is missing or expired. |
-| Eligibility | Trade / funding submits require KYC known + approved. Unknown or failed → do not open submit. |
+| Eligibility | Trade submits require KYC known + approved. Unknown or failed → do not open submit. |
 | Step-up | Money-moving submits require PIN / biometric / re-auth when the product requires it. |
 | Idempotency | Every submit carries client `requestId`. Retries reuse the same id. |
 | Settlement | After submit: `inFlight` → `confirmed` / `failed` / `unknown`. HTTP 200 is not settled. |
-| Quotes | Trade / buy quotes must be `live`. `stale` or `disconnected` → Use Case rejects submit. |
+| Quotes | Trade quotes must be `live`. `stale` or `disconnected` → Use Case rejects submit. |
 | Local-first | No backend. Emulate features on a local ledger. Fixture prices are not `live`. Trading waits for a remote price feed. |
 | Logging | Breadcrumb `requestId` + settlement only. Never log balances, tokens, addresses, PANs, IBANs, PII. |
 
@@ -69,7 +69,7 @@ Profile / Products / Security & Settings / Inbox / News
 | 6 | `inbox` | Activity | no | inbox | yes |
 | 7 | `news` | Content | no | news | yes |
 | 8 | `explore` | Markets | no | explore, explore_assets | yes |
-| 9 | `funding` | Deposit / buy | **yes** | add_funds, bank, receive, buy | yes (preview/result missing — improvise) |
+| 9 | `funding` | Deposit / buy | — | — | **dropped** |
 | 10 | `borrow` | Credit | — | — | **dropped** |
 | 11 | `earn` | Savings | — | — | **dropped** |
 | 12 | `card` | Spend | **yes** | nexo_card_product, card_frozen | frozen + marketing; active card missing |
@@ -158,7 +158,7 @@ Visible data:
 - Banner: EURx below zero — Learn more / dismiss
 - Watchlist: BTC, DOGE, PEPE, BONK, ETH — price + 24h + sparkline
 - Promo cards + News teaser
-- CTAs: **Send crypto** | **Add funds**
+- CTAs: **Exchange**
 - Tabs: Dashboard, Explore, Card, Exchange
 
 ### Use Cases
@@ -169,7 +169,7 @@ Visible data:
 - `GetDashboardPromos` — server cards only
 - `GetNewsPreview`
 
-Navigation only (no Domain submit): Wallet, Send crypto, Add funds, tabs, avatar, gift, bell.
+Navigation only (no Domain submit): Wallet, Send crypto, Exchange, tabs, avatar, gift, bell.
 
 ### Gates
 
@@ -244,7 +244,7 @@ Three tabs on one surface.
 - `Logout`
 - `StartCloseAccount` — step-up; settlement
 - `GetAppPreferences` / `SetDisplayCurrency` / `SetLanguage` / `SetAppearance`
-- `GetPaymentMethods` — shared with funding/buy
+- `GetPaymentMethods` — **dropped** with `funding`
 - `RequestAccountDocument` — kind + `requestId`; document job `inFlight` → ready / failed / unknown
 - `GetTaxReportLink`
 
@@ -311,66 +311,7 @@ No trade submit on this feature. Tapping an asset opens market detail.
 
 ## 9. `funding`
 
-Dashboard **Add funds** hub. Three rails. Not the only product — one money-moving slice.
-
-### Screens
-
-| Screen | Folder | Have |
-|---|---|---|
-| Add funds hub | `add_funds` | yes |
-| Select FIATx | `select_asset_fiatx` | yes |
-| Select bank method | `select_bank_method` | yes |
-| Open personal USD account | `open_usd_account` | yes |
-| Receive FIATx SEPA / SWIFT | `receive_fiat` | yes |
-| Select asset to receive | `select_asset_receive` | yes |
-| Receive crypto | `receive_crypto` | yes |
-| Select asset to buy | `select_asset_buy` | yes |
-| Buy amount + keypad | `buy_crypto` | yes |
-| Payment methods sheet | `payment_methods` | yes |
-| Buy preview / result | `buy_preview`, `buy_result` | **missing — improvise** |
-| Link card, frequency, restore, ACH | those folders | **missing — improvise later** |
-
-Hub rows: Bank transfers (USDx / EURx / GBPx) · Add crypto · Buy crypto (Instant / Apple Pay / Visa / Mastercard).
-
-```text
-Add funds
-├── Bank transfers → FIATx → (USDx: open USD account | ACH/SWIFT) | (EURx/GBPx: SEPA/SWIFT details)
-├── Add crypto → select asset → address + QR + network
-└── Buy crypto → select asset → amount → payment method → [preview] → [result]
-```
-
-### Use Cases
-
-**Hub**
-
-- `GetFundingMethods` — rows the user is allowed to see
-
-**Bank**
-
-- `GetFiatxAssets` — fee teasers from server
-- `GetBankRails` — ACH / SEPA / SWIFT by asset + region
-- `GetFiatAccountStatus` — none / inFlight / confirmed / failed / unknown
-- `AcceptFiatAccountTerms` — consent only; does not create
-- `CreatePersonalUsdAccount` — `requestId` + step-up + KYC; settlement
-- `GetFiatReceiveDetails` — beneficiary fields; copy/share is presentation
-- `GetBankTransferFeeSchedule` — server fees (screenshot placeholders: SEPA free above €100 else €5; SWIFT EURx €25; USDx free SWIFT above $5,000; GBPx free above £100)
-
-**Receive crypto**
-
-- `GetReceivableAssets` / `SearchReceivableAssets`
-- `GetReceiveAddress` — address + QR URI + network. Never log address
-
-**Buy**
-
-- `GetPurchasableAssets` / `SearchPurchasableAssets` — price + 24h + freshness
-- `GetBuyQuote` — `Money` in, crypto out, cashback teaser, `quoteId`, freshness
-- `GetPaymentMethods` — cards, Apple Pay if entitled, link-card, empty FIATx/stables
-- `GetPurchaseFrequencies`
-- `StartLinkCard` — KYC; processor session, not PAN
-- `GetEmptyBalances` — Restore EURx is a separate path
-- `SubmitBuyCrypto` — `requestId` + `quoteId` + method + `Money` + frequency + step-up. Refuse stale quote. Return settlement
-
-Inbound bank and on-chain: showing details ≠ credited. Deposit stays `inFlight` until ledger posts.
+Status: **dropped**. Deposit / buy / add-funds are out of product scope. Do not implement.
 
 ---
 
@@ -396,14 +337,14 @@ Status: **dropped**. Savings / earn-in-token are out of product scope. Do not im
 | Card frozen (negative EURx) | `card_frozen` | yes (2) |
 | Card active / transactions | `card_active`, `card_transactions` | **missing** |
 
-Frozen: EURx **−1.16** (≈ **$−1.35**). Copy: add funds, transfer, or swap. CTA **Restore balance**. Overflow: Swap, OTC Swap, Booster, Dual Investment.
+Frozen: EURx **−1.16** (≈ **$−1.35**). Copy: swap to restore. CTA **Restore balance** → `swap`.
 
 ### Use Cases
 
 - `GetCardStatus` — active / frozen / none
 - `GetCardBalances` — FIATx as `Money` (negative is valid)
 - `GetCardSpendQuote` — EUR spend vs collateral + LTV + freshness
-- `RestoreCardBalance` — routes to funding/swap; does not invent a rail
+- `RestoreCardBalance` — routes to `swap`; does not invent a rail
 - `GetCard` — blocked until active-card screens exist
 - `FreezeCard` / `UnfreezeCard` — unfreeze only if balance eligible
 
@@ -507,13 +448,12 @@ Reconnect / live Binance depth are Data (Phases 2–3). `SubmitOrderFromBook` is
 
 | From | To |
 |---|---|
-| Dashboard Add funds / Send | `funding` / send (blocked) |
+| Dashboard Exchange / Send | `swap` / send (blocked) |
 | Dashboard Wallet | `wallet` (blocked) |
-| Card Restore balance | `funding` or `swap` |
+| Card Restore balance | `swap` |
 | Frozen card overflow | `swap` |
 | Products tiles | matching feature |
 | Profile Security & Settings | `security_settings` |
-| Settings → Payment methods | `funding` methods |
 
 ---
 

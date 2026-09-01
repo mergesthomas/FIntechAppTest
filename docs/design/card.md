@@ -4,7 +4,7 @@ Frozen card is a first-class state. Active card / transactions screens do not ex
 
 ## Balances
 
-EURx may be negative. Domain uses `Money`. Restore does not invent a rail — it routes to `funding` or `swap`.
+EURx may be negative. Domain uses `Money`. Restore does not invent a rail — it routes to `swap`.
 
 ## Gates
 

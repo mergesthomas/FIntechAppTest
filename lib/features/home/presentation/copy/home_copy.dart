@@ -4,7 +4,7 @@ import '../../../../core/fixtures/news_feed_fixture.dart';
 abstract final class HomeCopy {
   static const alerts = {
     'home.alert.eurx_below_zero':
-        'Your EURx balance is below zero. Add funds or restore. [placeholder]',
+        'Your EURx balance is below zero. Swap or restore. [placeholder]',
   };
 
   static const promos = <String, String>{};

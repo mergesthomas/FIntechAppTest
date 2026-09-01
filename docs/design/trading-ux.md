@@ -20,7 +20,7 @@ Interactive OHLCV candlesticks render **only** on `MarketPage` (`/market/:code`)
 
 ## Actions
 
-Buy / Exchange / Add funds only **route** to funding and swap. Session, KYC, PIN, and live-quote gates stay in those features.
+Exchange only **routes** to swap. Session, KYC, PIN, and live-quote gates stay in that feature. Buy and Add funds are dropped.
 
 ## Order book
 

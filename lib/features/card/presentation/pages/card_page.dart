@@ -88,21 +88,16 @@ class _Body extends StatelessWidget {
         if (frozen) ...[
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Add funds, transfer, or swap to restore. Frozen is a first-class state.',
+            'Swap to restore. Frozen is a first-class state.',
             style: AppTextStyles.secondary.copyWith(
               color: scheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           ElevatedButton(
-            key: const Key('restore_funding'),
-            onPressed: () => _restore(context, RestoreRail.funding),
-            child: const Text('Restore balance'),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          OutlinedButton(
+            key: const Key('restore_swap'),
             onPressed: () => _restore(context, RestoreRail.swap),
-            child: const Text('Swap'),
+            child: const Text('Restore balance'),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
@@ -122,7 +117,6 @@ class _Body extends StatelessWidget {
     }
     result.fold((_) {}, (chosen) {
       final route = switch (chosen) {
-        RestoreRail.funding => AppRoute.funding,
         RestoreRail.swap => AppRoute.swap,
       };
       context.push(route.path);

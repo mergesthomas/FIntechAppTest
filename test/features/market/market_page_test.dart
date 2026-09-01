@@ -63,7 +63,7 @@ void main() {
     expect(find.byKey(const Key('market_volume_toggle')), findsOneWidget);
     expect(find.byKey(const Key('market_zoom_reset')), findsOneWidget);
     expect(find.byKey(const Key('market_ohlc_stats')), findsOneWidget);
-    expect(find.byKey(const Key('trade_buy')), findsOneWidget);
+    expect(find.byKey(const Key('trade_buy')), findsNothing);
     expect(find.byKey(const Key('trade_exchange')), findsOneWidget);
     expect(find.byKey(const Key('trade_futures')), findsNothing);
     await tester.drag(
