@@ -7,7 +7,7 @@ Status: **Phases 0–3.** UI on `feature/order-book`. Live depth + reconnect on 
 
 ## Why
 
-Interview-style trading apps almost always ask for a live book (bids/asks, tap to populate price). We already have last-price ticks, candlesticks, and a gated swap ticket. This feature fills the missing microstructure view without a one-tap place.
+A live book (bids/asks, tap to populate a price) is standard on a trading surface. We already have last-price ticks, candlesticks, and a gated swap ticket, so this fills the missing microstructure view without introducing a one-tap place.
 
 ## Screens and flow
 
