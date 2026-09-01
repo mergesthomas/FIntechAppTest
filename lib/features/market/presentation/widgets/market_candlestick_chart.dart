@@ -85,17 +85,16 @@ class MarketCandlestickChartState extends State<MarketCandlestickChart>
       return;
     }
     _lastInertiaX = 0;
-    _inertia.animateWith(
-      FrictionSimulation(0.135, 0, velocityX),
-    );
+    _inertia.animateWith(FrictionSimulation(0.135, 0, velocityX));
   }
 
-  CandleSticksStyle _styleFor(ColorScheme scheme) {
+  CandleSticksStyle _styleFor(ThemeData theme) {
+    final scheme = theme.colorScheme;
     final bull = scheme.tertiary;
     final bear = scheme.error;
     final axis = scheme.onSurfaceVariant;
     final grid = scheme.outline.withValues(alpha: 0.35);
-    final background = scheme.surface;
+    final background = theme.scaffoldBackgroundColor;
     if (scheme.brightness == Brightness.dark) {
       return CandleSticksStyle.dark(
         chartBackgroundColor: background,
@@ -139,7 +138,7 @@ class MarketCandlestickChartState extends State<MarketCandlestickChart>
     if (candles.length < 2) {
       return const Center(child: CircularProgressIndicator());
     }
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return Listener(
       onPointerDown: (event) {
         _pointers++;
@@ -151,9 +150,10 @@ class MarketCandlestickChartState extends State<MarketCandlestickChart>
         _velocity.addPosition(event.timeStamp, event.position);
       },
       onPointerUp: (event) {
-        final held = _downAt == null
-            ? Duration.zero
-            : DateTime.now().difference(_downAt!);
+        final held =
+            _downAt == null
+                ? Duration.zero
+                : DateTime.now().difference(_downAt!);
         final count = _pointers;
         _pointers = (_pointers - 1).clamp(0, 20);
         if (count != 1 || held > const Duration(milliseconds: 320)) {
@@ -177,7 +177,7 @@ class MarketCandlestickChartState extends State<MarketCandlestickChart>
       child: Candlesticks(
         candles: candles,
         controller: _controller,
-        style: _styleFor(scheme),
+        style: _styleFor(theme),
       ),
     );
   }

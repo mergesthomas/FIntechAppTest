@@ -7,6 +7,8 @@ abstract final class MarketCopy {
   static const orderBook = 'Order book';
   static const bids = 'Bids';
   static const asks = 'Asks';
+  static const size = 'Size';
+  static const price = 'Price';
   static const spread = 'Spread';
   static const bookUnavailable = 'Order book is unavailable for this asset.';
   static const bookOffline =

@@ -62,23 +62,23 @@ class _SwapPageState extends State<SwapPage> {
                   ? SwapCopy.previewTitle
                   : SwapCopy.title,
             ),
-            leading: state is SwapReady &&
-                    state.surface != SwapSurface.ticket
-                ? IconButton(
-                    key: const Key('swap_close'),
-                    onPressed: context.read<SwapCubit>().backToTicket,
-                    icon: const Icon(Icons.close),
-                  )
-                : (ModalRoute.of(context)?.canPop ?? false)
+            leading:
+                state is SwapReady && state.surface != SwapSurface.ticket
+                    ? IconButton(
+                      key: const Key('swap_close'),
+                      onPressed: context.read<SwapCubit>().backToTicket,
+                      icon: const Icon(Icons.close),
+                    )
+                    : (ModalRoute.of(context)?.canPop ?? false)
                     ? null
                     : IconButton(
-                        tooltip: SwapCopy.info,
-                        onPressed: () =>
-                            ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text(SwapCopy.info)),
-                        ),
-                        icon: const Icon(Icons.info_outline),
-                      ),
+                      tooltip: SwapCopy.info,
+                      onPressed:
+                          () => ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text(SwapCopy.info)),
+                          ),
+                      icon: const Icon(Icons.info_outline),
+                    ),
             actions: [
               IconButton(
                 tooltip: SwapCopy.orders,
@@ -91,15 +91,15 @@ class _SwapPageState extends State<SwapPage> {
             SwapLoading() => const Center(child: CircularProgressIndicator()),
             SwapEmpty() => const AppEmptyState(message: SwapCopy.noAssets),
             SwapFailure(:final failure) => AppEmptyState(
-                message: '$failure',
-                actionLabel: 'Retry',
-                onAction: context.read<SwapCubit>().load,
-              ),
+              message: '$failure',
+              actionLabel: 'Retry',
+              onAction: context.read<SwapCubit>().load,
+            ),
             SwapReady() => switch (state.surface) {
-                SwapSurface.ticket => _Ticket(state: state),
-                SwapSurface.preview => _Preview(state: state),
-                SwapSurface.result => _Result(state: state),
-              },
+              SwapSurface.ticket => _Ticket(state: state),
+              SwapSurface.preview => _Preview(state: state),
+              SwapSurface.result => _Result(state: state),
+            },
           },
         );
       },
@@ -124,106 +124,106 @@ class _Ticket extends StatelessWidget {
       ),
       child: Column(
         children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            key: const Key('swap_order_type'),
-            onPressed: () => _pickOrderType(context),
-            child: Text(SwapCopy.orderTypeLabel(state.orderType.name)),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              key: const Key('swap_order_type'),
+              onPressed: () => _pickOrderType(context),
+              child: Text(SwapCopy.orderTypeLabel(state.orderType.name)),
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        _AssetCard(
-          key: const Key('swap_from_asset'),
-          code: state.from.code,
-          balance: state.fromBalance,
-          amountLabel: _signedAmount(state.amountInput, negative: true),
-          selected: state.inputField == SwapInputField.payAmount,
-          onSelectAsset: () => _pickAsset(context, pay: true),
-          onFocus: () => cubit.focusField(SwapInputField.payAmount),
-        ),
-        Align(
-          child: IconButton(
-            key: const Key('swap_flip'),
-            onPressed: cubit.flip,
-            icon: const Icon(Icons.arrow_downward),
-          ),
-        ),
-        _AssetCard(
-          key: const Key('swap_to_asset'),
-          code: state.to.code,
-          balance: state.toBalance,
-          amountLabel: _receiveLabel(state),
-          selected: false,
-          cashback: state.amountInput.isNotEmpty,
-          onSelectAsset: () => _pickAsset(context, pay: false),
-          onFocus: () {},
-        ),
-        if (state.orderType == SwapOrderType.limit) ...[
           const SizedBox(height: AppSpacing.sm),
-          _PriceRow(
-            key: const Key('swap_limit_price'),
-            label: SwapCopy.limitPrice,
-            value: state.limitInput,
-            unit: state.from.code,
-            selected: state.inputField == SwapInputField.limitPrice,
-            onTap: () => cubit.focusField(SwapInputField.limitPrice),
+          _AssetCard(
+            key: const Key('swap_from_asset'),
+            code: state.from.code,
+            balance: state.fromBalance,
+            amountLabel: _signedAmount(state.amountInput, negative: true),
+            selected: state.inputField == SwapInputField.payAmount,
+            onSelectAsset: () => _pickAsset(context, pay: true),
+            onFocus: () => cubit.focusField(SwapInputField.payAmount),
           ),
-        ],
-        if (state.orderType == SwapOrderType.trigger) ...[
-          const SizedBox(height: AppSpacing.sm),
-          _PriceRow(
-            key: const Key('swap_take_profit'),
-            label: SwapCopy.takeProfit,
-            value: state.tpInput,
-            unit: state.from.code,
-            selected: state.inputField == SwapInputField.takeProfit,
-            onTap: () => cubit.focusField(SwapInputField.takeProfit),
+          Align(
+            child: IconButton(
+              key: const Key('swap_flip'),
+              onPressed: cubit.flip,
+              icon: const Icon(Icons.arrow_downward),
+            ),
           ),
-          _PriceRow(
-            key: const Key('swap_stop_loss'),
-            label: SwapCopy.stopLoss,
-            value: state.slInput,
-            unit: state.from.code,
-            selected: state.inputField == SwapInputField.stopLoss,
-            onTap: () => cubit.focusField(SwapInputField.stopLoss),
+          _AssetCard(
+            key: const Key('swap_to_asset'),
+            code: state.to.code,
+            balance: state.toBalance,
+            amountLabel: _receiveLabel(state),
+            selected: false,
+            cashback: state.amountInput.isNotEmpty,
+            onSelectAsset: () => _pickAsset(context, pay: false),
+            onFocus: () {},
           ),
-        ],
-        if (state.rate != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          _RateLine(rate: state.rate!, from: state.from, to: state.to),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        ElevatedButton(
-          key: const Key('swap_preview'),
-          onPressed: cubit.preview,
-          child: const Text(SwapCopy.previewCta),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            for (final pct in [10, 20, 30, 50])
-              Expanded(
-                child: TextButton(
-                  key: Key('swap_pct_$pct'),
-                  onPressed: () => cubit.setPercent(pct),
-                  child: Text('$pct%'),
-                ),
-              ),
-            Expanded(
-              child: TextButton(
-                key: const Key('swap_pct_max'),
-                onPressed: () => cubit.setPercent(100),
-                child: const Text(SwapCopy.pctMax),
-              ),
+          if (state.orderType == SwapOrderType.limit) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _PriceRow(
+              key: const Key('swap_limit_price'),
+              label: SwapCopy.limitPrice,
+              value: state.limitInput,
+              unit: state.from.code,
+              selected: state.inputField == SwapInputField.limitPrice,
+              onTap: () => cubit.focusField(SwapInputField.limitPrice),
             ),
           ],
-        ),
-        SwapKeypad(
-          onDigit: cubit.appendKey,
-          onDot: () => cubit.appendKey('.'),
-          onBackspace: cubit.backspace,
-        ),
+          if (state.orderType == SwapOrderType.trigger) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _PriceRow(
+              key: const Key('swap_take_profit'),
+              label: SwapCopy.takeProfit,
+              value: state.tpInput,
+              unit: state.from.code,
+              selected: state.inputField == SwapInputField.takeProfit,
+              onTap: () => cubit.focusField(SwapInputField.takeProfit),
+            ),
+            _PriceRow(
+              key: const Key('swap_stop_loss'),
+              label: SwapCopy.stopLoss,
+              value: state.slInput,
+              unit: state.from.code,
+              selected: state.inputField == SwapInputField.stopLoss,
+              onTap: () => cubit.focusField(SwapInputField.stopLoss),
+            ),
+          ],
+          if (state.rate != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            _RateLine(rate: state.rate!, from: state.from, to: state.to),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          ElevatedButton(
+            key: const Key('swap_preview'),
+            onPressed: cubit.preview,
+            child: const Text(SwapCopy.previewCta),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              for (final pct in [10, 20, 30, 50])
+                Expanded(
+                  child: TextButton(
+                    key: Key('swap_pct_$pct'),
+                    onPressed: () => cubit.setPercent(pct),
+                    child: Text('$pct%'),
+                  ),
+                ),
+              Expanded(
+                child: TextButton(
+                  key: const Key('swap_pct_max'),
+                  onPressed: () => cubit.setPercent(100),
+                  child: const Text(SwapCopy.pctMax),
+                ),
+              ),
+            ],
+          ),
+          SwapKeypad(
+            onDigit: cubit.appendKey,
+            onDot: () => cubit.appendKey('.'),
+            onBackspace: cubit.backspace,
+          ),
         ],
       ),
     );
@@ -266,9 +266,10 @@ class _AssetCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        key: key == const Key('swap_from_asset')
-            ? const Key('swap_amount')
-            : null,
+        key:
+            key == const Key('swap_from_asset')
+                ? const Key('swap_amount')
+                : null,
         onTap: onFocus,
         borderRadius: AppRadii.card,
         child: AppSurface(
@@ -381,11 +382,7 @@ class _PriceRow extends StatelessWidget {
 }
 
 class _RateLine extends StatelessWidget {
-  const _RateLine({
-    required this.rate,
-    required this.from,
-    required this.to,
-  });
+  const _RateLine({required this.rate, required this.from, required this.to});
 
   final SwapRate rate;
   final Currency from;
@@ -467,9 +464,9 @@ class _Preview extends StatelessWidget {
               return;
             }
             await context.read<SwapCubit>().confirm(
-                  requestId: 'swap-${DateTime.now().microsecondsSinceEpoch}',
-                  stepUp: stepped,
-                );
+              requestId: 'swap-${DateTime.now().microsecondsSinceEpoch}',
+              stepUp: stepped,
+            );
           },
           child: const Text(SwapCopy.confirmCta),
         ),
@@ -486,32 +483,99 @@ class _Result extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final result = state.result;
-    final label = switch (result) {
-      StaleQuoteFailure() => 'Quote is stale — swap rejected',
-      StepUpFailure() => 'Step-up required',
+    final quote = state.quote;
+    final scheme = Theme.of(context).colorScheme;
+    final submit = result is SwapSubmit ? result : null;
+    final headline = switch (result) {
+      StaleQuoteFailure() => SwapCopy.staleQuote,
+      StepUpFailure() => SwapCopy.stepUpRequired,
       SwapSubmit(:final settlement, :final venue) =>
-        venue != PaperVenue.market &&
-                settlement == SettlementStatus.confirmed
-            ? SwapCopy.placed
-            : 'Settlement ${settlement.name}',
+        SwapCopy.settlementHeadline(
+          settlement: settlement,
+          resting: venue != PaperVenue.market,
+        ),
       Failure() => '$result',
-      _ => 'Unknown result',
+      _ => SwapCopy.unknownStatus,
     };
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, key: const Key('swap_result')),
-          if (result is SwapSubmit &&
-              (result.settlement == SettlementStatus.confirmed ||
-                  result.settlement == SettlementStatus.inFlight))
-            TextButton(
-              key: const Key('view_orders'),
-              onPressed: () => context.push(AppRoute.orders.path),
-              child: const Text(SwapCopy.orders),
-            ),
-        ],
+    final icon = switch (submit?.settlement) {
+      SettlementStatus.confirmed => Icons.check_circle_outline,
+      SettlementStatus.inFlight => Icons.hourglass_empty,
+      SettlementStatus.failed => Icons.error_outline,
+      SettlementStatus.unknown => Icons.help_outline,
+      null => Icons.error_outline,
+    };
+    final iconColor = switch (submit?.settlement) {
+      SettlementStatus.confirmed => scheme.tertiary,
+      SettlementStatus.inFlight => scheme.onSurfaceVariant,
+      SettlementStatus.failed => scheme.error,
+      SettlementStatus.unknown => scheme.error,
+      null => scheme.error,
+    };
+    final showOrders =
+        submit != null &&
+        (submit.settlement == SettlementStatus.confirmed ||
+            submit.settlement == SettlementStatus.inFlight ||
+            submit.settlement == SettlementStatus.unknown);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.pageHorizontal,
+        AppSpacing.xl,
+        AppSpacing.pageHorizontal,
+        AppSpacing.lg,
       ),
+      children: [
+        Icon(icon, size: 48, color: iconColor),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          headline,
+          key: const Key('swap_result'),
+          style: AppTextStyles.headline,
+          textAlign: TextAlign.center,
+        ),
+        if (quote != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            SwapCopy.orderTypeLabel(quote.type.name),
+            style: AppTextStyles.secondary.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppSurface(
+            child: Column(
+              children: [
+                DetailRow(
+                  label: SwapCopy.payWith,
+                  value: '- ${formatMoney(quote.from, withCode: true)}',
+                ),
+                DetailRow(
+                  label: SwapCopy.receive,
+                  value: '+ ${formatMoney(quote.to, withCode: true)}',
+                ),
+                if (submit != null)
+                  DetailRow(
+                    label: SwapCopy.status,
+                    value: SwapCopy.settlementStatus(submit.settlement),
+                  ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.xl),
+        if (showOrders)
+          ElevatedButton(
+            key: const Key('view_orders'),
+            onPressed: () => context.push(AppRoute.orders.path),
+            child: const Text(SwapCopy.viewOrders),
+          ),
+        if (showOrders) const SizedBox(height: AppSpacing.sm),
+        TextButton(
+          key: const Key('swap_done'),
+          onPressed: context.read<SwapCubit>().backToTicket,
+          child: const Text(SwapCopy.done),
+        ),
+      ],
     );
   }
 }

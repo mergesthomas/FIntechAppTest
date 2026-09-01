@@ -12,14 +12,8 @@ void main() {
   });
 
   test('formats sub-cent USD quotes instead of \$0.00', () {
-    expect(
-      formatMoney(Money.parse('0.00000282', Currency.usd)),
-      r'$0.0000028',
-    );
-    expect(
-      formatMoney(Money.parse('0.00000353', Currency.usd)),
-      r'$0.0000035',
-    );
+    expect(formatMoney(Money.parse('0.00000282', Currency.usd)), r'$0.0000028');
+    expect(formatMoney(Money.parse('0.00000353', Currency.usd)), r'$0.0000035');
     expect(formatMoney(Money.parse('0.08', Currency.usd)), r'$0.08');
   });
 
@@ -42,6 +36,10 @@ void main() {
     expect(
       formatQuantity(Money.parse('10000.00', Currency.usdc)),
       '10,000 USDC',
+    );
+    expect(
+      formatQuantity(Money.parse('78854.11', Currency.usdt), withCode: false),
+      '78,854.11',
     );
   });
 
