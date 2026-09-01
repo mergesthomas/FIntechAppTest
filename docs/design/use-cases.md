@@ -22,7 +22,7 @@ These are not a feature. They apply wherever a submit moves money or changes cre
 | Session | Use Case refuses if session is missing or expired. |
 | Eligibility | Trade submits require KYC known + approved. Unknown or failed → do not open submit. |
 | Step-up | Money-moving submits require PIN / biometric / re-auth when the product requires it. |
-| Idempotency | Every submit carries client `requestId`. Retries reuse the same id. |
+| Idempotency | Every submit carries client `requestId`, minted when the intent is formed (preview), not at tap time. Retries reuse the same id; the Cubit ignores a second confirm while in flight. |
 | Settlement | After submit: `inFlight` → `confirmed` / `failed` / `unknown`. HTTP 200 is not settled. |
 | Quotes | Trade quotes must be `live`. `stale` or `disconnected` → Use Case rejects submit. |
 | Local-first | No backend. Emulate features on a local ledger. Fixture prices are not `live`. Trading waits for a remote price feed. |

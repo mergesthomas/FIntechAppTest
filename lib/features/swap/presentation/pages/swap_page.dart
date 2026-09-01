@@ -458,17 +458,23 @@ class _Preview extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
         ElevatedButton(
           key: const Key('swap_confirm'),
-          onPressed: () async {
-            final stepped = await confirmStepUpPin(context);
-            if (!context.mounted) {
-              return;
-            }
-            await context.read<SwapCubit>().confirm(
-              requestId: 'swap-${DateTime.now().microsecondsSinceEpoch}',
-              stepUp: stepped,
-            );
-          },
-          child: const Text(SwapCopy.confirmCta),
+          onPressed: state.submitting
+              ? null
+              : () async {
+                  final stepped = await confirmStepUpPin(context);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await context.read<SwapCubit>().confirm(stepUp: stepped);
+                },
+          child: state.submitting
+              ? const SizedBox(
+                  key: Key('swap_confirm_spinner'),
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text(SwapCopy.confirmCta),
         ),
       ],
     );

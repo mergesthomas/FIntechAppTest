@@ -24,6 +24,15 @@ Stale or disconnected: do not place, do not fill.
 
 Session, KYC `approved`, step-up, `requestId`. Submit re-checks **current** live freshness.
 
+## Idempotency
+
+The `requestId` is minted by `RequestIdFactory` when **preview** succeeds — that is where the submit intent is formed — and stored on `SwapReady`. It is not minted at tap time, because two taps would then produce two ids and the ledger could not dedupe.
+
+- Retry of the same preview reuses the stored id. `PaperLedger` returns the recorded status instead of applying twice.
+- `SwapCubit.confirm` ignores a second call while `submitting` is true, and the CTA is `onPressed: null` with a spinner.
+- A failure keeps the id so a retry stays idempotent.
+- `backToTicket` (and Done) clears the id. Re-previewing the same amount is a **new** intent and must place a distinct order.
+
 ## Display-only (COMPLIANCE)
 
 Fee `0.99 USD` and cashback `0.50%` are screenshot placeholders. They are not ledger credits.

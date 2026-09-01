@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../clock/app_clock.dart';
+import '../settlement/request_id.dart';
 import '../config/flavor_config.dart';
 import '../ledger/paper_fill_watcher.dart';
 import '../ledger/paper_ledger.dart';
@@ -89,6 +90,10 @@ final marketFeedProvider = Provider<MarketFeed>((ref) {
 
 final paperOrderStoreProvider = Provider<PaperOrderStore>((ref) {
   return PaperOrderStore();
+});
+
+final requestIdFactoryProvider = Provider<RequestIdFactory>((ref) {
+  return ClockRequestIdFactory(clock: ref.watch(appClockProvider));
 });
 
 final paperSettlerProvider = Provider<PaperSettler>((ref) {
@@ -364,6 +369,7 @@ final swapCubitProvider = Provider<SwapCubit>((ref) {
     watchRate: WatchSwapRate(session, swap),
     getQuote: GetSwapQuote(session, eligibility, swap),
     submit: SubmitSwap(session, eligibility, swap),
+    requestIds: ref.watch(requestIdFactoryProvider),
   );
   ref.onDispose(cubit.close);
   return cubit;

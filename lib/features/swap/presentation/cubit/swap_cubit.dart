@@ -8,6 +8,7 @@ import 'package:fpdart/fpdart.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/money/currency.dart';
 import '../../../../core/money/money.dart';
+import '../../../../core/settlement/request_id.dart';
 import '../../../../core/usecase/use_case.dart';
 import '../../domain/entities/swap.dart';
 import '../../domain/usecases/swap_usecases.dart';
@@ -56,6 +57,8 @@ final class SwapReady extends SwapState {
     this.rate,
     this.quote,
     this.result,
+    this.requestId,
+    this.submitting = false,
   });
 
   final SwapSurface surface;
@@ -72,6 +75,12 @@ final class SwapReady extends SwapState {
   final SwapRate? rate;
   final SwapQuote? quote;
   final Object? result;
+
+  /// Client id for this submit intent. Retries reuse it.
+  final String? requestId;
+
+  /// True while a submit is in flight. Blocks a second confirm.
+  final bool submitting;
 
   Money? get fromBalance {
     for (final asset in assets) {
@@ -106,9 +115,12 @@ final class SwapReady extends SwapState {
     SwapRate? rate,
     SwapQuote? quote,
     Object? result,
+    String? requestId,
+    bool? submitting,
     bool clearQuote = false,
     bool clearRate = false,
     bool clearResult = false,
+    bool clearRequestId = false,
   }) {
     return SwapReady(
       surface: surface ?? this.surface,
@@ -125,6 +137,8 @@ final class SwapReady extends SwapState {
       rate: clearRate ? null : rate ?? this.rate,
       quote: clearQuote ? null : quote ?? this.quote,
       result: clearResult ? null : result ?? this.result,
+      requestId: clearRequestId ? null : requestId ?? this.requestId,
+      submitting: submitting ?? this.submitting,
     );
   }
 
@@ -144,6 +158,8 @@ final class SwapReady extends SwapState {
         rate,
         quote,
         result,
+        requestId,
+        submitting,
       ];
 }
 
@@ -154,11 +170,13 @@ class SwapCubit extends Cubit<SwapState> {
     required WatchSwapRate watchRate,
     required GetSwapQuote getQuote,
     required SubmitSwap submit,
+    required RequestIdFactory requestIds,
   })  : _searchAssets = searchAssets,
         _getOrderTypes = getOrderTypes,
         _watchRate = watchRate,
         _getQuote = getQuote,
         _submit = submit,
+        _requestIds = requestIds,
         super(const SwapLoading());
 
   final SearchSwapAssets _searchAssets;
@@ -166,6 +184,7 @@ class SwapCubit extends Cubit<SwapState> {
   final WatchSwapRate _watchRate;
   final GetSwapQuote _getQuote;
   final SubmitSwap _submit;
+  final RequestIdFactory _requestIds;
 
   StreamSubscription<Either<Failure, SwapRate>>? _rateSub;
 
@@ -415,16 +434,28 @@ class SwapCubit extends Cubit<SwapState> {
     }
     quote.fold(
       (failure) => emit(SwapFailure(failure)),
-      (q) => emit(current.copyWith(surface: SwapSurface.preview, quote: q)),
+      (q) => emit(
+        current.copyWith(
+          surface: SwapSurface.preview,
+          quote: q,
+          requestId: _requestIds.next('swap'),
+          submitting: false,
+        ),
+      ),
     );
   }
 
-  Future<void> confirm({required String requestId, required bool stepUp}) async {
+  Future<void> confirm({required bool stepUp}) async {
     final current = _ready;
     final quote = current?.quote;
-    if (current == null || quote == null) {
+    final requestId = current?.requestId;
+    if (current == null || quote == null || requestId == null) {
       return;
     }
+    if (current.submitting) {
+      return;
+    }
+    emit(current.copyWith(submitting: true));
     final result = await _submit((
       requestId: requestId,
       quoteId: quote.quoteId,
@@ -434,11 +465,22 @@ class SwapCubit extends Cubit<SwapState> {
     if (isClosed) {
       return;
     }
+    final latest = _ready ?? current;
     result.fold(
-      (failure) =>
-          emit(current.copyWith(surface: SwapSurface.result, result: failure)),
-      (submit) =>
-          emit(current.copyWith(surface: SwapSurface.result, result: submit)),
+      (failure) => emit(
+        latest.copyWith(
+          surface: SwapSurface.result,
+          result: failure,
+          submitting: false,
+        ),
+      ),
+      (submit) => emit(
+        latest.copyWith(
+          surface: SwapSurface.result,
+          result: submit,
+          submitting: false,
+        ),
+      ),
     );
   }
 
@@ -450,8 +492,10 @@ class SwapCubit extends Cubit<SwapState> {
     emit(
       current.copyWith(
         surface: SwapSurface.ticket,
+        submitting: false,
         clearQuote: true,
         clearResult: true,
+        clearRequestId: true,
       ),
     );
   }

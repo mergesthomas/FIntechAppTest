@@ -46,3 +46,6 @@ app.*.map.json
 
 # Local Nexo reference screenshots — never commit
 screenshots/
+
+# Local scratch notes — never commit
+docs/local/
